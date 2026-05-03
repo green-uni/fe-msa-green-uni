@@ -7,18 +7,6 @@ import TopHeader from '@/layouts/TopHeader.vue';
 const router = useRouter()
 const route = useRoute()
 
-const isSidebarCollapsed = ref(false)
-
-const toggleSidebar = () => {
-  isSidebarCollapsed.value = !isSidebarCollapsed.value
-}
-
-
-const isActive = (path) => route.path.startsWith(path)
-
-const navigate = (path) => {
-  router.push(path)
-}
 </script>
 
 <template>

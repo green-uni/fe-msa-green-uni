@@ -1,11 +1,18 @@
-import { authRoutes, adminAuthRoutes } from './auth'
-import { memberRoutes, adminMemberRoutes } from './member'
-// import { lectureRoutes, adminLectureRoutes } from './lecture'
-// import { gradeRoutes } from './grade'
-// import { courseRoutes } from './course'
-// import { adminMajorRoutes } from './major'
-// import { calendarRoutes, adminCalendarRoutes } from './calendar'
-// import { attendanceRoutes } from './attendance'
+import { authRoutes, adminAuthRoutes } from './routeAuth'
+import { memberRoutes, adminMemberRoutes } from './routeMember'
+
+import { lectureRoutes, adminLectureRoutes } from './routeLecture'
+import { evaluationRoutes } from './routeEvaluation'
+import { scheduleRoutes, adminScheduleRoutes } from './routeSchedule'
+
+import { adminMajorRoutes } from './routeMajor'
+import { courseRoutes } from './routeCourse'
+import { tuitionRoutes, adminTuitionRoutes } from './routeTuition'
+import { scholarshipRoutes, adminScholarshipRoutes } from './routeScholarship'
+
+import { gradeRoutes } from './routeGrade'
+import { announcementRoutes, adminAnnouncementRoutes } from './routeAnnouncement'
+import { attendanceRoutes } from './routeAttendance'
 
 export const routes = [
   // 학생/교수 레이아웃
@@ -13,13 +20,17 @@ export const routes = [
     path: '/',
     component: () => import('@/layouts/AcademicLayout.vue'),
     children: [
-       ...authRoutes,
+      ...authRoutes,
       ...memberRoutes,
-      // ...calendarRoutes,
-      // ...lectureRoutes,
-      // ...courseRoutes,
-      // ...attendanceRoutes,
-      // ...gradeRoutes
+      ...lectureRoutes,
+      ...evaluationRoutes,
+      ...scheduleRoutes,
+      ...tuitionRoutes,
+      ...courseRoutes,
+      ...gradeRoutes,
+      ...scholarshipRoutes,
+      ...announcementRoutes,
+      ...attendanceRoutes,
     ],
   },
   // 관리자 레이아웃
@@ -29,9 +40,12 @@ export const routes = [
     children: [
       ...adminAuthRoutes,
       ...adminMemberRoutes,
-      // ...adminMajorRoutes,
-      // ...adminCalendarRoutes,
-      // ...adminLectureRoutes
+      ...adminAnnouncementRoutes,
+      ...adminLectureRoutes,
+      ...adminScheduleRoutes,
+      ...adminMajorRoutes,
+      ...adminTuitionRoutes,
+      ...adminScholarshipRoutes
     ],
   },
 ]
