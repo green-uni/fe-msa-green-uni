@@ -1,7 +1,6 @@
 const url = 'auth'
 
 export const authRoutes = [
-
   {
     path: 'login',
     component: () => import('@/views/academic/auth/LogIn.vue'),
