@@ -1,4 +1,4 @@
-const url = 'attendance'
+const url = 'attendances'
 
 export const attendanceRoutes = [
 ]

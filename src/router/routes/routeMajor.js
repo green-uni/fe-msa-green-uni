@@ -1,4 +1,4 @@
-const adminUrl = 'major'
+const adminUrl = 'majors'
 
 export const adminMajorRoutes = [
 ]

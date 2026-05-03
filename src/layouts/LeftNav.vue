@@ -1,18 +1,24 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { routes } from '@/router/routes';
+import { routes } from '@/router/routes'
 import { useAuthStore } from '@/stores/authentication';
 
 const authStore = useAuthStore()
 const route = useRoute();
 const menus = ref([]);
+const isAdmin = route.path.startsWith('/admin')
 
 const makeMenu = () => {
   const temp = {};
   const role = authStore?.role;
 
-  routes.forEach(r => {
+  // children을 전부 꺼내서 하나의 배열로 합치기
+  const flatRoutes = routes
+    .filter(r => isAdmin ? r.path === '/admin/' : r.path === '/')
+    .flatMap(r => r.children || [])
+
+  flatRoutes.forEach(r => {
     const { groupTitle, title, auth } = r.meta || {};
     if (!groupTitle) return; // groupTitle이 없다면 메뉴로 만들지 않음
     if (r.meta?.showInNav === false) return // showInNav: false면 메뉴에서 제외
@@ -27,7 +33,7 @@ const makeMenu = () => {
     }
     temp[groupTitle].subMenus.push({ // 그룹 안에 서브메뉴로 작업
       title: title,
-      path: r.path,
+      path: (isAdmin ? '/admin/' : '/') + r.path,  // ← / 붙이기
       planTitle: r.meta?.planTitle
     });
   })
@@ -63,7 +69,7 @@ watch(() => route.path, () => {
 </script>
 
 <template>
-  <nav>
+  <nav :class="isAdmin ? 'admin' : 'academic'">
     <div v-for="menu in menus" :key="menu.title" class="group">
       <div class="group-title d-flex jc-space-b ai-center" @click="toggleMenu(menu)" :class="{ 'active': menu.isOpen }">
         <span>{{ menu.title }}</span>
@@ -89,73 +95,31 @@ watch(() => route.path, () => {
 <style scoped>
 nav {
   padding: 10px;
+  &.admin { background: #2c3e50; }
+  &.academic{ background: #eee;}
 }
-
 .group {
   display: flex;
   flex-direction: column;
   gap: 5px;
 }
-
 .group-title {
-  padding: 5px 18px;
-  cursor: pointer;
-  height: 55px;
-  font-weight: 500;
+  padding: 5px 10px; cursor: pointer; height: 55px; font-weight: 500;
+  svg { font-size: .8em;}
+  &.active{
+    background-color: var(--main-color); border-radius: 5px; font-weight: 500;
+    span { color: #fff; opacity: 1;}
+  }
 }
-
-.group-title svg {
-  font-size: .8em;
-}
-
-.group-title.active span {
-  color: var(--font-color);
-  opacity: .5;
-}
-
-.group-title.active {
-  background-color: var(--main-color);
-  border-radius: 5px;
-  font-weight: 500;
-}
-
-.group-title.active span {
-  color: #fff;
-  opacity: 1;
-}
-
 .sub-menu {
-  border-radius: 5px;
-  overflow: hidden;
-}
-
-.sub-menu.active {
-  display: block;
-}
-
-.sub-menu a {
-  text-decoration: none;
-  display: flex;
-  justify-content: space-between;
-  padding: 15px;
-  background: #F8F9FA;
-  color: var(--font-color-light);
-}
-
-.sub-menu a:not(:first-child) {
-  border-top: 1px solid #eee;
-}
-
-.sub-menu a:hover {
-  color: var(--font-color)
-}
-
-.sub-menu a.active {
-  background-color: var(--hover-bg-color);
-  color: var(--main-color);
-}
-
-.sub-menu a.plan {
-  opacity: .6;
+  border-radius: 5px; overflow: hidden;
+  a {
+    text-decoration: none; display: flex;  justify-content: space-between; padding: 15px; background: #F8F9FA;  color: var(--font-color-light);
+    &:not(:first-child) { border-top: 1px solid #eee; }
+    &:hover {  color: var(--font-color)}
+    &.active {  background-color: var(--hover-bg-color);  color: var(--main-color);}
+    &.plan {  opacity: .6;}
+  }
+  &.active { display: block;}
 }
 </style>
