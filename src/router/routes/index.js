@@ -1,5 +1,5 @@
-// import { authRoutes } from './auth'
-// import { memberRoutes, adminMemberRoutes } from './member'
+import { authRoutes, adminAuthRoutes } from './auth'
+import { memberRoutes, adminMemberRoutes } from './member'
 // import { lectureRoutes, adminLectureRoutes } from './lecture'
 // import { gradeRoutes } from './grade'
 // import { courseRoutes } from './course'
@@ -13,8 +13,8 @@ export const routes = [
     path: '/',
     component: () => import('@/layouts/AcademicLayout.vue'),
     children: [
-      // ...authRoutes,
-      // ...memberRoutes,
+       ...authRoutes,
+      ...memberRoutes,
       // ...calendarRoutes,
       // ...lectureRoutes,
       // ...courseRoutes,
@@ -24,20 +24,14 @@ export const routes = [
   },
   // 관리자 레이아웃
   {
-    path: '/admin',
+    path: '/admin/',
     component: () => import('@/layouts/AdminLayout.vue'),
     children: [
+      ...adminAuthRoutes,
+      ...adminMemberRoutes,
       // ...adminMajorRoutes,
-      // ...adminMemberRoutes,
       // ...adminCalendarRoutes,
       // ...adminLectureRoutes
     ],
   },
-  // 출석 모바일 레이아웃
-  // {
-  //   path: '/attendance',
-  //   component: () => import('@/layouts/AttendanceLayout.vue'),
-  //   children: [
-  //   ],
-  // },
 ]

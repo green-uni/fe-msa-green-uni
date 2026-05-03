@@ -1,6 +1,8 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { RouterView, useRouter, useRoute } from 'vue-router'
+import LeftNav from '@/layouts/LeftNav.vue';
+import TopHeader from '@/layouts/TopHeader.vue';
 
 const router = useRouter()
 const route = useRoute()
@@ -19,8 +21,9 @@ const navigate = (path) => {
 </script>
 
 <template>
-  <div >
-    학사 시스템 페이지
+  <div class="layout">
+  <TopHeader />
+  <LeftNav />
    <!-- 메인 컨텐츠 -->
     <main class="main-content">
       <RouterView />
@@ -29,6 +32,10 @@ const navigate = (path) => {
   </div>
 </template>
 
-<style scoped lang="scss">
-
+<style lang="scss">
+.layout{
+  &.academic {
+    display: grid; grid-template-columns: 250px 1fr;
+  }
+}
 </style>

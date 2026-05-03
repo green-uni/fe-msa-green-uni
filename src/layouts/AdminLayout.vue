@@ -1,6 +1,8 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { RouterView, useRouter, useRoute } from 'vue-router'
+import LeftNav from '@/layouts/LeftNav.vue';
+import TopHeader from '@/layouts/TopHeader.vue';
 
 const router = useRouter()
 const route = useRoute()
@@ -20,8 +22,9 @@ const navigate = (path) => {
 </script>
 
 <template>
-  <div class="layout admin-layout" :class="{ 'sidebar-collapsed': isSidebarCollapsed }">
-    관리자페이지
+  <div class="layout">
+  <TopHeader />
+  <LeftNav />
     <main class="main-content">
       <RouterView />
     </main>
