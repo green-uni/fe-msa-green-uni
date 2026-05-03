@@ -1,18 +1,24 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { routes } from '@/router/routes';
+import { routes } from '@/router/routes'
 import { useAuthStore } from '@/stores/authentication';
 
 const authStore = useAuthStore()
 const route = useRoute();
 const menus = ref([]);
+  const isAdmin = route.path.startsWith('/admin')
 
 const makeMenu = () => {
   const temp = {};
   const role = authStore?.role;
 
-  routes.forEach(r => {
+  // children을 전부 꺼내서 하나의 배열로 합치기
+  const flatRoutes = routes
+    .filter(r => isAdmin ? r.path === '/admin/' : r.path === '/')
+    .flatMap(r => r.children || [])
+
+  flatRoutes.forEach(r => {
     const { groupTitle, title, auth } = r.meta || {};
     if (!groupTitle) return; // groupTitle이 없다면 메뉴로 만들지 않음
     if (r.meta?.showInNav === false) return // showInNav: false면 메뉴에서 제외
@@ -27,7 +33,7 @@ const makeMenu = () => {
     }
     temp[groupTitle].subMenus.push({ // 그룹 안에 서브메뉴로 작업
       title: title,
-      path: r.path,
+      path: (isAdmin ? '/admin/' : '/') + r.path,  // ← / 붙이기
       planTitle: r.meta?.planTitle
     });
   })
@@ -63,7 +69,7 @@ watch(() => route.path, () => {
 </script>
 
 <template>
-  <nav>
+  <nav :class="isAdmin ? 'admin' : 'academic'">
     <div v-for="menu in menus" :key="menu.title" class="group">
       <div class="group-title d-flex jc-space-b ai-center" @click="toggleMenu(menu)" :class="{ 'active': menu.isOpen }">
         <span>{{ menu.title }}</span>
@@ -87,6 +93,9 @@ watch(() => route.path, () => {
 </template>
 
 <style scoped>
+nav.admin { background: #fff; }
+
+nav.academic { background: #2c3e50; }
 nav {
   padding: 10px;
 }

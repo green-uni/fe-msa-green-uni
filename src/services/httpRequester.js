@@ -14,7 +14,7 @@ axios.interceptors.response.use(
     if (err.response) {
       console.log("err.response : ", err.response);
       const authStore = useAuthStore(); // 이하 토큰 만료시 자동 연장 // 로그인 인증 관련
-      if (err.config.url === "/member/reissue" && err.response.status === 500) {  //AT 재발급 시도했으나 에러 >> RT 만료
+      if (err.config.url === "/auth/reissue" && err.response.status === 500) {  //AT 재발급 시도했으나 에러 >> RT 만료
         authStore.logOut(); //로그아웃 처리
       } else if (err.response.status === 401 && authStore.isLogin) {  //로그인 상태인데 401 응답 >> AT 만료 >> AT 재발행
 
