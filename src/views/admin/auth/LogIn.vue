@@ -37,6 +37,9 @@
   <template>
     <section class="d-flex ai-center jc-center h100vh " style="background: #000;">
       <div class="login-wrap">
+        <div  class="d-flex ai-center jc-center">
+          <button @click="router.push('/login')">학사 로그인 페이지로</button>
+        </div>
         <div class="d-flex ai-center jc-center">
           <img :src="logo" @click="moveToMain" />
         </div>

@@ -7,7 +7,7 @@ import { useAuthStore } from '@/stores/authentication';
 const authStore = useAuthStore()
 const route = useRoute();
 const menus = ref([]);
-  const isAdmin = route.path.startsWith('/admin')
+const isAdmin = route.path.startsWith('/admin')
 
 const makeMenu = () => {
   const temp = {};
@@ -93,78 +93,33 @@ watch(() => route.path, () => {
 </template>
 
 <style scoped>
-nav.admin { background: #fff; }
-
-nav.academic { background: #2c3e50; }
 nav {
   padding: 10px;
+  &.admin { background: #2c3e50; }
+  &.academic{ background: #eee;}
 }
-
 .group {
   display: flex;
   flex-direction: column;
   gap: 5px;
 }
-
 .group-title {
-  padding: 5px 18px;
-  cursor: pointer;
-  height: 55px;
-  font-weight: 500;
+  padding: 5px 10px; cursor: pointer; height: 55px; font-weight: 500;
+  svg { font-size: .8em;}
+  &.active{
+    background-color: var(--main-color); border-radius: 5px; font-weight: 500;
+    span { color: #fff; opacity: 1;}
+  }
 }
-
-.group-title svg {
-  font-size: .8em;
-}
-
-.group-title.active span {
-  color: var(--font-color);
-  opacity: .5;
-}
-
-.group-title.active {
-  background-color: var(--main-color);
-  border-radius: 5px;
-  font-weight: 500;
-}
-
-.group-title.active span {
-  color: #fff;
-  opacity: 1;
-}
-
 .sub-menu {
-  border-radius: 5px;
-  overflow: hidden;
-}
-
-.sub-menu.active {
-  display: block;
-}
-
-.sub-menu a {
-  text-decoration: none;
-  display: flex;
-  justify-content: space-between;
-  padding: 15px;
-  background: #F8F9FA;
-  color: var(--font-color-light);
-}
-
-.sub-menu a:not(:first-child) {
-  border-top: 1px solid #eee;
-}
-
-.sub-menu a:hover {
-  color: var(--font-color)
-}
-
-.sub-menu a.active {
-  background-color: var(--hover-bg-color);
-  color: var(--main-color);
-}
-
-.sub-menu a.plan {
-  opacity: .6;
+  border-radius: 5px; overflow: hidden;
+  a {
+    text-decoration: none; display: flex;  justify-content: space-between; padding: 15px; background: #F8F9FA;  color: var(--font-color-light);
+    &:not(:first-child) { border-top: 1px solid #eee; }
+    &:hover {  color: var(--font-color)}
+    &.active {  background-color: var(--hover-bg-color);  color: var(--main-color);}
+    &.plan {  opacity: .6;}
+  }
+  &.active { display: block;}
 }
 </style>

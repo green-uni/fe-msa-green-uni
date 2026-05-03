@@ -12,15 +12,17 @@ const authStore = useAuthStore()
 </script>
 
 <template>
-  <div class="layout">
+  <div :class="authStore.isLogin ? 'all-wrap' : 'log-in'">
     <TopHeader v-if="authStore.isLogin" />
     <LeftNav v-if="authStore.isLogin" />
-    <main class="main-content">
+    <main class="container">
       <RouterView />
     </main>
   </div>
 </template>
 
 <style scoped lang="scss">
-
+.all-wrap .container{
+    background: #f3f3f3;
+  }
 </style>
