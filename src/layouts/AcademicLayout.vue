@@ -2,8 +2,8 @@
 import { ref, computed } from 'vue'
 import { RouterView, useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/authentication';
-import LeftNav from '@/layouts/LeftNav.vue';
-import TopHeader from '@/layouts/TopHeader.vue';
+import LeftNav from '@/layouts/common/LeftNav.vue';
+import TopHeader from '@/layouts/common/TopHeader.vue';
 
 const router = useRouter()
 const route = useRoute()
@@ -23,8 +23,8 @@ const authStore = useAuthStore()
 </template>
 
 <style scoped lang="scss">
-.all-wrap{
-  .container{
+.all-wrap {
+  .container {
     background: #fff;
   }
 }
