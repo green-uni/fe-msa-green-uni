@@ -22,12 +22,20 @@
   const login = async () => {
     try {
       const res = await AuthService.logIn(state.form);
-      console.log(res.data)
+
+      console.log(res)
       authStore.logIn(res.data);
-      if(res.data.isFirstLogin){
+
+      if(res.data.isFirstLogin == true){
         router.push('/auth/password')
+        return
+      }
+      if (res.data.role === 'STUDENT' && res.data.deviceId === 'mobile') {
+        router.push('/attend')
+        return
       }
       router.push('/members/my')
+
     } catch (e) {
       console.error(e)
     }
