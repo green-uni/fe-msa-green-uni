@@ -9,11 +9,16 @@ export const useAuthStore = defineStore(
     const deviceId = ref('')
     const isFirstLogin = ref(false)
     const isLogin = ref(false)
+    const name = ref('')
+    const major = ref('')
 
     // 로그인
     const logIn = (data) => {
       memberCode.value = data.memberCode;
       role.value = data.role;
+      deviceId.value = data.deviceId;
+      name.value = data.name;
+      major.value = data.major;
       isFirstLogin.value = data.isFirstLogin;
       isLogin.value = true;
     }
