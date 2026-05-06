@@ -4,6 +4,7 @@ import { RouterView, useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/authentication';
 import LeftNav from '@/layouts/common/LeftNav.vue';
 import TopHeader from '@/layouts/common/TopHeader.vue';
+import BaseModal from '@/components/common/BaseModal.vue';
 
 const router = useRouter()
 const route = useRoute()
@@ -19,6 +20,7 @@ const authStore = useAuthStore()
       <RouterView />
     </main>
   </div>
+  <BaseModal/>
 </template>
 
 <style scoped lang="scss">
