@@ -5,5 +5,13 @@ export const scheduleRoutes = [
 ]
 
 export const adminScheduleRoutes =[
-
+  {
+    path: `${url}/admin/schedules`,
+    component: () => import('@/views/academic/auth/Schedule.vue'),
+    meta: {
+      title: '학사 일정 관리',
+      groupTitle: '학사 일정',
+      auth: ['ADMIN'],
+    },
+  },    
 ]
