@@ -11,6 +11,11 @@ const ScheduleService = {
     return axios.post('/academic/admin/schedules', data)
   },
 
+  // CAL-03 학사일정 활성화 상태 조회
+  getActiveSchedules() {
+  return axios.get('/academic/schedules/active')
+  },
+
   // CAL-04 학사일정 수정 (관리자)
   updateSchedule(scheduleId, data) {
     return axios.patch(`/academic/admin/schedules/${scheduleId}`, data)

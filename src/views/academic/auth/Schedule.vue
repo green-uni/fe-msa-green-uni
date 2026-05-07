@@ -271,7 +271,7 @@ fetchSchedules()
           <div v-else-if="showEditForm && isAdmin" class="add-form edit-form">
             <select v-model="editEvent.type" class="form-select">
               <option value="">일정구분</option>
-              <option v-for="type in scheduleTypes" :key="type.code" :value="type.code">{{ type.value }}</option>
+              <option v-for="type in scheduleTypes" :key="type.code" :value="type.value">{{ type.value }}</option>
             </select>
             <textarea v-model="editEvent.title" class="form-textarea"></textarea>
             <div class="form-date-row">
