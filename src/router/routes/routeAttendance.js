@@ -2,6 +2,16 @@ const url = 'attendances'
 
 export const attendanceRoutes = [
 // ── 교수 화면 ───────────────────────────────────────────────
+  {
+    // 교수 강의 목록 + QR 시작 선택 화면
+    path: url,
+    component: () => import('@/views/attendance/AttendanceLectureList.vue'),
+    meta: {
+      title: '출석 관리',
+      groupTitle: '출석 관리',
+      auth: ['PROFESSOR'],
+    },
+  },
 
   {
     // QR 출석 진행 화면 (이번에 만든 컴포넌트)
