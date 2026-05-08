@@ -77,11 +77,16 @@ function loadTemp() {
 function validate() {
   if (!form.name.trim())      return '학과명을 입력해주세요.'
   if (!form.collegeId)        return '소속대학을 선택해주세요.'
+  if (!form.courseDuration || form.courseDuration < 4) {
+    return '수업연한을 4년 이상으로 입력해주세요.'
+  }
   if (!form.majorBuilding)    return '건물을 선택해주세요.'
   if (!form.room.trim())      return '호수를 입력해주세요.'
-  if (!form.tel.trim())       return '전화번호를 입력해주세요.'
-  if (!form.capacity)         return '입학정원을 입력해주세요.'
+  if (!form.capacity || form.capacity < 30) {
+    return '입학정원을 30명 이상으로 입력해주세요.'
+  }
   if (!form.foundedDate)      return '개설일을 선택해주세요.'
+  if (!form.tel.trim())       return '전화번호를 입력해주세요.'
   return null
 }
 
