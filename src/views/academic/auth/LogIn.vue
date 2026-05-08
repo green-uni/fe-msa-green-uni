@@ -2,9 +2,10 @@
   import logo from '@/assets/logo.png';
   import { reactive, watch } from 'vue';
   import { useRouter } from 'vue-router';
-  import AuthService from '@/services/authService';
   import { useAuthStore } from '@/stores/authentication';
   import { useModalStore } from '@/stores/modal'
+  import AuthService from '@/services/authService';
+  import MemberService from '@/services/memberService';
   import LoginForm from '@/components/auth/LoginForm.vue';
 
   const authStore = useAuthStore()
@@ -27,6 +28,10 @@
       if(res.data.isFirstLogin == true){
         await modal.showAlert('최초 로그인 입니다. 비밀번호를 변경해주세요', 'warning')
         authStore.logIn(res.data);
+
+        const profile = await MemberService.findProfile();
+        authStore.setProfile(profile.data);
+
         if(res.data.deviceId === 'mobile'){
           router.push('/attend/my/password')
         } else{
@@ -36,6 +41,9 @@
       }
 
       authStore.logIn(res.data);
+      const profile = await MemberService.findProfile();
+      authStore.setProfile(profile.data);
+
       if (res.data.role === 'STUDENT' && res.data.deviceId === 'mobile') {
         router.push('/attend')
         return

@@ -23,6 +23,15 @@ export const useAuthStore = defineStore(
       isLogin.value = true;
     }
 
+    const setProfile = (data) => {
+      name.value = data.name
+      if (data.role === '학생') {
+        major.value = data.mainMajorName
+      } else if (data.role === '교수') {
+        major.value = data.majorName
+      }
+    }
+
     // 로그아웃
     const logOut = () => {
       memberCode.value = 0
@@ -31,7 +40,7 @@ export const useAuthStore = defineStore(
       isLogin.value = false;
      }
 
-    return { memberCode, role, isFirstLogin, isLogin, logIn, logOut }
+    return { memberCode, role, name, major, deviceId, isFirstLogin, setProfile, isLogin, logIn, logOut }
   },
   { persist: true },
 )
