@@ -10,11 +10,11 @@
 
   const state = reactive({
     form: {
-      memberCode: '20241111',
+      memberCode: '20261026',
       password: '1234'
     },
     modeShowPw: false,
-    role: 'student'
+    role: 'STUDENT'
   })
 
   const pwView = () => { state.modeShowPw = !state.modeShowPw }
