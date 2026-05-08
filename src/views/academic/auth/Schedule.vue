@@ -63,7 +63,8 @@ const fetchSchedules = async () => {
         title: s.title,
         start: s.startDate,
         end: endDate.toISOString().slice(0, 10),
-        color: '#e2e8f0',
+        // color: '#e2e8f0',
+        color: s.isActive ? '#3e9e7e' : '#94a3b8',
         type: s.type,
         isActive: s.isActive,
       }
@@ -228,7 +229,7 @@ fetchSchedules()
           <div class="month-badge">{{ month }}</div>
           <div class="month-content">
             <div v-for="event in monthEvents" :key="event.id" class="year-row">
-              <span class="year-date">{{ event.start.slice(5).replace('-', '.') }} ~ {{ (event.end || event.start).slice(5).replace('-', '.') }}</span>
+              <span class="year-date">{{ event.start.slice(5).replace('-', '.') }} ~ {{ new Date(new Date(event.end).setDate(new Date(event.end).getDate() - 1)).toISOString().slice(5, 10).replace('-', '.') }}</span>
               <span class="year-title">{{ event.title }}</span>
             </div>
           </div>
@@ -294,7 +295,7 @@ fetchSchedules()
           <template v-else>
             <h3 class="sidebar-title">{{ currentYear }}년 {{ currentMonth }}월 학사일정</h3>
             <div class="event-card-list">
-              <!-- 현재 월 일정만 표시 -->
+              <!-- 사이드에서 현재 월 일정만 표시 -->
               <div
                 v-for="event in currentMonthEvents"
                 :key="event.id"
@@ -304,7 +305,7 @@ fetchSchedules()
               >
                 <div class="card-content">
                   <h4 class="event-title">{{ event.title }}</h4>
-                  <p class="event-time">{{ event.start }} ~ {{ event.end || event.start }}</p>
+                  <p class="event-time">{{ event.start }} ~ {{ new Date(new Date(event.end).setDate(new Date(event.end).getDate() - 1)).toISOString().slice(0, 10) }}</p>
                 </div>
               </div>
             </div>
@@ -331,21 +332,22 @@ fetchSchedules()
 
 /* 이전/다음 달 네비게이션 버튼 */
 .nav-btn { border: 1px solid #e2e8f0; background: #f8fafc; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-.nav-btn:hover { background: #e2e8f0; }
+.nav-btn:hover { background: #3e9e7e; }
 
 /* ===== 월간/연간 토글 ===== */
 .toggle-group button { border: 1px solid #e2e8f0; background: #f8fafc; padding: 8px 16px; border-radius: 20px; cursor: pointer; }
-.toggle-group button.active { background: #b91c1c; color: white; border-color: #b91c1c; }
+.toggle-group button.active { background:#3e9e7e; color: white; border-color: #3e9e7e; }
 
 /* ===== 월간일정 뷰 레이아웃 ===== */
 .view-container { display: flex; gap: 30px; height: 690px; }
 .calendar-main-area { flex: 2.5; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; }
-.calendar-sidebar { flex: 1; border-top: 2px solid #334155; padding-top: 20px; overflow-y: auto; }
+.calendar-sidebar { flex: 1; border-top: 2px solid #e2e8f0; padding-top: 20px; overflow-y: auto; }
+
 
 /* ===== 달력 이벤트 강조 (클릭 시) ===== */
 :deep(.active-bar) {
-  background-color: #1e293b !important;
-  border-color: #0f172a !important;
+  background-color: #3e9e7e !important;
+  border-color: #3e9e7e !important;
   color: #ffffff !important;
   transform: translateY(-1px);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
@@ -357,22 +359,22 @@ fetchSchedules()
 /* ===== 사이드바 일정 목록 ===== */
 .sidebar-title { font-size: 20px; font-weight: 800; margin-bottom: 20px; }
 .event-card { padding: 12px 0; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: all 0.15s; }
-.event-card:hover .event-title { color: #b91c1c; text-decoration: underline; }
-.event-card.selected .event-title { color: #b91c1c; font-weight: 800; }
+.event-card:hover .event-title { color:hsla(160, 100%, 37%, 1); text-decoration: underline; }
+.event-card.selected .event-title { color: hsla(160, 100%, 37%, 1); font-weight: 800; }
 .event-title { font-size: 16px; font-weight: 700; color: #334155; }
 .event-time { font-size: 13px; color: #94a3b8; }
 
 /* ===== 등록/수정 폼 ===== */
 .add-form { display: flex; flex-direction: column; gap: 16px; }
-.edit-form { border: 1.5px solid #c4b5fd; border-radius: 12px; padding: 20px; } /* 수정 폼은 보라색 테두리 */
+.edit-form { border: 1.5px solid #3e9e7e; border-radius: 12px; padding: 20px; } /* 수정 폼은 보라색 테두리 */
 .form-select { border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; font-size: 14px; }
-.form-textarea { border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; font-size: 18px; color: #334155; min-height: 80px; resize: none; }
+.form-textarea { border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; font-size: 18px; color: #374957; min-height: 80px; resize: none; }
 .form-date-row { display: flex; align-items: center; gap: 12px; }
 .form-date-row label { font-weight: 700; font-size: 14px; width: 60px; }
 .form-date { border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; font-size: 14px; flex: 1; }
 .form-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .btn-cancel { border: 1px solid #e2e8f0; background: #f8fafc; padding: 8px 20px; border-radius: 8px; cursor: pointer; }
-.btn-submit { background: #334155; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; }
+.btn-submit { background: #3e9e7e; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; }
 .btn-delete { background: #b91c1c; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; margin-right: auto; } /* 삭제 버튼은 왼쪽 정렬 */
 
 /* ===== 일정추가 버튼 ===== */
@@ -384,5 +386,5 @@ fetchSchedules()
 .month-badge { background: #f1f5f9; padding: 8px 20px; border-radius: 20px; font-weight: 800; min-width: 80px; text-align: center; }
 .month-content { flex: 1; margin-left: 40px; }
 .year-row { display: flex; margin-bottom: 10px; }
-.year-date { font-weight: 700; width: 150px; color: #475569; }
+.year-date { font-weight: 700; width: 150px; color: #374957; }
 </style>
