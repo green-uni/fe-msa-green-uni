@@ -113,7 +113,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import QrcodeVue from 'qrcode.vue'
 import { useRoute } from 'vue-router'
 import attendanceService from '@/services/attendanceService.js'
@@ -178,6 +178,30 @@ const makeupOriginalDateFormatted = computed(() => {
   })
 })
 
+// ── 페이지 진입 시 강의 정보 로드 + 활성 세션 복구 ───────────────
+onMounted(async () => {
+  // 1. 강의명·강의실 표시
+  try {
+    const res = await attendanceService.getProfessorLecture(lectureId)
+    const data = res.data ?? res
+    lecture.value = {
+      lectureName: data.lectureName,
+      lectureRoom: data.schedules?.[0]?.lectureRoom ?? '-',
+    }
+  } catch { /* 세션 시작 후 서버 응답으로 채워짐 */ }
+
+  // 2. 이미 활성화된 세션이 있으면 QR 화면으로 바로 복구
+  try {
+    const res = await attendanceService.getActiveSession(lectureId)
+    const active = res.data
+    if (active?.sessionId) {
+      sessionId.value       = active.sessionId
+      isSessionActive.value = true
+      startStream(active.sessionId)
+    }
+  } catch { /* 활성 세션 없음 */ }
+})
+
 // ── 내부 변수 ────────────────────────────────────────────────────
 let eventSourceRef = null
 let countTimerRef  = null
@@ -204,7 +228,8 @@ function stopStream() {
 async function handleStartSession() {
   isLoading.value = true
   try {
-    const data = await attendanceService.createSession(lectureId, today.value)
+    const res = await attendanceService.createSession(lectureId, today.value)
+    const data = res.data
     sessionId.value = data.sessionId
     lecture.value   = { lectureName: data.lectureName, lectureRoom: data.lectureRoom }
     isSessionActive.value = true
@@ -226,7 +251,8 @@ async function handleEndSession() {
 
   isLoading.value = true
   try {
-    const data = await attendanceService.endSession(lectureId, sessionId.value)
+    const res = await attendanceService.endSession(lectureId, sessionId.value)
+    const data = res.data
     endedAt.value = data.endedAt
     stopStream()
     isSessionActive.value = false
@@ -292,11 +318,12 @@ async function handleStartMakeupSession() {
 
   isLoading.value = true
   try {
-    const data = await attendanceService.createMakeupSession(
+    const res = await attendanceService.createMakeupSession(
       lectureId,
       today.value + 'T00:00:00',
       selectedCancelDate.value + 'T00:00:00',
     )
+    const data = res.data
     sessionId.value          = data.sessionId
     makeupOriginalDate.value = data.originalDate ?? selectedCancelDate.value
     lecture.value            = { lectureName: data.lectureName, lectureRoom: data.lectureRoom }
