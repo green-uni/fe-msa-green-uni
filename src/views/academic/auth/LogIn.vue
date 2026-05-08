@@ -1,12 +1,14 @@
   <script setup>
   import logo from '@/assets/logo.png';
-  import AuthService from '@/services/authService';
   import { reactive, watch } from 'vue';
-  import { useAuthStore } from '@/stores/authentication';
   import { useRouter } from 'vue-router';
+  import AuthService from '@/services/authService';
+  import { useAuthStore } from '@/stores/authentication';
+  import { useModalStore } from '@/stores/modal'
   import LoginForm from '@/components/auth/LoginForm.vue';
 
   const authStore = useAuthStore()
+  const modal = useModalStore()
   const router = useRouter();
 
   const state = reactive({
@@ -20,14 +22,20 @@
   const login = async () => {
     try {
       const res = await AuthService.logIn(state.form);
-
       console.log(res)
-      authStore.logIn(res.data);
 
       if(res.data.isFirstLogin == true){
-        router.push('/auth/password')
+        await modal.showAlert('최초 로그인 입니다. 비밀번호를 변경해주세요', 'warning')
+        authStore.logIn(res.data);
+        if(res.data.deviceId === 'mobile'){
+          router.push('/attend/my/password')
+        } else{
+          await router.push('/member/my/password')
+        }        
         return
       }
+
+      authStore.logIn(res.data);
       if (res.data.role === 'STUDENT' && res.data.deviceId === 'mobile') {
         router.push('/attend')
         return

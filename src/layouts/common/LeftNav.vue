@@ -92,7 +92,7 @@ watch(() => route.path, () => {
   </nav>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 nav {
   padding: 10px;
   &.admin { background: #2c3e50; }
