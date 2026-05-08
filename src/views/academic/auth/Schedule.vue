@@ -30,15 +30,22 @@ const currentMonth = ref(5)
 
 // ===== 일정 구분 타입 목록 (EnumScheduleType 기반) =====
 const scheduleTypes = [
-  { code: 'COURSE_REGISTRATION', value: '수강신청' },
-  { code: 'COURSE_MODIFICATION', value: '수강정정' },
-  { code: 'GRADE_INPUT', value: '성적입력' },
-  { code: 'GRADE_VIEW', value: '성적조회' },
-  { code: 'GRADE_APPEAL', value: '성적이의신청' },
-  { code: 'LECTURE_EVALUATION', value: '강의평가' },
-  { code: 'TUITION_PAYMENT', value: '등록금납부' },
-  { code: 'COURSE_OPEN', value: '강의개설신청' },
-  { code: 'ETC', value: '기타' },
+  // 수강 계열
+  { code: 'COURSE_REGISTRATION', value: '수강신청', color: '#c1666b' },
+  { code: 'COURSE_MODIFICATION', value: '수강정정', color: '#a85c5c' },
+  { code: 'COURSE_OPEN', value: '강의개설신청', color: '#c47f3a' },
+
+  // 성적 계열
+  { code: 'GRADE_INPUT', value: '성적입력', color: '#6b5b95' },
+  { code: 'GRADE_VIEW', value: '성적조회', color: '#5e7a63' },
+  { code: 'GRADE_APPEAL', value: '성적이의신청', color: '#4f6f99' },
+
+  // 개별
+  { code: 'LECTURE_EVALUATION', value: '강의평가', color: '#9e9474' },
+  { code: 'TUITION_PAYMENT', value: '등록금납부', color: '#a84c5a' },
+
+  // 기타
+  { code: 'ETC', value: '기타', color: '#475569' },
 ]
 
 // ===== 현재 월 일정만 필터링 =====
@@ -58,13 +65,14 @@ const fetchSchedules = async () => {
     events.value = res.data.data.map(s => {
       const endDate = new Date(s.endDate)
       endDate.setDate(endDate.getDate() + 1)
+      const typeInfo = scheduleTypes.find(t => t.value === s.type)
       return {
         id: String(s.scheduleId),
         title: s.title,
         start: s.startDate,
         end: endDate.toISOString().slice(0, 10),
         // color: '#e2e8f0',
-        color: s.isActive ? '#3e9e7e' : '#94a3b8',
+        color: typeInfo ? typeInfo.color : '#94a3b8',
         type: s.type,
         isActive: s.isActive,
       }
