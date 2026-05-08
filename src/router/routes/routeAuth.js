@@ -21,7 +21,7 @@ export const authRoutes = [
 export const adminAuthRoutes = [
   {
     path: 'login',
-    component: () => import('@/views/admin/auth/LogIn.vue'),
+    component: () => import('@/views/admin/auth/AdminLogIn.vue'),
     meta: {
       title: '로그인',
     },
