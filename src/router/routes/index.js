@@ -1,4 +1,4 @@
-import { authRoutes, adminAuthRoutes } from './routeAuth'
+import { authRoutes, adminAuthRoutes, mobileAuthRoutes } from './routeAuth'
 import { memberRoutes, adminMemberRoutes } from './routeMember'
 
 import { lectureRoutes, adminLectureRoutes } from './routeLecture'
@@ -12,7 +12,7 @@ import { scholarshipRoutes, adminScholarshipRoutes } from './routeScholarship'
 
 import { gradeRoutes } from './routeGrade'
 import { announcementRoutes, adminAnnouncementRoutes } from './routeAnnouncement'
-import { attendanceRoutes } from './routeAttendance'
+import { attendanceRoutes, mobileAttendanceRoutes } from './routeAttendance'
 
 export const routes = [
   // 학생/교수 레이아웃
@@ -46,6 +46,15 @@ export const routes = [
       ...adminMajorRoutes,
       ...adminTuitionRoutes,
       ...adminScholarshipRoutes
+    ],
+  },
+  // 모바일 출석 화면
+  {
+    path: '/attend',
+    component: () => import('@/layouts/AttendanceLayout.vue'),
+    children: [
+      ...mobileAttendanceRoutes,
+      ...mobileAuthRoutes,
     ],
   },
 ]
