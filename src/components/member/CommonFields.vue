@@ -3,6 +3,7 @@ import CalendarDate from '@/components/util/CalendarDate.vue'
 
 const props = defineProps({
   common: { type: Object, required: true },
+  isAdminMode: Boolean
 })
 
 
@@ -32,21 +33,21 @@ const execDaumPostcode = () => {
       <div class="input-label"><span>이름</span></div>
       <div class="input-content">
         <label>
-          <input type="text" v-model="props.common.name" placeholder="이름" />
+          <input type="text" v-model="props.common.name" :disabled="!props.isAdminMode" placeholder="이름" />
         </label>
       </div>
     </div>
     <div class="input-wrap">
       <div class="input-label"><span>생년월일</span></div>
       <div class="input-content">
-        <CalendarDate v-model="props.common.birth" />
+        <CalendarDate :disabled="!props.isAdminMode" v-model="props.common.birth" />
       </div>
     </div>
     <div class="input-wrap">
       <div class="input-label"><span>전화번호</span></div>
       <div class="input-content">
         <label>
-          <input type="number" v-model="props.common.tel" placeholder="-없이 작성해주세요" />
+          <input type="text" v-model="props.common.tel" placeholder="-없이 작성해주세요" />
         </label>
       </div>
     </div>
@@ -56,7 +57,7 @@ const execDaumPostcode = () => {
       </div>
       <div class="input-content">
         <label>
-          <input type="number" v-model="props.common.emergencyTel" placeholder="-없이 작성해주세요" />
+          <input type="text" v-model="props.common.emergencyTel" placeholder="-없이 작성해주세요" />
         </label>
       </div>
     </div>

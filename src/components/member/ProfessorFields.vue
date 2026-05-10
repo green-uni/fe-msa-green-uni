@@ -9,39 +9,40 @@ const props = defineProps({
   positionList: { type: Array, default: () => [] },
   degreeList: { type: Array, default: () => [] }, 
   buildingList: { type: Array, default: () => [] },
+  isAdminMode: Boolean
 })
 </script>
 
 <template>
   <div class="form-grid" style="--grid-cols: repeat(auto-fill, minmax(350px, 1fr))">
 
-    <div class="input-wrap">
+    <div class="input-wrap" v-if="isAdminMode">
       <div class="input-label">전공</div>
       <div class="input-content">
         <SearchInput
           v-model="props.professor.majorName"
           :list="props.majorList"
           placeholder="전공명을 입력하세요"
-          @select="(major) => props.professor.majorId = major.majorId"
+          @select="(major) => props.professor.majorId = major.majorId"          
         />
       </div>
     </div>
 
-    <div class="input-wrap">
+    <div class="input-wrap" v-if="isAdminMode">
       <div class="input-label"><span>입사연월</span></div>
       <div class="input-content">
         <CalendarDate v-model="props.professor.entryDate" />
       </div>
     </div>
 
-    <div class="input-wrap">
+    <div class="input-wrap" v-if="isAdminMode">
       <div class="input-label"><span>퇴임연월</span></div>
       <div class="input-content">
         <CalendarDate v-model="props.professor.exitDate" />
       </div>
     </div>
 
-    <div class="input-wrap">
+    <div class="input-wrap" v-if="isAdminMode">
       <div class="input-label">상태</div>
       <div class="input-content">
         <select v-model="props.professor.status">
@@ -55,7 +56,7 @@ const props = defineProps({
       </div>
     </div>
 
-    <div class="input-wrap">
+    <div class="input-wrap" v-if="isAdminMode">
       <div class="input-label">학위</div>
       <div class="input-content">
         <select v-model="props.professor.degree">
@@ -65,7 +66,7 @@ const props = defineProps({
       </div>
     </div>
 
-    <div class="input-wrap">
+    <div class="input-wrap" v-if="isAdminMode">
       <div class="input-label">직위</div>
       <div class="input-content">
         <select v-model="props.professor.position">
@@ -89,7 +90,7 @@ const props = defineProps({
       <div class="input-label">연구실<br>전화번호</div>
       <div class="input-content">
         <label>
-          <input type="number" v-model="props.professor.labTel" placeholder="연구실 전화번호를 입력해주세요">
+          <input type="text" v-model="props.professor.labTel" placeholder="연구실 전화번호를 입력해주세요">
         </label>
       </div>
     </div>
