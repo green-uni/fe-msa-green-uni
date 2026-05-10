@@ -18,8 +18,11 @@ const route = useRoute()
 const authStore = useAuthStore()
 const modal = useModalStore()
 
-const isAdminMode = computed(() => !!route.params.memberCode)
+const isAdminEditMode = computed(() => !!route.params.memberCode)
+console.log("관리자 수정 모드: ", isAdminEditMode.value)
+const editMode = computed(() => isAdminEditMode.value ? 'adminEdit' : 'selfEdit')
 const role = authStore.role
+const targetRole = ref('')
 
 const pic = ref(null)
 const majorList = ref([])
@@ -81,19 +84,12 @@ const admin = reactive({
 })
 
 const original = ref({})
-if (role === 'STUDENT') {
-  original.value = JSON.parse(JSON.stringify({ ...common, ...student }))
-} else if (role === 'PROFESSOR') {
-  original.value = JSON.parse(JSON.stringify({ ...common, ...professor }))
-} else {
-  original.value = JSON.parse(JSON.stringify({ ...common, ...admin }))
-}
 
 const submit = async () => {
 // 현재값 합치기
-  const current = role === 'STUDENT'   ? { ...common, ...student }
-                : role === 'PROFESSOR' ? { ...common, ...professor }
-                : { ...common, ...admin }
+  const current = targetRole.value === 'STUDENT'   ? { ...common, ...student }
+              : targetRole.value === 'PROFESSOR' ? { ...common, ...professor }
+              : { ...common, ...admin }
 
   // 변경된 필드만 추출
   const changed = {}
@@ -153,10 +149,17 @@ onMounted(async () => {
   buildingList.value = building.data
   adminStatusList.value = adminStatus.data
 
-
-  const res = await MemberService.findProfile();
+  const res = isAdminEditMode.value
+    ? await MemberService.getMemberProfile(route.params.memberCode)
+    : await MemberService.findProfile()
   const data = res.data
+  targetRole.value = isAdminEditMode.value ? data.role : authStore.role
+
+  console.log("data.role: ", data.role)
+  console.log("data 전체: ", data)
+
   console.log(res.data)
+  console.log("ROLE: ", targetRole.value)
 
   // 공통 필드 채우기
   common.name = data.name
@@ -170,8 +173,7 @@ onMounted(async () => {
   common.pic = data.pic
   
   // 역할별 필드 채우기
-  const role = authStore.role
-  if (role === 'STUDENT') {
+  if (targetRole.value === 'STUDENT') {
     student.academicYear = data.academicYear
     student.semester = data.semester
     student.status = data.status
@@ -181,7 +183,7 @@ onMounted(async () => {
     student.majorName = data.mainMajorName 
   student.entryDate = data.entryDate,
   student.exitDate = data.exitDate
-  } else if (role === 'PROFESSOR') {
+  } else if (targetRole.value === 'PROFESSOR') {
     professor.degree = data.degree
     professor.position = data.position
     professor.labBuilding = data.labBuilding
@@ -191,12 +193,21 @@ onMounted(async () => {
     professor.majorName = data.majorName
   professor.entryDate = data.entryDate,
   professor.exitDate = data.exitDate
-  } else if (role === 'ADMIN') {
+  } else if (targetRole.value === 'ADMIN') {
     admin.status = data.status
   admin.entryDate = data.entryDate,
   admin.exitDate = data.exitDate
   }
 
+  if (targetRole.value === 'STUDENT') {
+    original.value = JSON.parse(JSON.stringify({ ...common, ...student }))
+  } else if (targetRole.value === 'PROFESSOR') {
+    original.value = JSON.parse(JSON.stringify({ ...common, ...professor }))
+  } else {
+    original.value = JSON.parse(JSON.stringify({ ...common, ...admin }))
+  }
+
+  // console.log(targetRole.value)
 })
 </script>
 
@@ -213,33 +224,33 @@ onMounted(async () => {
       <div class="pf-content d-grid g10 d-flex-grow1">
         <div class="content-wrap d-flex direct-col d-flex-grow1">
           <h3><font-awesome-icon icon="fa-solid fa-circle-info" />개인 정보</h3>
-          <CommonFields :common="common" :isAdminMode="isAdminMode" />
+          <CommonFields :common="common" :mode="editMode" />
         </div>
         <!--form-grid-->
-        <div class="content-wrap d-flex direct-col d-flex-grow1" v-if="role === 'PROFESSOR' || isAdminMode">
+        <div class="content-wrap d-flex direct-col d-flex-grow1" v-if="targetRole === 'PROFESSOR' || isAdminEditMode">
           <h3><font-awesome-icon icon="fa-solid fa-circle-info" />학적 정보</h3>
             <StudentFields
-              v-if="role === 'STUDENT'"
+              v-if="targetRole === 'STUDENT'"
               :student="student"
               :majorList="majorList"
               :statusList="studentStatusList"
-              :isAdminMode="isAdminMode"
+              :mode="editMode"
             />
             <ProfessorFields
-              v-if="role === 'PROFESSOR'"
+              v-if="targetRole === 'PROFESSOR'"
               :professor="professor"
               :majorList="majorList"
               :statusList="professorStatusList"
               :positionList="professorPositionList"
               :degreeList="professorDegreeList"
               :buildingList="buildingList"
-              :isAdminMode="isAdminMode"
+              :mode="editMode"
             />
             <AdminFields
-              v-if="role === 'ADMIN'"
+              v-if="targetRole === 'ADMIN'"
               :admin="admin"
               :statusList="adminStatusList"
-              :isAdminMode="isAdminMode"
+              :mode="editMode"
             />
         </div>
         <!-- content-wrap-->
@@ -252,7 +263,7 @@ onMounted(async () => {
       <font-awesome-icon icon="fa-solid fa-arrow-left" /> 돌아가기
     </button>
     <button @click="submit" class="btn btn-submit">
-      <font-awesome-icon icon="fa-solid fa-circle-check" /> 등록
+      <font-awesome-icon icon="fa-solid fa-circle-check" /> 수정
     </button>
   </div>
 </template>

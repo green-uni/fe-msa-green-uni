@@ -3,7 +3,7 @@ import CalendarDate from '@/components/util/CalendarDate.vue'
 
 const props = defineProps({
   common: { type: Object, required: true },
-  isAdminMode: Boolean
+  mode: { type: String, default: 'create' }
 })
 
 
@@ -33,17 +33,17 @@ const execDaumPostcode = () => {
       <div class="input-label"><span>이름</span></div>
       <div class="input-content">
         <label>
-          <input type="text" v-model="props.common.name" :disabled="!props.isAdminMode" placeholder="이름" />
+          <input type="text" v-model="props.common.name" :disabled="props.mode === 'selfEdit'" placeholder="이름" />
         </label>
       </div>
     </div>
     <div class="input-wrap">
       <div class="input-label"><span>생년월일</span></div>
       <div class="input-content">
-        <CalendarDate :disabled="!props.isAdminMode" v-model="props.common.birth" />
+        <CalendarDate :disabled="props.mode === 'selfEdit'" v-model="props.common.birth" />
       </div>
     </div>
-    <div class="input-wrap">
+    <div class="input-wrap" v-if="props.mode !== 'adminEdit'">
       <div class="input-label"><span>전화번호</span></div>
       <div class="input-content">
         <label>
@@ -51,7 +51,7 @@ const execDaumPostcode = () => {
         </label>
       </div>
     </div>
-    <div class="input-wrap">
+    <div class="input-wrap" v-if="props.mode !== 'adminEdit'">
       <div class="input-label">
         <span>비상<br />전화번호</span>
       </div>
@@ -61,7 +61,7 @@ const execDaumPostcode = () => {
         </label>
       </div>
     </div>
-    <div class="input-wrap">
+    <div class="input-wrap" v-if="props.mode !== 'adminEdit'">
       <div class="input-label"><span>이메일</span></div>
       <div class="input-content">
         <label>
@@ -69,7 +69,7 @@ const execDaumPostcode = () => {
         </label>
       </div>
     </div>
-    <div class="input-wrap g-col-full">
+    <div class="input-wrap g-col-full" v-if="props.mode !== 'adminEdit'">
       <div class="input-label"><span>주소</span></div>
       <div class="d-flex direct-col g10">
         <div class="input-content d-flex g10">

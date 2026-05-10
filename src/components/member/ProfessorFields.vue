@@ -9,14 +9,14 @@ const props = defineProps({
   positionList: { type: Array, default: () => [] },
   degreeList: { type: Array, default: () => [] }, 
   buildingList: { type: Array, default: () => [] },
-  isAdminMode: Boolean
+  mode: { type: String, default: 'create' }
 })
 </script>
 
 <template>
   <div class="form-grid" style="--grid-cols: repeat(auto-fill, minmax(350px, 1fr))">
 
-    <div class="input-wrap" v-if="isAdminMode">
+    <div class="input-wrap" v-if="props.mode === 'create'">
       <div class="input-label">전공</div>
       <div class="input-content">
         <SearchInput
@@ -28,21 +28,21 @@ const props = defineProps({
       </div>
     </div>
 
-    <div class="input-wrap" v-if="isAdminMode">
+    <div class="input-wrap" v-if="props.mode === 'create'">
       <div class="input-label"><span>입사연월</span></div>
       <div class="input-content">
         <CalendarDate v-model="props.professor.entryDate" />
       </div>
     </div>
 
-    <div class="input-wrap" v-if="isAdminMode">
+    <div class="input-wrap" v-if="props.mode !== 'selfEdit'">
       <div class="input-label"><span>퇴임연월</span></div>
       <div class="input-content">
         <CalendarDate v-model="props.professor.exitDate" />
       </div>
     </div>
 
-    <div class="input-wrap" v-if="isAdminMode">
+    <div class="input-wrap" v-if="props.mode === 'create'">
       <div class="input-label">상태</div>
       <div class="input-content">
         <select v-model="props.professor.status">
@@ -56,7 +56,7 @@ const props = defineProps({
       </div>
     </div>
 
-    <div class="input-wrap" v-if="isAdminMode">
+    <div class="input-wrap" v-if="props.mode !== 'selfEdit'">
       <div class="input-label">학위</div>
       <div class="input-content">
         <select v-model="props.professor.degree">
@@ -66,7 +66,7 @@ const props = defineProps({
       </div>
     </div>
 
-    <div class="input-wrap" v-if="isAdminMode">
+    <div class="input-wrap" v-if="props.mode === 'create'">
       <div class="input-label">직위</div>
       <div class="input-content">
         <select v-model="props.professor.position">

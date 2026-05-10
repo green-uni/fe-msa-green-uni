@@ -9,6 +9,18 @@ class MemberService {
     return res.data;
   };
 
+    // 관리자 - 회원 프로파일 조회
+  async getMemberProfile(memberCode) {
+    const res = await axios.get(`${this.#adminPath}/${memberCode}`)
+    return res.data;
+  }
+
+  // 관리자 - 회원 개인정보 수정
+  async updateMemberProfile(memberCode, formData) {
+    const res = await axios.patch(`${this.#adminPath}/${memberCode}/profile`, formData)
+    return res.data;
+  }
+
 
   //////////// 계정 생성 //////////////
   // 역할 조회
@@ -69,6 +81,7 @@ class MemberService {
     const res = await axios.patch(`${this.#path}/my`, formData)
     return res.data;
   }
+  
 
 }
 

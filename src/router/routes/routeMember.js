@@ -7,7 +7,7 @@ export const memberRoutes = [
     meta: {
       title: '내 정보 조회',
       groupTitle: '내 정보 관리',
-      auth: ['STUDENT', 'PROFESSOR'],
+      auth: ['STUDENT', 'PROFESSOR','ADMIN'],
     },
   },
   {
@@ -16,7 +16,9 @@ export const memberRoutes = [
     meta: {
       title: '내 정보 수정',
       groupTitle: '내 정보 관리',
-      auth: ['STUDENT', 'PROFESSOR'],
+      showInNav: false,
+      activeMenu: `${url}/my`,
+      auth: ['STUDENT', 'PROFESSOR','ADMIN'],
     },
   },
   {
@@ -50,16 +52,7 @@ export const adminMemberRoutes = [
     },
   },
   {
-    path: `${url}/status-request`,
-    component: () => import('@/views/common/BlankPage.vue'),
-    meta: {
-      title: '인사정보 조회',
-      groupTitle: '인사 정보 관리',
-      auth: ['ADMIN'],
-    },
-  },
-  {
-    path: `${url}/members/new`,
+    path: `${url}/new`,
     component: () => import('@/views/admin/member/MemberCreate.vue'),
     meta: {
       title: '계정 생성',
@@ -68,16 +61,27 @@ export const adminMemberRoutes = [
     },
   },
   {
-    path: `${url}/members/:memberCode/edit`,
-    component: () => import('@/views/common/member/MemberEdit.vue'),
+    path: `${url}`,
+    component: () => import('@/views/common/BlankPage.vue'),
     meta: {
-      title: '계정 정보 수정',
+      title: '인사 정보 조회',
       groupTitle: '인사 정보 관리',
       auth: ['ADMIN'],
     },
   },
   {
-    path: `${url}/major-request`,
+    path: `${url}/:memberCode/edit`,
+    component: () => import('@/views/common/member/MemberEdit.vue'),
+    meta: {
+      title: '인사 정보 수정',
+      groupTitle: '인사 정보 관리',
+      showInNav: false,
+      activeMenu: `${url}`,
+      auth: ['ADMIN'],
+    },
+  },
+  {
+    path: `${url}/status-request`,
     component: () => import('@/views/common/BlankPage.vue'),
     meta: {
       title: '상태 변경 신청 조회',
@@ -86,7 +90,7 @@ export const adminMemberRoutes = [
     },
   },
   {
-    path: `${url}`,
+    path: `${url}/major-request`,
     component: () => import('@/views/common/BlankPage.vue'),
     meta: {
       title: '전공 변경 신청 조회',

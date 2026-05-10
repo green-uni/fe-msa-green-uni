@@ -18,6 +18,7 @@ import ProfileImg from '@/components/common/ProfileImg.vue'
 import MemberService from '@/services/memberService'
 
 import { useModalStore } from '@/stores/modal'
+import { create } from 'axios'
 
 const router = useRouter()
 const route = useRoute()
@@ -167,7 +168,7 @@ onMounted(async () => {
       <div class="pf-content d-grid g10 d-flex-grow1">
         <div class="content-wrap d-flex direct-col d-flex-grow1">
           <h3><font-awesome-icon icon="fa-solid fa-circle-info" />개인 정보</h3>
-          <CommonFields :common="common" />
+          <CommonFields :common="common" mode="create" />
         </div>
         <!--form-grid-->
         <div class="content-wrap d-flex direct-col d-flex-grow1">
@@ -177,6 +178,7 @@ onMounted(async () => {
             :student="student"
             :majorList="majorList"
             :statusList="studentStatusList"
+            mode="create"
           />
           <ProfessorFields
             v-if="role === 'PROFESSOR'"
@@ -186,8 +188,9 @@ onMounted(async () => {
             :positionList="professorPositionList"
             :degreeList="professorDegreeList"
             :buildingList="buildingList"
+            mode="create"
           />
-          <AdminFields v-if="role === 'ADMIN'" :admin="admin" :statusList="adminStatusList" />
+          <AdminFields v-if="role === 'ADMIN'" :admin="admin" :statusList="adminStatusList" mode="create" />
         </div>
         <!-- content-wrap-->
       </div>
