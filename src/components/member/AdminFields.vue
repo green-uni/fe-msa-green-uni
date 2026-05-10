@@ -4,24 +4,25 @@ import CalendarDate from '@/components/util/CalendarDate.vue';
 const props = defineProps({
   admin: { type: Object, required: true },
   statusList: { type: Array, default: () => [] },
+  isAdminMode: Boolean
 })
 </script>
 
 <template>
-  <div class="form-grid" style="--grid-cols: repeat(auto-fill, minmax(350px, 1fr))">
+  <div class="form-grid" v-if="isAdminMode" style="--grid-cols: repeat(auto-fill, minmax(350px, 1fr))">
     <div class="input-wrap">
       <div class="input-label"><span>입사연월</span></div>
       <div class="input-content">
         <CalendarDate v-model="props.admin.entryDate" />
       </div>
     </div>
-    <div class="input-wrap">
+    <div class="input-wrap" v-if="isAdminMode">
       <div class="input-label"><span>퇴사연월</span></div>
       <div class="input-content">
         <CalendarDate v-model="props.admin.exitDate" />
       </div>
     </div>
-    <div class="input-wrap">
+    <div class="input-wrap" v-if="isAdminMode">
       <div class="input-label">상태</div>
       <div class="input-content">
         <select v-model="props.admin.status">

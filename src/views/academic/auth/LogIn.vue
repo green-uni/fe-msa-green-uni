@@ -14,10 +14,21 @@
 
   const state = reactive({
     form: {
-      memberCode: '20261002',
+      memberCode: '20221001',
       password: '1234'
     },
     role: 'STUDENT'
+  })
+
+  
+  watch(() => state.role, (role) => {
+    if (role === 'STUDENT') {
+      state.form.memberCode = '20221001'
+      state.form.password = '1234'
+    } else if (role === 'PROFESSOR') {
+      state.form.memberCode = '20202001' 
+      state.form.password = '1234'
+    } 
   })
 
   const login = async () => {
@@ -65,6 +76,21 @@
         <div class="d-flex ai-center jc-center">
           <img :src="logo" @click="moveToMain" />
         </div>
+
+
+        <div class="sample-data d-grid g10">
+          <div class="input-content radio-group radio-tab">
+            <label class="radio-label">
+              <input type="radio" name="role" value="STUDENT" v-model="state.role">
+              <span>학생</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="role" value="PROFESSOR" v-model="state.role">
+              <span>교수</span>
+            </label>
+          </div>
+        </div>
+
         <LoginForm
           :form="state.form"
           @login="login"

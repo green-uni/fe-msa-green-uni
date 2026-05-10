@@ -64,6 +64,12 @@ class MemberService {
     return res.data;
   }
 
+  // 내 정보 수정  
+  async modifyMyProfile(formData) {
+    const res = await axios.patch(`${this.#path}/my`, formData)
+    return res.data;
+  }
+
 }
 
 export default new MemberService();
