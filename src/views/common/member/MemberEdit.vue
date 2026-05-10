@@ -80,8 +80,50 @@ const admin = reactive({
   exitDate: '',
 })
 
+const original = ref({})
+if (role === 'STUDENT') {
+  original.value = JSON.parse(JSON.stringify({ ...common, ...student }))
+} else if (role === 'PROFESSOR') {
+  original.value = JSON.parse(JSON.stringify({ ...common, ...professor }))
+} else {
+  original.value = JSON.parse(JSON.stringify({ ...common, ...admin }))
+}
 
 const submit = async () => {
+// 현재값 합치기
+  const current = role === 'STUDENT'   ? { ...common, ...student }
+                : role === 'PROFESSOR' ? { ...common, ...professor }
+                : { ...common, ...admin }
+
+  // 변경된 필드만 추출
+  const changed = {}
+  Object.keys(current).forEach(key => {
+    if (current[key] !== original.value[key]) changed[key] = current[key]
+  })
+
+  // majorName은 전송 제외
+  delete changed.majorName
+
+  // 변경사항 없으면 early return
+  if (Object.keys(changed).length === 0) {
+    await modal.showAlert('변경된 내용이 없습니다', 'info')
+    return
+  }
+
+  // FormData 구성
+  const formData = new FormData()
+  formData.append('req', new Blob([JSON.stringify(changed)], { type: 'application/json' }))
+  if (pic.value) {
+    formData.append('pic', pic.value)
+  }
+
+  try {
+    const res = await MemberService.modifyMyProfile(formData)
+    await modal.showAlert(res.message, 'success')
+    router.push('/members/my')
+  } catch (e) {
+    console.error(e)
+  }
 }
 
 onMounted(async () => {
@@ -155,14 +197,6 @@ onMounted(async () => {
   admin.exitDate = data.exitDate
   }
 
-const original = ref({})
-if (role === 'STUDENT') {
-  original.value = JSON.parse(JSON.stringify({ ...common, ...student }))
-} else if (role === 'PROFESSOR') {
-  original.value = JSON.parse(JSON.stringify({ ...common, ...professor }))
-} else {
-  original.value = JSON.parse(JSON.stringify({ ...common, ...admin }))
-}
 })
 </script>
 
