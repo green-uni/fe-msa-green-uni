@@ -58,7 +58,7 @@ onMounted(async () => {
         <div class="">
             <div class="info-card g20 content-wrap ">
                 <div class="info-img d-flex jc-center">
-                    <ProfileImg :memberId="authStore.memberCode" :existPic="state.profileInfo.pic" />
+                    <ProfileImg :memberCode="authStore.memberCode" :existPic="state.profileInfo.pic" />
                 </div>
             <div class="info-title">
                 <h2>{{ state.profileInfo.name }}</h2>

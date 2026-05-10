@@ -11,6 +11,12 @@ class MemberService {
 
 
   //////////// 계정 생성 //////////////
+  // 역할 조회
+  async getMemberRole() {
+    const res = await axios.get('/auth/code?code_type=memberRole')
+    return res.data;
+  }
+
   async createStudent(formData) {
     const res = await axios.post(`${this.#adminPath}/students`, formData)
     return res.data;

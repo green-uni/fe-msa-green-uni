@@ -28,6 +28,7 @@ const modal = useModalStore()
 const role = ref('STUDENT')
 const pic = ref(null)
 const majorList = ref([])
+const memberRoles = ref([])
 
 // 상태값 목록
 const studentStatusList = ref([])
@@ -87,14 +88,12 @@ const admin = reactive({
 
 
 const submit = async () => {
-  // 역할별 payload 구성
+  // 역할별 분기
   const roleData = role.value === 'STUDENT'   ? { ...student }
                  : role.value === 'PROFESSOR' ? { ...professor }
                  : { ...admin }
 
-  // majorName은 화면 표시용이라 전송 제외
   delete roleData.majorName
-
   const payload = { ...common, ...roleData }
 
   // FormData 구성
@@ -127,6 +126,7 @@ onMounted(async () => {
     professorDegree,
     building,
     adminStatus,
+    roles
   ] = await Promise.all([
     MemberService.getMajorList(),
     MemberService.getStudentStatusList(),
@@ -135,9 +135,11 @@ onMounted(async () => {
     MemberService.getProfessorDegreeList(),
     MemberService.getBuildingList(),
     MemberService.getAdminStatusList(),
+    MemberService.getMemberRole()
   ])
 
   majorList.value = majors.data
+  memberRoles.value = roles.data
   studentStatusList.value = studentStatus.data
   professorStatusList.value = professorStatus.data
   professorPositionList.value = professorPosition.data
@@ -150,17 +152,9 @@ onMounted(async () => {
 <template>
   <div class="form-wrap">
     <div class="input-content radio-group radio-tab">
-      <label class="radio-label">
-        <input type="radio" name="role" value="STUDENT" v-model="role" />
-        <span>학생</span>
-      </label>
-      <label class="radio-label">
-        <input type="radio" name="role" value="PROFESSOR" v-model="role" />
-        <span>교수</span>
-      </label>
-      <label class="radio-label">
-        <input type="radio" name="role" value="ADMIN" v-model="role" />
-        <span>관리자</span>
+      <label class="radio-label" v-for="memberRole in memberRoles">
+        <input type="radio" name="role" :value="memberRole.code" v-model="role" />
+        <span>{{ memberRole.value }}</span>
       </label>
     </div>
     <div class="d-flex g20 jc-center">
