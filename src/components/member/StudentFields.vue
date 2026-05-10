@@ -4,18 +4,9 @@ import SearchInput from '@/components/util/SearchInput.vue';
 import CalendarDate from '@/components/util/CalendarDate.vue';
 
 const props = defineProps({
-  student: {
-    type: Object,
-    required: true
-  },
-  majorList: {
-    type: Array,
-    default: () => []
-  },
-  statusList: {
-    type: Array,
-    default: () => []
-  }
+  student: { type: Object, required: true  },
+  majorList: {  type: Array,  default: () => []  },
+  statusList: {  type: Array,  default: () => []  }
 })
 
 </script>

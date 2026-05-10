@@ -16,6 +16,7 @@ class MemberService {
     const res = await axios.get(`${this.#path}/majors`)
     return res.data;
   }
+
   // 학생 상태 목록 조회
   async getStudentStatusList() {
     const res = await axios.get('/auth/code?code_type=studentStatus')
@@ -26,6 +27,20 @@ class MemberService {
     const res = await axios.get('/auth/code?code_type=professorStatus')
     return res.data;
   }
+async getProfessorPositionList() {
+  const res = await axios.get('/member/code?code_type=professorPosition')
+  return res.data;
+}
+async getProfessorDegreeList() {
+  const res = await axios.get('/member/code?code_type=professorDegree')
+  return res.data;
+}
+async getBuildingList() {
+  const res = await axios.get('/auth/code?code_type=building')
+  return res.data;
+}
+
+
   // 관리자 상태 목록 조회
   async getAdminStatusList() {
     const res = await axios.get('/member/code?code_type=adminStatus')

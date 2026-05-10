@@ -3,6 +3,8 @@ import { onMounted, reactive, computed, watch, ref } from 'vue';
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
 import { useAuthStore } from '@/stores/authentication';
 import StudentFields from '@/components/member/StudentFields.vue'
+import ProfessorFields from '@/components/member/ProfessorFields.vue'
+import AdminFields from '@/components/member/AdminFields.vue'
 
 // import { saveToLocalStorage, loadfromLocalStorage, clearLocalStorage, DRAFT_KEY } from '@/utils/button';
 // import { checkValidation, validateFields } from '@/utils/validation';
@@ -27,9 +29,12 @@ const role = ref('STUDENT')
 const pic = ref(null)
 const majorList = ref([])
 
-// 상태값 목록 (API에서 받아올 것들)
+// 상태값 목록
 const studentStatusList = ref([])
 const professorStatusList = ref([])
+const professorPositionList = ref([])
+const professorDegreeList = ref([])
+const buildingList = ref([])
 const adminStatusList = ref([])
 
 // 공통 필드
@@ -81,11 +86,23 @@ const admin = reactive({
 })
 
 onMounted(async () => {
-    const majors = await MemberService.getMajorList();
-    const studentStatus = await MemberService.getStudentStatusList()
+  const [majors, studentStatus, professorStatus, professorPosition, professorDegree, building, adminStatus] = await Promise.all([
+    MemberService.getMajorList(),
+    MemberService.getStudentStatusList(),
+    MemberService.getProfessorStatusList(),
+    MemberService.getProfessorPositionList(),
+    MemberService.getProfessorDegreeList(),
+    MemberService.getBuildingList(),
+    MemberService.getAdminStatusList()
+  ])
 
   majorList.value = majors.data
   studentStatusList.value = studentStatus.data
+  professorStatusList.value = professorStatus.data
+  professorPositionList.value = professorPosition.data
+  professorDegreeList.value = professorDegree.data
+  buildingList.value = building.data
+  adminStatusList.value = adminStatus.data
 })
 </script>
 
@@ -181,6 +198,20 @@ onMounted(async () => {
             :student="student"
             :majorList="majorList"
             :statusList="studentStatusList"
+          />
+          <ProfessorFields
+            v-if="role === 'PROFESSOR'"
+            :professor="professor"
+            :majorList="majorList"
+            :statusList="professorStatusList"
+            :positionList="professorPositionList"
+            :degreeList="professorDegreeList"
+            :buildingList="buildingList"
+          />
+          <AdminFields
+            v-if="role === 'ADMIN'"
+            :admin="admin"
+            :statusList="adminStatusList"
           />
         </div> <!-- content-wrap-->
       </div>
