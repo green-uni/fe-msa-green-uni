@@ -1,29 +1,29 @@
 <script setup>
-import { onMounted, reactive, computed, watch, ref } from 'vue';
-import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
-import { useAuthStore } from '@/stores/authentication';
+import { onMounted, reactive, computed, watch, ref } from 'vue'
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
+import { useAuthStore } from '@/stores/authentication'
 import StudentFields from '@/components/member/StudentFields.vue'
 import ProfessorFields from '@/components/member/ProfessorFields.vue'
 import AdminFields from '@/components/member/AdminFields.vue'
+import CommonFields from '@/components/member/CommonFields.vue'
 
 // import { saveToLocalStorage, loadfromLocalStorage, clearLocalStorage, DRAFT_KEY } from '@/utils/button';
 // import { checkValidation, validateFields } from '@/utils/validation';
 // import { usePageStateStore } from '@/stores/pageState';
 
-import CalendarDate from '@/components/util/CalendarDate.vue';
-import SearchInput from '@/components/util/SearchInput.vue';
-import ProfileImg from '@/components/common/ProfileImg.vue';
+import CalendarDate from '@/components/util/CalendarDate.vue'
+import SearchInput from '@/components/util/SearchInput.vue'
+import ProfileImg from '@/components/common/ProfileImg.vue'
 
-import MemberService from '@/services/memberService';
+import MemberService from '@/services/memberService'
 
 import { useModalStore } from '@/stores/modal'
 
-const router = useRouter();
-const route = useRoute();
+const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
-// const modal = useModalStore()
+const modal = useModalStore()
 // const pageState = usePageStateStore()
-
 
 const role = ref('STUDENT')
 const pic = ref(null)
@@ -85,15 +85,56 @@ const admin = reactive({
   exitDate: '',
 })
 
+
+const submit = async () => {
+  // 역할별 payload 구성
+  const roleData = role.value === 'STUDENT'   ? { ...student }
+                 : role.value === 'PROFESSOR' ? { ...professor }
+                 : { ...admin }
+
+  // majorName은 화면 표시용이라 전송 제외
+  delete roleData.majorName
+
+  const payload = { ...common, ...roleData }
+
+  // FormData 구성
+  const formData = new FormData()
+  formData.append('req', new Blob([JSON.stringify(payload)], { type: 'application/json' }))
+  if (pic.value) {
+    formData.append('pic', pic.value)
+  }
+
+  // 역할별 API 호출
+  try {
+    const res = role.value === 'STUDENT'   ? await MemberService.createStudent(formData)
+              : role.value === 'PROFESSOR' ? await MemberService.createProfessor(formData)
+              : await MemberService.createAdmin(formData)
+
+    await modal.showAlert(res.message, 'success')
+    router.push('/admin/members')
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+
 onMounted(async () => {
-  const [majors, studentStatus, professorStatus, professorPosition, professorDegree, building, adminStatus] = await Promise.all([
+  const [
+    majors,
+    studentStatus,
+    professorStatus,
+    professorPosition,
+    professorDegree,
+    building,
+    adminStatus,
+  ] = await Promise.all([
     MemberService.getMajorList(),
     MemberService.getStudentStatusList(),
     MemberService.getProfessorStatusList(),
     MemberService.getProfessorPositionList(),
     MemberService.getProfessorDegreeList(),
     MemberService.getBuildingList(),
-    MemberService.getAdminStatusList()
+    MemberService.getAdminStatusList(),
   ])
 
   majorList.value = majors.data
@@ -110,89 +151,33 @@ onMounted(async () => {
   <div class="form-wrap">
     <div class="input-content radio-group radio-tab">
       <label class="radio-label">
-        <input type="radio" name="role" value="STUDENT" v-model="role">
+        <input type="radio" name="role" value="STUDENT" v-model="role" />
         <span>학생</span>
       </label>
       <label class="radio-label">
-        <input type="radio" name="role" value="PROFESSOR" v-model="role">
+        <input type="radio" name="role" value="PROFESSOR" v-model="role" />
         <span>교수</span>
       </label>
       <label class="radio-label">
-        <input type="radio" name="role" value="ADMIN" v-model="role">
+        <input type="radio" name="role" value="ADMIN" v-model="role" />
         <span>관리자</span>
       </label>
     </div>
-
-    {{ student }}
-
     <div class="d-flex g20 jc-center">
       <div class="pf-profile content-wrap">
         <h3><font-awesome-icon icon="fa-solid fa-circle-info" /> 사진 등록</h3>
         <ProfileImg :editable="true" v-model:pic="pic" />
-      </div> <!-- pf-profile-->
+      </div>
+      <!-- pf-profile-->
 
       <div class="pf-content d-grid g10 d-flex-grow1">
         <div class="content-wrap d-flex direct-col d-flex-grow1">
           <h3><font-awesome-icon icon="fa-solid fa-circle-info" />개인 정보</h3>
-          <div class="form-grid" style="--grid-cols:repeat(auto-fill, minmax(350px,1fr))">
-            <div class="input-wrap">
-              <div class="input-label"><span>이름</span></div>
-              <div class="input-content">
-                <label>
-                  <input type="text" v-model="common.name" placeholder="이름">
-                </label>
-              </div>
-            </div>
-            <div class="input-wrap">
-              <div class="input-label"><span>생년월일</span></div>
-              <div class="input-content">
-                <CalendarDate v-model="common.birth"/>
-              </div>
-            </div>
-            <div class="input-wrap">
-              <div class="input-label"><span>전화번호</span></div>
-              <div class="input-content">
-                <label>
-                  <input type="number" v-model="common.tel" placeholder="-없이 작성해주세요">
-                </label>
-              </div>
-            </div>
-            <div class="input-wrap">
-              <div class="input-label"><span>비상<br>전화번호</span></div>
-              <div class="input-content">
-                <label>
-                  <input type="number" v-model="common.emergencyTel" placeholder="-없이 작성해주세요">
-                </label>
-              </div>
-            </div>
-            <div class="input-wrap">
-              <div class="input-label"><span>이메일</span></div>
-              <div class="input-content">
-                <label>
-                  <input type="text" v-model="common.email" placeholder="이메일을 입력해주세요">
-                </label>
-              </div>
-            </div>
-            <div class="input-wrap g-col-full">
-              <div class="input-label"><span>주소</span></div>
-              <div class="d-flex direct-col g10">
-                <div class="input-content d-flex g10">
-                  <button type="button" @click="execDaumPostcode()" class="btn btn-line">주소 찾기</button>
-                  <label class="w200">
-                    <input type="text" v-model="common.postcode" placeholder="우편번호" readonly>
-                  </label>
-                </div>
-                <div class="input-content two-input">
-                  <label>
-                    <input class="c-default" type="text" v-model="common.address" placeholder="도로명 주소" readonly>
-                  </label>
-                  <label>
-                    <input type="text" v-model="common.detailAddress" placeholder="상세주소를 입력해주세요">
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div> <!--form-grid-->
+          <CommonFields :common="common" />
+        </div>
+        <!--form-grid-->
+        <div class="content-wrap d-flex direct-col d-flex-grow1">
+          <h3><font-awesome-icon icon="fa-solid fa-circle-info" />학적 정보</h3>
           <StudentFields
             v-if="role === 'STUDENT'"
             :student="student"
@@ -208,29 +193,35 @@ onMounted(async () => {
             :degreeList="professorDegreeList"
             :buildingList="buildingList"
           />
-          <AdminFields
-            v-if="role === 'ADMIN'"
-            :admin="admin"
-            :statusList="adminStatusList"
-          />
-        </div> <!-- content-wrap-->
+          <AdminFields v-if="role === 'ADMIN'" :admin="admin" :statusList="adminStatusList" />
+        </div>
+        <!-- content-wrap-->
       </div>
     </div>
-
-    <div class="btn-row g10">
-      <button class="btn btn-default" @click="router.go(-1)"><font-awesome-icon icon="fa-solid fa-arrow-left" /> 돌아가기</button>
-      <button @click="submit" class="btn btn-submit"><font-awesome-icon icon="fa-solid fa-circle-check" /> 등록</button>
-    </div>
-
   </div>
 
+  <div class="btn-row g10">
+    <button class="btn btn-default" @click="router.go(-1)">
+      <font-awesome-icon icon="fa-solid fa-arrow-left" /> 돌아가기
+    </button>
+    <button @click="submit" class="btn btn-submit">
+      <font-awesome-icon icon="fa-solid fa-circle-check" /> 등록
+    </button>
+  </div>
 </template>
 
 <style scoped lang="scss">
-.form-wrap{}
+.form-wrap {
+}
 
-.pf-profile { max-width: 280px; width: 30%; display: flex; flex-direction: column; align-self: flex-start;}
-.pf-profile .pf-profile-pic { padding: var(--size-df);}
-
-
+.pf-profile {
+  max-width: 280px;
+  width: 30%;
+  display: flex;
+  flex-direction: column;
+  align-self: flex-start;
+}
+.pf-profile .pf-profile-pic {
+  padding: var(--size-df);
+}
 </style>

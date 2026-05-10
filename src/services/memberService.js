@@ -11,6 +11,19 @@ class MemberService {
 
 
   //////////// 계정 생성 //////////////
+  async createStudent(formData) {
+    const res = await axios.post(`${this.#adminPath}/students`, formData)
+    return res.data;
+  }
+  async createProfessor(formData) {
+    const res = await axios.post(`${this.#adminPath}/professors`, formData)
+    return res.data;
+  }
+  async createAdmin(formData) {
+    const res = await axios.post(`${this.#adminPath}/admins`, formData)
+    return res.data;
+  }
+
   // 학과 목록 조회
   async getMajorList() {
     const res = await axios.get(`${this.#path}/majors`)
@@ -27,20 +40,18 @@ class MemberService {
     const res = await axios.get('/auth/code?code_type=professorStatus')
     return res.data;
   }
-async getProfessorPositionList() {
-  const res = await axios.get('/member/code?code_type=professorPosition')
-  return res.data;
-}
-async getProfessorDegreeList() {
-  const res = await axios.get('/member/code?code_type=professorDegree')
-  return res.data;
-}
-async getBuildingList() {
-  const res = await axios.get('/auth/code?code_type=building')
-  return res.data;
-}
-
-
+  async getProfessorPositionList() {
+    const res = await axios.get('/member/code?code_type=professorPosition')
+    return res.data;
+  }
+  async getProfessorDegreeList() {
+    const res = await axios.get('/member/code?code_type=professorDegree')
+    return res.data;
+  }
+  async getBuildingList() {
+    const res = await axios.get('/auth/code?code_type=building')
+    return res.data;
+  }
   // 관리자 상태 목록 조회
   async getAdminStatusList() {
     const res = await axios.get('/member/code?code_type=adminStatus')

@@ -5,7 +5,7 @@ const props = defineProps({
   memberId: [Number, String],
   clsValue: String,
   size: Number,
-  pic: String,
+  pic: { type: [String, File], default: null },
   existPic: String,    // 기존 이미지 파일명
   editable: { type: Boolean, default: false }  // 수정 가능 여부
 })
