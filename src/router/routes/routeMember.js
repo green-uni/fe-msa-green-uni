@@ -50,6 +50,15 @@ export const adminMemberRoutes = [
     },
   },
   {
+    path: `${url}/members/new`,
+    component: () => import('@/views/common/member/MemberCreate.vue'),
+    meta: {
+      title: '계정 생성',
+      groupTitle: '인사 정보 관리',
+      auth: ['ADMIN'],
+    },
+  },
+  {
     path: `${url}/major-request`,
     component: () => import('@/views/common/BlankPage.vue'),
     meta: {
