@@ -10,6 +10,7 @@ import CommonFields from '@/components/member/CommonFields.vue'
 import ProfileImg from '@/components/common/ProfileImg.vue'
 
 import MemberService from '@/services/memberService'
+import codeListService from '@/services/codeService'
 
 import { useModalStore } from '@/stores/modal'
 
@@ -133,12 +134,12 @@ onMounted(async () => {
     adminStatus,
   ] = await Promise.all([
     MemberService.getMajorList(),
-    MemberService.getStudentStatusList(),
-    MemberService.getProfessorStatusList(),
-    MemberService.getProfessorPositionList(),
-    MemberService.getProfessorDegreeList(),
-    MemberService.getBuildingList(),
-    MemberService.getAdminStatusList(),
+    codeListService.getStudentStatusList(),
+    codeListService.getProfessorStatusList(),
+    codeListService.getProfessorPositionList(),
+    codeListService.getProfessorDegreeList(),
+    codeListService.getBuildingList(),
+    codeListService.getAdminStatusList(),
   ])
 
   majorList.value = majors.data
