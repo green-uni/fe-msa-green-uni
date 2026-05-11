@@ -12,7 +12,14 @@ const authStore = useAuthStore()
 
 <template>
   <div>
-    <TopHeader />
+    <TopHeader />    
+    <div class="mobile-user-box">
+        <p>
+          <span>{{ authStore.memberCode }}</span>
+          <span>{{ authStore.major }}</span>
+          <span>{{ authStore.name }}</span>
+        </p>
+    </div>
     <main class="container">
       <RouterView />
     </main>

@@ -2,10 +2,10 @@
 import { ref, computed } from 'vue'
 
 const props = defineProps({
-  memberId: [Number, String],
+  memberCode: [Number, String],
   clsValue: String,
   size: Number,
-  pic: String,
+  pic: { type: [String, File], default: null },
   existPic: String,    // 기존 이미지 파일명
   editable: { type: Boolean, default: false }  // 수정 가능 여부
 })
@@ -19,7 +19,7 @@ const previewUrl = ref(null)
 // 이미지 주소: 기존 사진 or 미리보기 or 빈값
 const imgSrc = computed(() => {
   if (previewUrl.value) return previewUrl.value  // 새로 선택한 이미지
-  if (props.existPic && props.memberId) return `/pic/member/${props.memberId}/${props.existPic}`  // 기존 이미지
+  if (props.existPic && props.memberCode) return `/file/member/${props.memberCode}/${props.existPic}`  // 기존 이미지
   return ''  // 없음
 })
 
