@@ -20,12 +20,24 @@
   const login = async () => {
     try {
       const res = await AuthService.logIn(state.form);
-      console.log(res.data)
-      authStore.logIn(res.data);
-      if (res.data.isFirstLogin) {
-        router.push('/auth/password')
+      // console.log(res)
+
+      if(res.data.isFirstLogin == true){
+        await modal.showAlert('최초 로그인 입니다. 비밀번호를 변경해주세요', 'warning')
+        authStore.logIn(res.data);
+        const profile = await MemberService.findProfile();
+        authStore.setProfile(profile.data);
+
+        await router.push('/member/my/password')
+        return
       }
+
+      authStore.logIn(res.data);
+      const profile = await MemberService.findProfile();
+      authStore.setProfile(profile.data);
+
       router.push('/admin/members/my')
+
     } catch (e) {
       console.error(e)
     }

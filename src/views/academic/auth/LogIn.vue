@@ -19,14 +19,13 @@
     },
     role: 'STUDENT'
   })
-
   
   watch(() => state.role, (role) => {
     if (role === 'STUDENT') {
       state.form.memberCode = '20221001'
       state.form.password = '1234'
     } else if (role === 'PROFESSOR') {
-      state.form.memberCode = '20202001' 
+      state.form.memberCode = '20152001' 
       state.form.password = '1234'
     } 
   })
@@ -34,12 +33,11 @@
   const login = async () => {
     try {
       const res = await AuthService.logIn(state.form);
-      console.log(res)
+      // console.log(res)
 
       if(res.data.isFirstLogin == true){
         await modal.showAlert('최초 로그인 입니다. 비밀번호를 변경해주세요', 'warning')
         authStore.logIn(res.data);
-
         const profile = await MemberService.findProfile();
         authStore.setProfile(profile.data);
 

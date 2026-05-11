@@ -5,9 +5,11 @@ import { onMounted, reactive, computed } from 'vue';
 import ProfileImg from '@/components/common/ProfileImg.vue';
 import { useRouter } from 'vue-router';
 import { formatTel } from '@/utils/phoneNumber'
+import { STATUS_LABEL, POSITION_LABEL, DEGREE_LABEL } from '@/utils/constants.js'
 
 const authStore = useAuthStore()
 const router = useRouter();
+const role = authStore.role
 
 const state = reactive({
     profileInfo: {}
@@ -31,7 +33,7 @@ const unActive = computed(() => {
 const getUserData = async () => {
     try {
         const res = await MemberService.findProfile();
-        console.log(res.data)
+        // console.log(res.data)
         state.profileInfo = res.data;
     } catch (e) {
         console.error(e)
@@ -104,15 +106,15 @@ onMounted(async () => {
                     </dl>  
                     <dl v-if="authStore.role == 'PROFESSOR'">
                         <dt>학위</dt>
-                        <dd>{{ state.profileInfo.degree }}</dd>
+                        <dd>{{ DEGREE_LABEL[state.profileInfo.degree] }}</dd>
                     </dl>
                     <dl v-if="authStore.role == 'PROFESSOR'">
                         <dt>직위</dt>
-                        <dd>{{ state.profileInfo.position }}</dd>
+                        <dd>{{ POSITION_LABEL[state.profileInfo.position] }}</dd>
                     </dl>
                     <dl>
                         <dt>상태</dt>
-                        <dd>{{ state.profileInfo.status }}</dd>
+                        <dd>{{ STATUS_LABEL[role][state.profileInfo.status] }}</dd>
                     </dl>  
                     <dl>
                         <dt>
