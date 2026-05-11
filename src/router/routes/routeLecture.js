@@ -3,13 +3,41 @@ const url = 'lectures'
 export const lectureRoutes = [
   {
     path: `${url}`,
+    component: () => import('@/views/common/lecture/LectureList.vue'),
+    meta: {
+      title: '강의 전체 조회',
+      groupTitle: '강의 관리',
+      auth: ['STUDENT', 'PROFESSOR', 'ADMIN'],
+    },
+  },
+  {
+    path: `${url}/my`,
+    component: () => import('@/views/academic/lecture/MyLectureList.vue'),
+    meta: {
+      title: '나의 강의 관리',
+      groupTitle: '강의 관리',
+      auth: ['STUDENT', 'PROFESSOR'],
+    },
+  },
+  {
+    path: `${url}/create`,
     component: () => import('@/views/academic/lecture/LectureCreate.vue'),
     meta: {
-      title: '강의개설',
-      groupTitle: '강의관리',
+      title: '강의 개설',
+      groupTitle: '강의 관리',
       auth: ['PROFESSOR'],
     },
   },
 ]
-export const adminLectureRoutes =[
+
+export const adminLectureRoutes = [
+  {
+    path: `${url}`,
+    component: () => import('@/views/admin/lecture/LectureApproveList.vue'),
+    meta: {
+      title: '강의 승인 관리',
+      groupTitle: '강의 관리',
+      auth: ['ADMIN'],
+    },
+  },
 ]
