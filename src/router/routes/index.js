@@ -1,4 +1,4 @@
-import { authRoutes, adminAuthRoutes } from './routeAuth'
+import { authRoutes, adminAuthRoutes, mobileAuthRoutes } from './routeAuth'
 import { memberRoutes, adminMemberRoutes } from './routeMember'
 
 import { lectureRoutes, adminLectureRoutes } from './routeLecture'
@@ -54,6 +54,7 @@ export const routes = [
     component: () => import('@/layouts/AttendanceLayout.vue'),
     children: [
       ...mobileAttendanceRoutes,
+      ...mobileAuthRoutes,
     ],
   },
 ]
