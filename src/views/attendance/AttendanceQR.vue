@@ -128,6 +128,30 @@ const makeupOriginalDateFormatted = computed(() => {
   })
 })
 
+// ── 페이지 진입 시 강의 정보 로드 + 활성 세션 복구 ───────────────
+onMounted(async () => {
+  // 1. 강의명·강의실 표시
+  try {
+    const res = await attendanceService.getProfessorLecture(lectureId)
+    const data = res.data ?? res
+    lecture.value = {
+      lectureName: data.lectureName,
+      lectureRoom: data.schedules?.[0]?.lectureRoom ?? '-',
+    }
+  } catch { /* 세션 시작 후 서버 응답으로 채워짐 */ }
+
+  // 2. 이미 활성화된 세션이 있으면 QR 화면으로 바로 복구
+  try {
+    const res = await attendanceService.getActiveSession(lectureId)
+    const active = res.data
+    if (active?.sessionId) {
+      sessionId.value       = active.sessionId
+      isSessionActive.value = true
+      startStream(active.sessionId)
+    }
+  } catch { /* 활성 세션 없음 */ }
+})
+
 // ── 내부 변수 ────────────────────────────────────────────────────
 let eventSourceRef = null
 let countTimerRef  = null
@@ -154,9 +178,10 @@ function stopStream() {
 async function handleStartSession() {
   isLoading.value = true
   try {
-    const data = await attendanceService.createSession(lectureId, today.value)
-    sessionId.value       = data.sessionId
-    lecture.value         = { lectureName: data.lectureName, lectureRoom: data.lectureRoom }
+    const res = await attendanceService.createSession(lectureId, today.value)
+    const data = res.data
+    sessionId.value = data.sessionId
+    lecture.value   = { lectureName: data.lectureName, lectureRoom: data.lectureRoom }
     isSessionActive.value = true
     startStream(data.sessionId)
   } catch {
@@ -198,7 +223,8 @@ async function handleEndSession() {
 
   isLoading.value = true
   try {
-    const data = await attendanceService.endSession(lectureId, sessionId.value)
+    const res = await attendanceService.endSession(lectureId, sessionId.value)
+    const data = res.data
     endedAt.value = data.endedAt
     stopStream()
     isSessionActive.value = false
@@ -223,6 +249,68 @@ onMounted(() => {
   }
 })
 
+<<<<<<< HEAD
+=======
+// ── 보강 모달 열기 ────────────────────────────────────────────────
+async function handleOpenMakeupModal() {
+  isLoading.value = true
+  try {
+    const res = await attendanceService.getCancelledDates(lectureId)
+    const list = res.data ?? res
+    // makeupDate가 null인 날짜만 선택 가능
+    cancelledDates.value     = list.filter(item => !item.makeupDate)
+    selectedCancelDate.value = ''
+
+    if (cancelledDates.value.length === 0) {
+      await modal.showAlert('보강 가능한 휴강 날짜가 없습니다.', 'info')
+      return
+    }
+    showMakeupModal.value = true
+  } catch {
+    // API 에러는 httpRequester 인터셉터가 모달로 처리
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// ── 보강 세션 시작 ────────────────────────────────────────────────
+async function handleStartMakeupSession() {
+  if (!selectedCancelDate.value) return
+
+  isLoading.value = true
+  try {
+    const res = await attendanceService.createMakeupSession(
+      lectureId,
+      today.value + 'T00:00:00',
+      selectedCancelDate.value + 'T00:00:00',
+    )
+    const data = res.data
+    sessionId.value          = data.sessionId
+    makeupOriginalDate.value = data.originalDate ?? selectedCancelDate.value
+    lecture.value            = { lectureName: data.lectureName, lectureRoom: data.lectureRoom }
+    isMakeupSession.value    = true
+    isSessionActive.value    = true
+    showMakeupModal.value    = false
+    startStream(data.sessionId)
+  } catch {
+    // API 에러는 httpRequester 인터셉터가 모달로 처리
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// ── 날짜 포맷 유틸 ───────────────────────────────────────────────
+function formatCancelDate(dateStr) {
+  const normalized = String(dateStr).replace(' ', 'T')
+  const d = new Date(normalized)
+  if (isNaN(d.getTime())) return dateStr
+  return d.toLocaleDateString('ko-KR', {
+    year: 'numeric', month: 'long', day: 'numeric', weekday: 'short',
+  })
+}
+
+// ── 컴포넌트 언마운트 시 정리 ────────────────────────────────────
+>>>>>>> 22-attendance-absent
 onUnmounted(() => stopStream())
 </script>
 

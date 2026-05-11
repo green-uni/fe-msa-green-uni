@@ -4,7 +4,20 @@ const prof = '/core/professor/attendances'
 const student = '/core/student/attendances'
 
 class AttendanceService {
+    // ── 교수 강의 목록/단건 조회 (QR 출석 강의 선택 화면용) ────────────────────────
 
+    // 교수 본인이 담당하는 승인된 강의 목록
+    async getProfessorLectures() {
+        const res = await axios.get(`${prof}/my-lectures`)
+        return res.data
+    }
+    
+    // 특정 강의 정보 (QR 출석 페이지 헤더에서 강의명·강의실 표시용)
+    async getProfessorLecture(lectureId) {
+        const res = await axios.get(`${prof}/my-lectures/${lectureId}`)
+        return res.data
+    }
+    
   // API-ATTD-01: 출석 QR 세션 생성
   async createSession(lectureId, classDate) {
     const res = await axios.post(`${prof}/${lectureId}/sessions`, { classDate })
@@ -30,17 +43,21 @@ class AttendanceService {
     return res.data
   }
 
-  // API-ATTD-05: 교수 출석 현황 조회 (attendDate 생략 시 전체)
-  async getAttendanceList(lectureId, attendDate = null) {
-    const params = attendDate ? { attendDate } : {}
-    const res = await axios.get(`${prof}/${lectureId}`, { params })
+  // 강의의 출석 세션 목록 조회 (날짜 최신순)
+  async getSessionList(lectureId) {
+    const res = await axios.get(`${prof}/${lectureId}/sessions`)
     return res.data
   }
 
-  // API-ATTD-06: 출석 현황 수정 (다중 학생 일괄)
-  // updates: [{ attendId, status, reason? }, ...]
-  async updateAttendance(lectureId, updates) {
-    const res = await axios.patch(`${prof}/${lectureId}`, updates)
+  // 특정 세션의 출석부 조회 (수강생 전체 + 출석 현황)
+  async getRoster(lectureId, sessionId) {
+    const res = await axios.get(`${prof}/${lectureId}/sessions/${sessionId}/roster`)
+    return res.data
+  }
+
+  // 출석 상태 단건 수정
+  async updateAttendStatus(lectureId, attendId, status, reason = null) {
+    const res = await axios.patch(`${prof}/${lectureId}/attendances/${attendId}`, { status, reason })
     return res.data
   }
 
@@ -77,6 +94,13 @@ class AttendanceService {
   // 응답: [{ cancelDate: "2026-04-21", makeupDate: null | "2026-05-10" }, ...]
   async getCancelledDates(lectureId) {
     const res = await axios.get(`${prof}/${lectureId}/cancels`)
+    return res.data
+  }
+
+  // 활성 세션 조회 (페이지 재진입 시 기존 세션 복구용)
+  // 응답: { sessionId, classDate } 또는 data: null (활성 세션 없음)
+  async getActiveSession(lectureId) {
+    const res = await axios.get(`${prof}/${lectureId}/sessions/active`)
     return res.data
   }
 }

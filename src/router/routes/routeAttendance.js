@@ -3,35 +3,34 @@ const url = 'attendances'
 export const attendanceRoutes = [
 // ── 교수 화면 ───────────────────────────────────────────────
   {
-    // 교수 강의 목록 + QR 시작 선택 화면
-    path: url,
-    component: () => import('@/views/attendance/AttendanceLectureList.vue'),
+    // 교수 강의 목록 화면 (QR 출석 강의 선택 진입점)
+    path: `${url}/professor`,
+    component: () => import('@/views/attendance/AttendProLectureList.vue'),
     meta: {
-      title: '출석 관리',
+      title: '내 강의 목록',
+      groupTitle: 'QR 출석 관리',
+      auth: ['PROFESSOR'],
+    },
+  },
+  {
+    // 출석 현황 — 강의 목록 선택 후 날짜별 출석부 조회/수정
+    path: `${url}/roster`,
+    component: () => import('@/views/attendance/AttendanceList.vue'),
+    meta: {
+      title: '출석 현황',
       groupTitle: '출석 관리',
       auth: ['PROFESSOR'],
     },
   },
 
   {
-    // QR 출석 진행 화면 (이번에 만든 컴포넌트)
+    // QR 출석 진행 화면
     // URL 예시: /attendances/42/qr  (42 = lectureId)
     path: `${url}/:lectureId/qr`,
     component: () => import('@/views/attendance/AttendanceQR.vue'),
     meta: {
       title: 'QR 출석 관리',
       groupTitle: 'QR 출석 관리',
-      auth: ['PROFESSOR'],
-    },
-  },
-  {
-    // 출석 현황 조회 + 수정 화면 (API-ATTD-05, 06)
-    // URL 예시: /attendances/42
-    path: `${url}/:lectureId`,
-    component: () => import('@/views/attendance/AttendanceList.vue'),
-    meta: {
-      title: '출석 현황',
-      groupTitle: '출석 관리',
       auth: ['PROFESSOR'],
     },
   },
