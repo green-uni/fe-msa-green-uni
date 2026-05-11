@@ -1,13 +1,16 @@
   <script setup>
   import logo from '@/assets/logo.png';
   import AuthService from '@/services/authService';
+  import MemberService from '@/services/memberService';
   import { reactive, watch } from 'vue';
   import { useAuthStore } from '@/stores/authentication';
   import { useRouter } from 'vue-router';
+  import { useModalStore } from '@/stores/modal'
   import LoginForm from '@/components/auth/LoginForm.vue';
 
   const authStore = useAuthStore()
   const router = useRouter();
+  const modal = useModalStore()
 
   const state = reactive({
     form: {
