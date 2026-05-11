@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import majorService from '@/services/majorService'
 import { useModalStore } from '@/stores/modal'
@@ -16,15 +16,7 @@ const pageTitle = computed(() => isEdit.value ? '학과 정보수정' : '학과 
 
 const professorList  = ref([])
 const collegeList    = ref([])
-
-const BUILDING_OPTIONS = [
-  { label: '경영관', value: 'BUSINESS'    },
-  { label: '공학관', value: 'ENGINEERING' },
-  { label: '인문관', value: 'HUMANITIES'  },
-  { label: '예술관', value: 'ARTS'        },
-  { label: '교양관', value: 'LIBERAL'     },
-  { label: '이과관', value: 'SCIENCE'     },
-]
+const buildingList = ref([])
 
 const form = reactive({
   name:               '',
@@ -77,11 +69,16 @@ function loadTemp() {
 function validate() {
   if (!form.name.trim())      return '학과명을 입력해주세요.'
   if (!form.collegeId)        return '소속대학을 선택해주세요.'
+  if (!form.courseDuration || form.courseDuration < 4) {
+    return '수업연한을 4년 이상으로 입력해주세요.'
+  }
   if (!form.majorBuilding)    return '건물을 선택해주세요.'
   if (!form.room.trim())      return '호수를 입력해주세요.'
-  if (!form.tel.trim())       return '전화번호를 입력해주세요.'
-  if (!form.capacity)         return '입학정원을 입력해주세요.'
+  if (!form.capacity || form.capacity < 30) {
+    return '입학정원을 30명 이상으로 입력해주세요.'
+  }
   if (!form.foundedDate)      return '개설일을 선택해주세요.'
+  if (!form.tel.trim())       return '전화번호를 입력해주세요.'
   return null
 }
 
@@ -109,12 +106,14 @@ async function handleSubmit() {
 
 async function fetchInitData() {
   try {
-    const [cRes, pRes] = await Promise.all([
+    const [cRes, pRes, bRes] = await Promise.all([
       majorService.getCollegeList(),
       majorService.getProfessorList(),
+      majorService.getBuildingList(),
     ])
     collegeList.value   = cRes.data?.data ?? []
     professorList.value = pRes.data?.data ?? []
+    buildingList.value  = bRes.data?.data ?? []
   } catch {
     await modal.showAlert('기초 데이터를 불러오지 못했습니다.', 'error')
   }
@@ -158,6 +157,25 @@ onMounted(async () => {
     loadTemp()
   }
 })
+
+watch(
+  () => route.params.majorId,
+  async (newId) => {
+    if (newId) {
+      await fetchDetail()
+    } else {
+      // 학과개설 모드로 전환 시 완전 초기화
+      Object.assign(form, {
+        name: '', majorBuilding: '', room: '', tel: '',
+        chairProfessorCode: null, capacity: '',
+        active: '정상', collegeId: '', info: '',
+        courseDuration: '', foundedDate: ''
+      })
+      professorKeyword.value = ''
+      loadTemp()
+    }
+  }
+)
 </script>
 
 <template>
@@ -237,8 +255,8 @@ onMounted(async () => {
           <div class="input-content two-input">
             <select v-model="form.majorBuilding">
               <option value="">건물 선택</option>
-              <option v-for="b in BUILDING_OPTIONS" :key="b.value" :value="b.value">
-                {{ b.label }}
+              <option v-for="b in buildingList" :key="b.code" :value="b.name">
+                {{ b.name }}
               </option>
             </select>
             <input v-model="form.room" type="text" placeholder="예: 201호" />

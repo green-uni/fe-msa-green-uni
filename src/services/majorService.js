@@ -9,6 +9,9 @@ class MajorService {
   editMajor(majorId, data)  { return axios.patch(`${path}/${majorId}`, data) }
   getCollegeList()          { return axios.get(`${path}/colleges`) }
   getProfessorList()        { return axios.get(`${path}/professors`) }
+  getBuildingList() {
+  return axios.get(`${path}/buildings`);
+}
 }
 
 export default new MajorService();
