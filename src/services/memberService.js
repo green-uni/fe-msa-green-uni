@@ -5,7 +5,7 @@ class MemberService {
   #path = '/member'
 
   async findProfile(){
-    const res = await axios.get(`${this.#path}/my`)
+    const res = await axios.get(`/member/my`) 
     return res.data;
   };
 
