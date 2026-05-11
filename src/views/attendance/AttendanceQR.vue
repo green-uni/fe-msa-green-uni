@@ -19,17 +19,27 @@
 
     <!-- 대기 상태: 세션 시작 전 -->
     <div v-if="!isSessionActive && !isSessionEnded && !isClassCancelled" class="standby-section">
-      <p class="standby-text">출석 시작 버튼을 누르면 QR이 활성화됩니다.</p>
+      <p class="standby-text">
+        {{ isTodayCompleted ? '오늘 출석이 이미 완료되었습니다.' : '출석 시작 버튼을 누르면 QR이 활성화됩니다.' }}
+      </p>
       <div class="standby-buttons">
-        <button class="btn btn-start" @click="handleStartSession" :disabled="isLoading">
-          {{ isLoading ? '세션 생성 중...' : '출석 시작' }}
-        </button>
-        <button class="btn btn-cancel-class" @click="handleCancelClass" :disabled="isLoading">
-          휴강처리
-        </button>
-        <button class="btn btn-makeup" @click="handleOpenMakeupModal" :disabled="isLoading">
-          보강 QR 생성
-        </button>
+        <!-- 오늘 출석 완료 → 출석완료(비활성) + 출석현황으로 이동 -->
+        <template v-if="isTodayCompleted">
+          <button class="btn btn-completed" disabled>출석완료</button>
+          <button class="btn btn-nav" @click="goToList">출석 현황 보기</button>
+        </template>
+        <!-- 아직 시작 전 → 정상 버튼 3개 -->
+        <template v-else>
+          <button class="btn btn-start" @click="handleStartSession" :disabled="isLoading">
+            {{ isLoading ? '세션 생성 중...' : '출석 시작' }}
+          </button>
+          <button class="btn btn-cancel-class" @click="handleCancelClass" :disabled="isLoading">
+            휴강처리
+          </button>
+          <button class="btn btn-makeup" @click="handleOpenMakeupModal" :disabled="isLoading">
+            보강 QR 생성
+          </button>
+        </template>
       </div>
     </div>
 
@@ -70,6 +80,10 @@
       <p class="result-sub">
         미스캔 학생은 결석 처리되었습니다. 수동 수정이 필요한 경우 출석 현황 수정 화면을 이용해주세요.
       </p>
+      <div class="result-actions">
+        <button class="btn btn-nav" @click="goToLectureList">강의 목록으로</button>
+        <button class="btn btn-nav btn-nav-primary" @click="goToList">출석 현황 보기</button>
+      </div>
     </div>
 
     <!-- 휴강 처리 완료 -->
@@ -115,22 +129,24 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import QrcodeVue from 'qrcode.vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import attendanceService from '@/services/attendanceService.js'
 import { useModalStore } from '@/stores/modal.js'
 
 const route = useRoute()
+const router = useRouter()
 const modal = useModalStore()
 const lectureId = route.params.lectureId
 
 // ── 상태값 ──────────────────────────────────────────────────────
 const lecture = ref({ lectureName: '', lectureRoom: '' })
 
-const sessionId        = ref(null)
-const currentToken     = ref('')
-const isSessionActive  = ref(false)
-const isSessionEnded   = ref(false)
-const isClassCancelled = ref(false)
+const sessionId          = ref(null)
+const currentToken       = ref('')
+const isSessionActive    = ref(false)
+const isSessionEnded     = ref(false)
+const isClassCancelled   = ref(false)
+const isTodayCompleted   = ref(false) // 페이지 진입 시 이미 종료된 세션이 있을 때
 
 const isMakeupSession    = ref(false)
 const makeupOriginalDate = ref('')
@@ -178,7 +194,7 @@ const makeupOriginalDateFormatted = computed(() => {
   })
 })
 
-// ── 페이지 진입 시 강의 정보 로드 + 활성 세션 복구 ───────────────
+// ── 페이지 진입 시 강의 정보 로드 + 오늘 세션 상태 복구 ─────────
 onMounted(async () => {
   // 1. 강의명·강의실 표시
   try {
@@ -190,16 +206,23 @@ onMounted(async () => {
     }
   } catch { /* 세션 시작 후 서버 응답으로 채워짐 */ }
 
-  // 2. 이미 활성화된 세션이 있으면 QR 화면으로 바로 복구
+  // 2. 오늘 세션 상태 확인
+  //    - data: null  → 세션 없음, 출석시작 버튼 활성화
+  //    - isActive: true  → 진행 중, QR 화면 복구
+  //    - isActive: false → 완료됨, 출석완료 버튼(비활성)으로 전환
   try {
-    const res = await attendanceService.getActiveSession(lectureId)
-    const active = res.data
-    if (active?.sessionId) {
-      sessionId.value       = active.sessionId
-      isSessionActive.value = true
-      startStream(active.sessionId)
+    const res = await attendanceService.getTodaySession(lectureId)
+    const session = res.data
+    if (session?.sessionId) {
+      if (session.isActive) {
+        sessionId.value       = session.sessionId
+        isSessionActive.value = true
+        startStream(session.sessionId)
+      } else {
+        isTodayCompleted.value = true
+      }
     }
-  } catch { /* 활성 세션 없음 */ }
+  } catch { /* 오늘 세션 없음 */ }
 })
 
 // ── 내부 변수 ────────────────────────────────────────────────────
@@ -336,6 +359,15 @@ async function handleStartMakeupSession() {
   } finally {
     isLoading.value = false
   }
+}
+
+// ── 화면 이동 ────────────────────────────────────────────────────
+function goToLectureList() {
+  router.push('/attendances/professor')
+}
+
+function goToList() {
+  router.push('/attendances/roster')
 }
 
 // ── 날짜 포맷 유틸 ───────────────────────────────────────────────
@@ -525,5 +557,20 @@ onUnmounted(() => stopStream())
     background: #e0e0e0; color: #555;
     &:hover:not(:disabled) { opacity: 0.85; }
   }
+  &.btn-completed {
+    background: #9e9e9e; color: #fff; cursor: not-allowed; opacity: 0.7;
+  }
+  &.btn-nav {
+    background: #f0f4ff; color: #4a7cf7; border: 1px solid #4a7cf7;
+    &:hover { background: #e0e8ff; }
+  }
+  &.btn-nav-primary {
+    background: #4a7cf7; color: #fff; border: none;
+    &:hover { opacity: 0.85; }
+  }
+}
+
+.result-actions {
+  display: flex; gap: 12px; justify-content: center; margin-top: 8px;
 }
 </style>

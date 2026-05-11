@@ -43,21 +43,18 @@ class AttendanceService {
     return res.data
   }
 
-  // 강의의 출석 세션 목록 조회 (날짜 최신순)
-  async getSessionList(lectureId) {
-    const res = await axios.get(`${prof}/${lectureId}/sessions`)
+  // API-ATTD-05: 출석 목록 조회 (강의 + 날짜)
+  // attendDate 생략 시 오늘 날짜로 조회
+  async getAttendanceList(lectureId, attendDate = null) {
+    const params = attendDate ? { attendDate } : {}
+    const res = await axios.get(`${prof}/${lectureId}`, { params })
     return res.data
   }
 
-  // 특정 세션의 출석부 조회 (수강생 전체 + 출석 현황)
-  async getRoster(lectureId, sessionId) {
-    const res = await axios.get(`${prof}/${lectureId}/sessions/${sessionId}/roster`)
-    return res.data
-  }
-
-  // 출석 상태 단건 수정
-  async updateAttendStatus(lectureId, attendId, status, reason = null) {
-    const res = await axios.patch(`${prof}/${lectureId}/attendances/${attendId}`, { status, reason })
+  // API-ATTD-06: 출석 상태 일괄 수정
+  // updates: [{ attendId, status, reason }, ...]
+  async updateAttendStatuses(lectureId, updates) {
+    const res = await axios.patch(`${prof}/${lectureId}`, updates)
     return res.data
   }
 
@@ -101,6 +98,13 @@ class AttendanceService {
   // 응답: { sessionId, classDate } 또는 data: null (활성 세션 없음)
   async getActiveSession(lectureId) {
     const res = await axios.get(`${prof}/${lectureId}/sessions/active`)
+    return res.data
+  }
+
+  // 오늘 세션 상태 조회 — 버튼 상태 결정용
+  // 응답: null(세션 없음) | { sessionId, classDate, isActive: true(진행중) | false(완료) }
+  async getTodaySession(lectureId) {
+    const res = await axios.get(`${prof}/${lectureId}/sessions/today`)
     return res.data
   }
 }

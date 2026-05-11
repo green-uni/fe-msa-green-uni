@@ -54,10 +54,8 @@
       <!-- 날짜 필터 -->
       <div class="date-bar">
         <label class="date-label">수업 날짜</label>
-        <input type="date" v-model="selectedDate" class="date-input" @change="applyDateFilter" />
-        <span v-if="filteredSession" class="session-type-badge">{{ filteredSession.sessionType }}</span>
-        <span v-if="filteredSession?.isActive" class="live-dot" title="진행 중"></span>
-        <span v-if="!filteredSession && !isSessionLoading" class="no-session-msg">
+        <input type="date" v-model="selectedDate" class="date-input" @change="loadRoster" />
+        <span v-if="!isRosterLoading && roster.length === 0" class="no-session-msg">
           선택한 날짜에 출석 기록이 없습니다.
         </span>
       </div>
@@ -73,6 +71,7 @@
           <thead>
             <tr>
               <th>학년</th>
+              <th>학과</th>
               <th>이름</th>
               <th>출석 상태</th>
               <th>비고</th>
@@ -81,10 +80,11 @@
           </thead>
           <tbody>
             <tr v-for="row in roster" :key="row.attendId">
-              <td>{{ row.academicYear != null ? row.academicYear + '학년' : '-' }}</td>
-              <td>{{ row.studentName }}</td>
+              <td>{{ row.academic_year != null ? row.academic_year + '학년' : '-' }}</td>
+              <td>{{ row.major_name ?? '-' }}</td>
+              <td>{{ row.memberName }}</td>
               <td>
-                <span :class="['status-badge', statusClass(row.status)]">{{ row.status }}</span>
+                <span :class="['status-badge', statusClass(row.status)]">{{ statusLabel(row.status) }}</span>
               </td>
               <td class="reason-cell">{{ row.reason ?? '-' }}</td>
               <td>
@@ -120,11 +120,8 @@ const lectures = ref([])
 const isLectureLoading = ref(true)
 const selectedLecture = ref(null)
 
-// ── 세션 / 날짜 필터 ───────────────────────────────────────────
-const sessions = ref([])
-const isSessionLoading = ref(false)
+// ── 날짜 필터 ──────────────────────────────────────────────────
 const selectedDate = ref(today())
-const filteredSession = ref(null)
 
 // ── 출석부 ────────────────────────────────────────────────────
 const roster = ref([])
@@ -150,28 +147,19 @@ async function openRoster(lec) {
   selectedDate.value = today()
   editId.value = null
   roster.value = []
-  isSessionLoading.value = true
-  try {
-    const res = await attendanceService.getSessionList(lec.lectureId)
-    sessions.value = res.data ?? res
-    applyDateFilter()
-  } finally {
-    isSessionLoading.value = false
-  }
+  await loadRoster()
 }
 
-async function applyDateFilter() {
-  // 선택한 날짜와 일치하는 세션 찾기, 없으면 null
-  const session = sessions.value.find(s => s.classDate === selectedDate.value) ?? null
-  filteredSession.value = session
+async function loadRoster() {
+  if (!selectedLecture.value) return
   roster.value = []
   editId.value = null
-
-  if (!session) return
-
   isRosterLoading.value = true
   try {
-    const res = await attendanceService.getRoster(selectedLecture.value.lectureId, session.sessionId)
+    const res = await attendanceService.getAttendanceList(
+      selectedLecture.value.lectureId,
+      selectedDate.value,
+    )
     roster.value = res.data ?? res
   } finally {
     isRosterLoading.value = false
@@ -181,7 +169,7 @@ async function applyDateFilter() {
 // ── 수정 ──────────────────────────────────────────────────────
 function startEdit(row) {
   editId.value = row.attendId
-  editStatus.value = statusCode(row.status)
+  editStatus.value = row.status  // 서버가 이미 영문 code로 응답
   editReason.value = row.reason ?? ''
 }
 
@@ -190,13 +178,11 @@ function cancelEdit() { editId.value = null }
 async function saveEdit(row) {
   isSaving.value = true
   try {
-    await attendanceService.updateAttendStatus(
+    await attendanceService.updateAttendStatuses(
       selectedLecture.value.lectureId,
-      row.attendId,
-      editStatus.value,
-      editReason.value || null,
+      [{ attendId: row.attendId, status: editStatus.value, reason: editReason.value || null }],
     )
-    row.status = statusLabel(editStatus.value)
+    row.status = editStatus.value
     row.reason = editReason.value || null
     editId.value = null
   } finally {
@@ -209,16 +195,12 @@ function today() {
   return new Date().toISOString().slice(0, 10)
 }
 
-function statusCode(label) {
-  return { '출석': 'ATTEND', '결석': 'ABSENT', '지각': 'LATE', '조퇴': 'EARLY_LEAVE' }[label] ?? label
-}
-
 function statusLabel(code) {
   return { ATTEND: '출석', ABSENT: '결석', LATE: '지각', EARLY_LEAVE: '조퇴' }[code] ?? code
 }
 
-function statusClass(label) {
-  return { '출석': 'attend', '결석': 'absent', '지각': 'late', '조퇴': 'early-leave', '미처리': 'unprocessed' }[label] ?? ''
+function statusClass(status) {
+  return { ATTEND: 'attend', ABSENT: 'absent', LATE: 'late', EARLY_LEAVE: 'early-leave' }[status] ?? ''
 }
 </script>
 

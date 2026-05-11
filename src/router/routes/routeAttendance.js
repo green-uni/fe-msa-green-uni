@@ -13,6 +13,20 @@ export const attendanceRoutes = [
     },
   },
   {
+    // QR 출석 진행 화면 — 내 강의 목록에서 버튼으로 진입, 사이드바에는 표시 안 함
+    // URL 예시: /attendances/42/qr  (42 = lectureId)
+    path: `${url}/:lectureId/qr`,
+    component: () => import('@/views/attendance/AttendanceQR.vue'),
+    meta: {
+      title: 'QR 출석 관리',
+      groupTitle: 'QR 출석 관리',
+      auth: ['PROFESSOR'],
+      showInNav: false,
+      activeMenu: '/attendances/professor',
+    },
+  },
+  
+  {
     // 출석 현황 — 강의 목록 선택 후 날짜별 출석부 조회/수정
     path: `${url}/roster`,
     component: () => import('@/views/attendance/AttendanceList.vue'),
@@ -22,19 +36,7 @@ export const attendanceRoutes = [
       auth: ['PROFESSOR'],
     },
   },
-
-  {
-    // QR 출석 진행 화면
-    // URL 예시: /attendances/42/qr  (42 = lectureId)
-    path: `${url}/:lectureId/qr`,
-    component: () => import('@/views/attendance/AttendanceQR.vue'),
-    meta: {
-      title: 'QR 출석 관리',
-      groupTitle: 'QR 출석 관리',
-      auth: ['PROFESSOR'],
-    },
-  },
-
+  
   // ── 학생 화면 ───────────────────────────────────────────────
 
   {
