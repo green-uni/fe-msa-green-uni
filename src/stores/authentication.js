@@ -31,6 +31,9 @@ export const useAuthStore = defineStore(
         major.value = data.majorName
       }
     }
+    const setFirstLogin = () => {
+      isFirstLogin.value = false;
+    }
 
     // 로그아웃
     const logOut = () => {
@@ -38,9 +41,9 @@ export const useAuthStore = defineStore(
       role.value = '';
       isFirstLogin.value = false
       isLogin.value = false;
-     }
+    }
 
-    return { memberCode, role, name, major, deviceId, isFirstLogin, status, setProfile, isLogin, logIn, logOut }
+    return { memberCode, role, name, major, deviceId, isFirstLogin, status, setProfile, setFirstLogin, isLogin, logIn, logOut }
   },
   { persist: true },
 )

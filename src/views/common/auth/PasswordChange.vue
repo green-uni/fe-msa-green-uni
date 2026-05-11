@@ -3,7 +3,7 @@ import { useAuthStore } from '@/stores/authentication';
 import { useRouter } from 'vue-router';
 import { reactive, ref } from 'vue';
 import { useModalStore } from '@/stores/modal'
-import memberService from '@/services/memberService';
+import AuthService from '@/services/authService';
 import PwCheckList from '@/components/util/PwCheckList.vue';
 
 const authStore = useAuthStore()
@@ -56,9 +56,16 @@ const submit = async () => {
     return
   }
   try {
-    const res = await memberService.changePw(state.data)
+    if(authStore.isFirstLogin){
+      const res = await AuthService.changeFirstPw(state.data)
+      authStore.setFirstLogin();
+      await modal.showAlert(res.message, 'success')
+      router.push('/members/my')
+      return
+    }
+    const res = await AuthService.changePw(state.data)
     await modal.showAlert(res.message, 'success')
-    router.push('/member/my')
+    router.push('/members/my')
   } catch (e) { console.error(e) }
 }
 </script>

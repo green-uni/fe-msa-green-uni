@@ -31,7 +31,7 @@
         const profile = await MemberService.findProfile();
         authStore.setProfile(profile.data);
 
-        await router.push('/member/my/password')
+        await router.push('/members/my/password')
         return
       }
 
