@@ -44,7 +44,7 @@
         if(res.data.deviceId === 'mobile'){
           router.push('/attend/my/password')
         } else{
-          await router.push('/member/my/password')
+          await router.push('/members/my/password')
         }        
         return
       }

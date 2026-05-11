@@ -72,7 +72,7 @@ onMounted(async () => {
                 <button class="btn btn-line" @click="router.push('/members/edit')" v-if="!unActive">
                     <font-awesome-icon icon="fa-solid fa-pen-to-square" /> 내 정보 수정
                 </button>
-                <button class="btn btn-line" @click="router.push('/member/my/pw')">
+                <button class="btn btn-line" @click="router.push('/members/my/password')">
                     <font-awesome-icon icon="fa-solid fa-lock" /> 비밀번호 변경
                 </button>
                 </div>
