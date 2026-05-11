@@ -2,9 +2,10 @@
   import logo from '@/assets/logo.png';
   import { reactive, watch } from 'vue';
   import { useRouter } from 'vue-router';
-  import AuthService from '@/services/authService';
   import { useAuthStore } from '@/stores/authentication';
   import { useModalStore } from '@/stores/modal'
+  import AuthService from '@/services/authService';
+  import MemberService from '@/services/memberService';
   import LoginForm from '@/components/auth/LoginForm.vue';
 
   const authStore = useAuthStore()
@@ -13,20 +14,33 @@
 
   const state = reactive({
     form: {
-      memberCode: '20261002',
+      memberCode: '20221001',
       password: '1234'
     },
     role: 'STUDENT'
+  })
+  
+  watch(() => state.role, (role) => {
+    if (role === 'STUDENT') {
+      state.form.memberCode = '20221001'
+      state.form.password = '1234'
+    } else if (role === 'PROFESSOR') {
+      state.form.memberCode = '20152001' 
+      state.form.password = '1234'
+    } 
   })
 
   const login = async () => {
     try {
       const res = await AuthService.logIn(state.form);
-      console.log(res)
+      // console.log(res)
 
       if(res.data.isFirstLogin == true){
         await modal.showAlert('최초 로그인 입니다. 비밀번호를 변경해주세요', 'warning')
         authStore.logIn(res.data);
+        const profile = await MemberService.findProfile();
+        authStore.setProfile(profile.data);
+
         if(res.data.deviceId === 'mobile'){
           router.push('/attend/my/password')
         } else{
@@ -36,6 +50,9 @@
       }
 
       authStore.logIn(res.data);
+      const profile = await MemberService.findProfile();
+      authStore.setProfile(profile.data);
+
       if (res.data.role === 'STUDENT' && res.data.deviceId === 'mobile') {
         router.push('/attend')
         return
@@ -57,6 +74,21 @@
         <div class="d-flex ai-center jc-center">
           <img :src="logo" @click="moveToMain" />
         </div>
+
+
+        <div class="sample-data d-grid g10">
+          <div class="input-content radio-group radio-tab">
+            <label class="radio-label">
+              <input type="radio" name="role" value="STUDENT" v-model="state.role">
+              <span>학생</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="role" value="PROFESSOR" v-model="state.role">
+              <span>교수</span>
+            </label>
+          </div>
+        </div>
+
         <LoginForm
           :form="state.form"
           @login="login"
