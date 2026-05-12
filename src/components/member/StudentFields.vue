@@ -34,12 +34,12 @@ const props = defineProps({
       </div>
     </div>
 
-    <div class="input-wrap" v-if="props.mode === 'create'">
+    <!-- <div class="input-wrap" v-if="props.mode === 'create'">
       <div class="input-label"><span>졸업연월</span></div>
       <div class="input-content">
         <CalendarDate v-model="props.student.exitDate" />
       </div>
-    </div>
+    </div> -->
 
     <div class="input-wrap" v-if="props.mode === 'create'">
       <div class="input-label">상태</div>
