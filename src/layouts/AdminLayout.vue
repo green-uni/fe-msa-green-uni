@@ -1,33 +1,30 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { RouterView, useRouter, useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/authentication';
+import LeftNav from '@/layouts/common/LeftNav.vue';
+import TopHeader from '@/layouts/common/TopHeader.vue';
+import BaseModal from '@/components/common/BaseModal.vue';
 
 const router = useRouter()
 const route = useRoute()
+const authStore = useAuthStore()
 
-const isSidebarCollapsed = ref(false)
-
-const toggleSidebar = () => {
-  isSidebarCollapsed.value = !isSidebarCollapsed.value
-}
-
-
-const isActive = (path) => route.path.startsWith(path)
-
-const navigate = (path) => {
-  router.push(path)
-}
 </script>
 
 <template>
-  <div class="layout admin-layout" :class="{ 'sidebar-collapsed': isSidebarCollapsed }">
-    관리자페이지
-    <main class="main-content">
+  <div :class="authStore.isLogin ? 'all-wrap' : 'log-in'">
+    <TopHeader v-if="authStore.isLogin" />
+    <LeftNav v-if="authStore.isLogin" />
+    <main class="container">
       <RouterView />
     </main>
   </div>
+  <BaseModal/>
 </template>
 
 <style scoped lang="scss">
-
+.all-wrap .container {
+  background: #f3f3f3;
+}
 </style>

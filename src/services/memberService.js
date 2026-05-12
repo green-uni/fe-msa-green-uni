@@ -1,59 +1,88 @@
 import axios from './httpRequester'
 
 class MemberService {
-  #adminPath = '/admin/members'
+  #adminPath = '/member/admin'
   #path = '/member'
 
-  async logIn(params) {
-    const res = await axios.post(`${this.#path}/login`, params);
-    return res.data;
-  }
-  async logOut(){ return await axios.post(`${this.#path}/logout`) }
-
-  async reissue(data) { return axios.post(`${this.#path}/reissue`, data)}
-
-  // 계정 생성
-  async createMember(data) {
-    const res =  await axios.post(this.#adminPath, data)
-    return res.data;
-  }
-
-  // 계정 목록 불러오기
-  async findAllMember(params) {
-    const res =  await axios.get(this.#adminPath, { params })
-    return res.data;
-  }
-  // 계정 상태 수정
-  async modStatusList(jsonBody) {
-    const res =  await axios.put(`${this.#adminPath}/mod`, jsonBody)
-    return res.data;
-  }
-  // 계정 목록 최대 페이지 가져오기
-  async getMemberMaxPage(params){
-    const res =  await axios.get(`${this.#adminPath}/max_page`, { params });
-    return res.data;
-  }
-
-  // 로그인 유저 프로파일 찾기
-  async findUserProfile(){
-    const res = await axios.get(`${this.#path}/me`)
+  async findProfile(){
+    const res = await axios.get(`${this.#path}/my`)
     return res.data;
   };
-  // 로그인 유저 프로파일 수정
-  async modifyUserProfile(data){
-    const res = await axios.put(`${this.#path}/me/mod`, data)
+
+    // 관리자 - 회원 프로파일 조회
+  async getMemberProfile(memberCode) {
+    const res = await axios.get(`${this.#adminPath}/${memberCode}`)
     return res.data;
   }
 
-  // 로그인 상태에서 비밀번호 변경
-  async changePw(data){
-    const res = await axios.patch(`${this.#path}/me/pw`, data);
-    return res.data;}
-    
-  // 이메일 인증 후 비밀번호 변경
-  async resetPw(data){
-    const res = await axios.patch(`${this.#path}/pw`, data);
-    return res.data;}
+  // 관리자 - 회원 개인정보 수정
+  async updateMemberProfile(memberCode, formData) {
+    const res = await axios.patch(`${this.#adminPath}/${memberCode}/profile`, formData)
+    return res.data;
+  }
+
+
+  //////////// 계정 생성 //////////////
+  // 역할 조회
+  async getMemberRole() {
+    const res = await axios.get('/auth/code?code_type=memberRole')
+    return res.data;
+  }
+
+  async createStudent(formData) {
+    const res = await axios.post(`${this.#adminPath}/students`, formData)
+    return res.data;
+  }
+  async createProfessor(formData) {
+    const res = await axios.post(`${this.#adminPath}/professors`, formData)
+    return res.data;
+  }
+  async createAdmin(formData) {
+    const res = await axios.post(`${this.#adminPath}/admins`, formData)
+    return res.data;
+  }
+
+  // 학과 목록 조회
+  async getMajorList() {
+    const res = await axios.get(`${this.#path}/majors`)
+    return res.data;
+  }
+
+  // 학생 상태 목록 조회
+  async getStudentStatusList() {
+    const res = await axios.get('/auth/code?code_type=studentStatus')
+    return res.data;
+  }
+  // 교수 상태 목록 조회
+  async getProfessorStatusList() {
+    const res = await axios.get('/auth/code?code_type=professorStatus')
+    return res.data;
+  }
+  async getProfessorPositionList() {
+    const res = await axios.get('/member/code?code_type=professorPosition')
+    return res.data;
+  }
+  async getProfessorDegreeList() {
+    const res = await axios.get('/member/code?code_type=professorDegree')
+    return res.data;
+  }
+  async getBuildingList() {
+    const res = await axios.get('/auth/code?code_type=building')
+    return res.data;
+  }
+  // 관리자 상태 목록 조회
+  async getAdminStatusList() {
+    const res = await axios.get('/member/code?code_type=adminStatus')
+    return res.data;
+  }
+
+  // 내 정보 수정  
+  async modifyMyProfile(formData) {
+    const res = await axios.patch(`${this.#path}/my`, formData)
+    return res.data;
+  }
+  
+
 }
 
 export default new MemberService();
