@@ -15,7 +15,7 @@ const props = defineProps({
 <template>
   <div class="form-grid" style="--grid-cols: repeat(auto-fill, minmax(350px, 1fr))">
 
-    <div class="input-wrap" v-if="props.mode === 'create'">
+    <div class="input-wrap" v-if="props.mode !== 'selfEdit'">
       <div class="input-label">전공</div>
       <div class="input-content">
         <SearchInput
@@ -34,7 +34,7 @@ const props = defineProps({
       </div>
     </div>
 
-    <div class="input-wrap">
+    <div class="input-wrap" v-if="props.mode === 'create'">
       <div class="input-label"><span>졸업연월</span></div>
       <div class="input-content">
         <CalendarDate v-model="props.student.exitDate" />

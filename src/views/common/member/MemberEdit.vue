@@ -172,7 +172,7 @@ onMounted(async () => {
   common.address = data.address
   common.detailAddress = data.detailAddress
   common.pic = data.pic
-  
+
   // 역할별 필드 채우기
   if (targetRole.value === 'STUDENT') {
     student.academicYear = data.academicYear
@@ -181,7 +181,7 @@ onMounted(async () => {
     student.isTransfer = data.isTransfer
     student.isMultiChild = data.isMultiChild
     student.isVeteran = data.isVeteran
-    student.majorName = data.mainMajorName 
+    student.majorName = data.mainMajorName
   student.entryDate = data.entryDate,
   student.exitDate = data.exitDate
   } else if (targetRole.value === 'PROFESSOR') {
@@ -216,9 +216,9 @@ onMounted(async () => {
   <div class="form-wrap">
 
     <div class="d-flex g20 jc-center">
-      <div class="pf-profile content-wrap">
+      <div class="pf-profile content-wrap" v-if="!isAdminEditMode">
         <h3><font-awesome-icon icon="fa-solid fa-circle-info" /> 사진 수정</h3>
-        <ProfileImg :editable="true" v-model:pic="pic" />
+        <ProfileImg :editable="true" v-model:pic="pic"/>
       </div>
       <!-- pf-profile-->
 
