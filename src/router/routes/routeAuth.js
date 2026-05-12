@@ -15,6 +15,17 @@ export const authRoutes = [
       title: '비밀번호 변경',
     },
   },
+  {
+    path: 'member/my/password',
+    component: () => import('@/views/common/auth/PasswordChange.vue'),
+    meta: {
+      title: '비밀번호 변경',
+      groupTitle: '내 정보 관리',
+      showInNav: false,
+      activeMenu: '/member/me',
+      auth: ['student', 'professor', 'admin'],
+    },
+  },
 
 ]
 
@@ -24,6 +35,17 @@ export const adminAuthRoutes = [
     component: () => import('@/views/admin/auth/AdminLogIn.vue'),
     meta: {
       title: '로그인',
+    },
+  },
+]
+
+
+export const mobileAuthRoutes = [
+  {
+    path: 'my/password',
+    component: () => import('@/views/common/auth/PasswordChange.vue'),
+    meta: {
+      title: '비밀번호 변경',
     },
   },
 ]

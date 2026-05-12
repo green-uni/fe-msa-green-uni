@@ -3,10 +3,12 @@ import logo from '@/assets/logo.png';
 import AuthService from '@/services/authService';
 import { useAuthStore } from '@/stores/authentication';
 import { useRouter,useRoute } from 'vue-router';
+import { STATUS_LABEL } from '@/utils/constants.js'
 
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
+const role = authStore.role
 const isAdmin = route.path.startsWith('/admin');
 const isMobile = route.path.startsWith('/attend');
 
@@ -29,20 +31,21 @@ else { userRole = '학생' }
 
 <template>
   <div class="top-header">
-    <div v-if="!isMobile" class="uni-title" @click="router.push('/member/me')">
+    <div v-if="!isMobile" class="uni-title" @click="router.push('/member/my')">
       <img :src="logo" @click="moveToMain" />
-      <h1>그린대학교 {{ isAdmin? '학사 관리 시스템' : '종합정보 시스템' }}</h1>
+      <h1>그린대학교 {{ isAdmin? '학사 관리 시스템' : '종합 정보 시스템' }}</h1>
     </div>
     <div v-if="isMobile">
       <h1>그린대학교 전자출결 시스템</h1>
     </div>
     <div class="user-box">
-      <div class="user-info">
+      <div class="user-info" v-if="!isMobile">
         <p>
           <span>{{ authStore.memberCode }}</span>
           <span>{{ authStore.major }}</span>
           <span>{{ authStore.name }}</span>
-          <span v-if="!isMobile">{{ userRole }}</span>
+          <span>{{ STATUS_LABEL[role][authStore.status] }}</span>
+          <span>{{ userRole }}</span>
         </p>
       </div>
       <a @click.prevent="doLogOut" class="pointer"><font-awesome-icon icon="fa-solid fa-right-from-bracket" /> 로그아웃</a>

@@ -12,12 +12,10 @@ axios.interceptors.response.use(
   async err => { // 에러 발생시
     console.log("err: ", err);
     if (err.response) {
-      console.log("err.response : ", err.response);
       const authStore = useAuthStore(); // 이하 토큰 만료시 자동 연장 // 로그인 인증 관련
-      if (err.config.url === "/auth/reissue" && err.response.status === 500) {  //AT 재발급 시도했으나 에러 >> RT 만료
+      if (err.config.url === "/auth/reissue") {  //AT 재발급 시도했으나 에러 >> RT 만료
         authStore.logOut(); //로그아웃 처리
       } else if (err.response.status === 401 && authStore.isLogin) {  //로그인 상태인데 401 응답 >> AT 만료 >> AT 재발행
-
         //401 UnAuthorized 에러인데 FE 로그인 처리 되어 있다면
         await AuthService.reissue(); //AccessToken 재발행 시도
 
@@ -25,6 +23,7 @@ axios.interceptors.response.use(
         return await axios.request(err.config);
 
       } else { // 위 두가지 경우가 아닐 경우 에러메세지를 저장하고 띄우겠다.
+        console.log("err: ", err)
         const message = err.response.data?.message  || err.response.data?.result
                                                     || `${err.response.status} 오류가 발생했습니다.`;
         const modalStore = useModalStore();
