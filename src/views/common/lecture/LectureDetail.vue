@@ -14,9 +14,8 @@ const authStore = useAuthStore();
 
 // 재직중인 교수만 출석 및 성적 수정버튼 보이게 함
 const canEdit = computed(() =>
-  authStore.role === 'PROFESSOR' && authStore.profStatus === 'employment'
+  authStore.role === 'PROFESSOR' && authStore.status === 'EMPLOYMENT'
 );
-
 // 강의를 보는 사람이 그 강의를 개설한 교수일때만 수강학생이 노출
 const isMyLecture = computed(() =>
   authStore.role === 'PROFESSOR' && state.data.memberCode === authStore.memberCode
@@ -72,8 +71,7 @@ const id = route.params.lectureId;
 
 // 관리자 승인/반려 버튼 노출 조건
 const canApprove = computed(() =>
-  authStore.role === 'ADMIN' &&
-  (state.data.status === '대기' || state.data.status === '반려')
+  authStore.role === 'ADMIN' && state.data.status === '대기'
 );
 const canReject = computed(() =>
   authStore.role === 'ADMIN' && state.data.status === '대기'
@@ -135,10 +133,11 @@ const goBackToList = () => {
   const from = route.query.from;
   if (from === 'ADMIN') {
     const { from, ...restQuery } = route.query;
-    router.push({ path: '/admin/lectures', query: restQuery });
+    router.push({ path: '/admin/lectures/my', query: restQuery });
   } else if (from === 'ALL') {
     const { from, ...restQuery } = route.query;
-    router.push({ path: '/lectures', query: restQuery });
+    const path = authStore.role === 'ADMIN' ? '/admin/lectures' : '/lectures';
+    router.push({ path, query: restQuery });
   } else {
     const { from, ...restQuery } = route.query;
     router.push({ path: '/lectures/my', query: restQuery });
@@ -243,7 +242,7 @@ onMounted(async () => {
         <div class="info-title">
           <h2>{{ state.data.lectureName }}</h2>
           <div v-if="state.data.status === '대기'">
-            <span class="status-badge pending">승인대기</span>
+            <span class="status-badge pending">대기</span>
           </div>
           <div v-else-if="state.data.status === '반려'">
             <span class="status-badge rejected">반려</span>

@@ -5,7 +5,9 @@ import { useRoute, useRouter } from 'vue-router';
 import DataTable from '@/components/common/DataTable.vue';
 import Pagination from '@/components/common/Pagination.vue';
 import SearchInput from '@/components/util/SearchInput.vue';
+import { useAuthStore } from '@/stores/authentication';
 
+const authStore = useAuthStore();
 const route = useRoute();
 const router = useRouter();
 
@@ -150,8 +152,9 @@ const goToPage = (page) => {
 
 // ── 상세 이동 ─────────────────────────────────────
 const moveToDetail = (id) => {
+  const basePath = authStore.role === 'ADMIN' ? '/admin/lectures' : '/lectures';
   router.push({
-    path: `/lectures/${id}`,
+    path: `${basePath}/${id}`,
     query: {
       from: 'ALL',
       year: filter.year,
