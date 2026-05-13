@@ -51,6 +51,21 @@ class LectureService {
     return res.data;
   }
 
+  //내 강의 수강학생 목록
+  async getStudentsByLecture(lectureId) {
+    try {
+      const res = await fetch(`/api/core/professor/lectures/${lectureId}/students`, {
+        credentials: 'include'
+      });
+      if (!res.ok) return [];
+      const json = await res.json();
+      return json.data ?? [];
+    } catch {
+      return [];
+    }
+  }
+
+
   // ── 관리자 ────────────────────────────────────
   async getAdminLectures(params = {}) {
     const res = await axios.get(`${this.#adminPath}/my`, { params });
@@ -70,7 +85,7 @@ class LectureService {
 
   async getLectureDetail(lectureId) {
     const res = await axios.get(`${this.#commonPath}/${lectureId}`);
-    return res.data;
+    return res.data.data;
   }
 }
 

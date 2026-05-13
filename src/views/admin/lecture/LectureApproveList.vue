@@ -139,7 +139,7 @@ const moveToDetail = (id) => {
   router.push({
     path: `/lectures/${id}`,
     query: {
-      from: 'admin',
+      from: 'ADMIN',
       status: filter.status,
       search: searchInput.value,
       page: state.currentPage,
