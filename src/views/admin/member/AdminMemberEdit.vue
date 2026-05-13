@@ -7,7 +7,7 @@ import ProfessorFields from '@/components/member/ProfessorFields.vue'
 import AdminFields from '@/components/member/AdminFields.vue'
 import CommonFields from '@/components/member/CommonFields.vue'
 import CalendarDate from '@/components/util/CalendarDate.vue'
-import { STATUS_LABEL } from '@/utils/constants.js'
+import { STATUS_LABEL,POSITION_LABEL } from '@/utils/constants.js'
 
 import MemberService from '@/services/memberService'
 import codeListService from '@/services/codeService'
@@ -106,12 +106,12 @@ const profileSubmit = async () => {
   // 변경된 필드만 추출
   const changedData = {}
   Object.keys(current).forEach((key) => {
-    if (current[key] !== original.value[key]) changed[key] = current[key]
+    if (current[key] !== original.value[key]) changedData[key] = current[key]
   })
   delete changedData.majorName
 
   // 변경사항 없으면 early return
-  if (Object.keys(changed).length === 0) {
+  if (Object.keys(changedData).length === 0) {
     await modal.showAlert('변경된 내용이 없습니다', 'info')
     return
   }
@@ -132,16 +132,23 @@ const profileSubmit = async () => {
 }
 const statusSubmit = async () => {
   try {
+    // 빈 문자열 필드 제거
+    const payload = Object.fromEntries(
+      Object.entries(statusForm).filter(([_, v]) => v !== '' && v !== null)
+    )
     const res =
       targetRole.value === 'STUDENT'
-        ? await MemberService.updateStudentStatus(route.params.memberCode, statusForm)
+        ? await MemberService.updateStudentStatus(route.params.memberCode, payload)
         : targetRole.value === 'PROFESSOR'
-          ? await MemberService.updateProfessorStatus(route.params.memberCode, statusForm)
-          : await MemberService.updateAdminStatus(route.params.memberCode, statusForm)    
+          ? await MemberService.updateProfessorStatus(route.params.memberCode, payload)
+          : await MemberService.updateAdminStatus(route.params.memberCode, payload)    
     await modal.showAlert(res.message, 'success')
     // 현재 상태 업데이트
     if (targetRole.value === 'STUDENT') student.status = statusForm.status
-    else if (targetRole.value === 'PROFESSOR') professor.status = statusForm.status
+    else if (targetRole.value === 'PROFESSOR') {
+      professor.status = statusForm.status
+      professor.position = statusForm.position
+    }
     else admin.status = statusForm.status
   } catch (e) {
     console.error(e)
@@ -297,7 +304,7 @@ onMounted(async () => {
           <div class="input-wrap" v-if="targetRole === 'PROFESSOR'">
             <div class="input-label">현재 직위</div>
             <div class="input-content">
-              {{ professor.position }}
+              {{ POSITION_LABEL[professor.position] }}
             </div>
           </div>
           <div class="input-wrap">
