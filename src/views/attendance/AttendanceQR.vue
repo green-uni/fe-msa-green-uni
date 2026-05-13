@@ -7,9 +7,15 @@
         <span class="info-label">강의명</span>
         <span class="info-value">{{ lecture.lectureName || '정보 로딩 중...' }}</span>
       </div>
-      <div class="lecture-info-row">
+      <template v-if="lecture.schedules?.length">
+        <div v-for="(sch, i) in lecture.schedules" :key="i" class="lecture-info-row">
+          <span class="info-label">{{ i === 0 ? '강의실' : '' }}</span>
+          <span class="info-value">{{ sch.dayOfWeek }}요일 {{ sch.startPeriod }}-{{ sch.endPeriod }}교시 · {{ sch.lectureRoom }}</span>
+        </div>
+      </template>
+      <div v-else class="lecture-info-row">
         <span class="info-label">강의실</span>
-        <span class="info-value">{{ lecture.lectureRoom || '-' }}</span>
+        <span class="info-value">-</span>
       </div>
       <div class="lecture-info-row">
         <span class="info-label">수업일</span>
@@ -40,6 +46,7 @@
             보강 QR 생성
           </button>
         </template>
+        <button class="btn btn-back" @click="goToLectureList">목록으로</button>
       </div>
     </div>
 
@@ -70,6 +77,7 @@
         <button class="btn btn-end" @click="handleEndSession" :disabled="isLoading">
           {{ isLoading ? '처리 중...' : '출석 종료' }}
         </button>
+        <button class="btn btn-back" @click="goToLectureList">목록으로</button>
       </div>
     </div>
 
@@ -90,6 +98,7 @@
     <div v-if="isClassCancelled" class="cancel-section">
       <h3 class="cancel-title">🚫 오늘 수업이 휴강 처리되었습니다</h3>
       <p class="cancel-sub">수강 학생 전원의 출석 상태가 휴강으로 등록됩니다.</p>
+      <button class="btn btn-back" @click="goToLectureList">목록으로</button>
     </div>
 
     <!-- 보강 날짜 선택 모달 -->
@@ -139,7 +148,7 @@ const modal = useModalStore()
 const lectureId = route.params.lectureId
 
 // ── 상태값 ──────────────────────────────────────────────────────
-const lecture = ref({ lectureName: '', lectureRoom: '' })
+const lecture = ref({ lectureName: '', schedules: [] })
 
 const sessionId          = ref(null)
 const currentToken       = ref('')
@@ -161,7 +170,11 @@ const cancelledDates     = ref([])
 const selectedCancelDate = ref('')
 
 // ── computed ────────────────────────────────────────────────────
-const today = computed(() => new Date().toISOString().slice(0, 10))
+// toISOString()은 UTC 기준이라 KST 새벽 0~9시에는 날짜가 1일 어긋남 → 로컬 날짜 사용
+const today = computed(() => {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+})
 
 const todayFormatted = computed(() =>
   new Date().toLocaleDateString('ko-KR', {
@@ -202,7 +215,7 @@ onMounted(async () => {
     const data = res.data ?? res
     lecture.value = {
       lectureName: data.lectureName,
-      lectureRoom: data.schedules?.[0]?.lectureRoom ?? '-',
+      schedules: data.schedules ?? [],
     }
   } catch { /* 세션 시작 후 서버 응답으로 채워짐 */ }
 
@@ -234,7 +247,13 @@ function startStream(sid) {
   eventSourceRef = attendanceService.openTokenStream(
     sid,
     (token) => { currentToken.value = token; countdown.value = 5 },
-    (err)   => { console.error('QR 스트림 오류', err) },
+    // 세션 자동 종료(스케줄러)로 서버가 SSE를 닫은 경우 → 결과 화면으로 전환
+    (err)   => {
+      console.error('QR 스트림 오류', err)
+      stopStream()
+      isSessionActive.value = false
+      isSessionEnded.value  = true
+    },
   )
   countTimerRef = setInterval(() => {
     if (countdown.value > 0) countdown.value -= 1
@@ -249,12 +268,23 @@ function stopStream() {
 
 // ── 출석 시작 ────────────────────────────────────────────────────
 async function handleStartSession() {
+  // 오늘 요일(한글)이 이 강의의 스케줄 요일 중 하나인지 확인
+  // new Date().getDay(): 0=일, 1=월, 2=화, 3=수, 4=목, 5=금, 6=토
+  const days = ['일', '월', '화', '수', '목', '금', '토']
+  const todayKor = days[new Date().getDay()]
+  const hasTodaySchedule = lecture.value.schedules?.some(sch => sch.dayOfWeek === todayKor)
+  if (!hasTodaySchedule) {
+    await modal.showAlert('오늘은 수업일자가 아닙니다.', 'warning')
+    return
+  }
+
   isLoading.value = true
   try {
     const res = await attendanceService.createSession(lectureId, today.value)
     const data = res.data
     sessionId.value = data.sessionId
-    lecture.value   = { lectureName: data.lectureName, lectureRoom: data.lectureRoom }
+    // 세션 시작 응답에는 schedules가 없으므로 기존 데이터를 유지하고 강의명만 갱신
+    lecture.value   = { ...lecture.value, lectureName: data.lectureName }
     isSessionActive.value = true
     startStream(data.sessionId)
   } catch {
@@ -349,7 +379,8 @@ async function handleStartMakeupSession() {
     const data = res.data
     sessionId.value          = data.sessionId
     makeupOriginalDate.value = data.originalDate ?? selectedCancelDate.value
-    lecture.value            = { lectureName: data.lectureName, lectureRoom: data.lectureRoom }
+    // 보강 세션 응답에도 schedules가 없으므로 기존 데이터를 유지하고 강의명만 갱신
+    lecture.value            = { ...lecture.value, lectureName: data.lectureName }
     isMakeupSession.value    = true
     isSessionActive.value    = true
     showMakeupModal.value    = false
@@ -563,6 +594,10 @@ onUnmounted(() => stopStream())
   &.btn-nav {
     background: #f0f4ff; color: #4a7cf7; border: 1px solid #4a7cf7;
     &:hover { background: #e0e8ff; }
+  }
+  &.btn-back {
+    background: #f5f5f5; color: #666; border: 1px solid #ddd;
+    &:hover { background: #ebebeb; }
   }
   &.btn-nav-primary {
     background: #4a7cf7; color: #fff; border: none;

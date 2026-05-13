@@ -43,6 +43,13 @@ class AttendanceService {
     return res.data
   }
 
+  // 출석 기록이 있는 날짜 목록 조회 (달력 연두색 하이라이트용)
+  // 응답: ["2026-04-01", "2026-04-08", ...] 형태의 YYYY-MM-DD 배열
+  async getRecordedDates(lectureId) {
+    const res = await axios.get(`${prof}/${lectureId}/dates`)
+    return res.data
+  }
+
   // API-ATTD-05: 출석 목록 조회 (강의 + 날짜)
   // attendDate 생략 시 오늘 날짜로 조회
   async getAttendanceList(lectureId, attendDate = null) {
@@ -66,7 +73,9 @@ class AttendanceService {
       { withCredentials: true }
     )
     es.onmessage = (e) => onToken(e.data)
-    es.onerror   = (e) => onError(e)
+    // EventSource는 오류 발생 시 자동 재연결을 시도하므로 명시적으로 닫아야 함
+    // 세션 종료(410 GONE) 또는 연결 오류 시 재연결 없이 스트림 정리
+    es.onerror = (e) => { es.close(); onError(e) }
     return es
   }
 
