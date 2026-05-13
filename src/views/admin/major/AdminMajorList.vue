@@ -3,6 +3,7 @@ import { reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import majorService from '@/services/majorService'
 import { useModalStore } from '@/stores/modal'
+import Pagination from '@/components/common/Pagination.vue'
 
 const router = useRouter()
 const modal  = useModalStore()
@@ -11,21 +12,17 @@ const state = reactive({
   majorList:   [],
   collegeList: [],
   isLoading:   false,
-
   activeTab:       'ALL',
   selectedCollege: '',
   searchKeyword:   '',
-
   currentPage: 1,
   pageSize:    10,
 })
 
-// collegeId → 단과대명 (MajorRes 에는 collegeName 없으므로 collegeList 에서 룩업)
 function getCollegeName(collegeId) {
   return state.collegeList.find(c => c.collegeId === collegeId)?.name ?? '-'
 }
 
-// EnumBuilding → 한글
 const BUILDING_LABEL = {
   BUSINESS:    '경영관',
   ENGINEERING: '공학관',
@@ -38,10 +35,9 @@ function getBuildingLabel(val) {
   return BUILDING_LABEL[val] ?? val ?? '-'
 }
 
-// 대소문자 통일 - 백엔드 값에 맞게 소문자로 변경
 const TAB_LIST = [
   { label: '전체', value: 'ALL' },
-  { label: '정상', value: '정상' }, 
+  { label: '정상', value: '정상' },
   { label: '폐지', value: '폐지' },
 ]
 
@@ -51,39 +47,29 @@ const STATUS_MAP = {
 }
 
 const filteredList = computed(() => {
-  // 1. 초기값 및 검색어 가공
-  const statusOrder = { '정상': 0, '폐지': 1 };
-  const keyword = (state.searchKeyword || '').trim().toLowerCase();
-  const selectedCollegeId = state.selectedCollege ? String(state.selectedCollege) : '';
+  const statusOrder = { '정상': 0, '폐지': 1 }
+  const keyword = (state.searchKeyword || '').trim().toLowerCase()
+  const selectedCollegeId = state.selectedCollege ? String(state.selectedCollege) : ''
 
   return state.majorList
     .filter(m => {
-      // [상태 필터링] m.active가 Enum 객체일 경우를 대비해 String으로 강제 변환
-      const mStatus = String(m.active || '').toUpperCase();
-      const tabOk = state.activeTab === 'ALL' || mStatus === state.activeTab;
-
-      // [대학 필터링]
-      const mCollegeId = String(m.collegeId || '');
-      const collegeOk = !selectedCollegeId || mCollegeId === selectedCollegeId;
-
-      // [검색어 필터링] 학과명 포함 여부
-      const mName = (m.name || '').toLowerCase();
-      const keywordOk = !keyword || mName.includes(keyword);
-
-      return tabOk && collegeOk && keywordOk;
+      const mStatus = String(m.active || '').toUpperCase()
+      const tabOk = state.activeTab === 'ALL' || mStatus === state.activeTab
+      const mCollegeId = String(m.collegeId || '')
+      const collegeOk = !selectedCollegeId || mCollegeId === selectedCollegeId
+      const mName = (m.name || '').toLowerCase()
+      const keywordOk = !keyword || mName.includes(keyword)
+      return tabOk && collegeOk && keywordOk
     })
     .sort((a, b) => {
-      // 정렬: 정상(RUNNING) 우선 -> 학과명 가나다순
-      const statusA = String(a.active || '').toUpperCase();
-      const statusB = String(b.active || '').toUpperCase();
-      const ao = statusOrder[statusA] ?? 9;
-      const bo = statusOrder[statusB] ?? 9;
-      
-      return ao !== bo ? ao - bo : a.name.localeCompare(b.name, 'ko');
-    });
-});
+      const statusA = String(a.active || '').toUpperCase()
+      const statusB = String(b.active || '').toUpperCase()
+      const ao = statusOrder[statusA] ?? 9
+      const bo = statusOrder[statusB] ?? 9
+      return ao !== bo ? ao - bo : a.name.localeCompare(b.name, 'ko')
+    })
+})
 
-// getStatusBadge도 대소문자 무시
 function getStatusBadge(active) {
   return STATUS_MAP[active?.toUpperCase()] ?? { label: active, cls: 'badge-closed' }
 }
@@ -106,8 +92,6 @@ async function fetchData() {
       majorService.getCollegeList(),
     ])
     state.majorList   = majorsRes.data?.data   ?? []
-    console.log('데이터 로드 완료:', state.majorList);
-    console.log('첫번째 데이터 상태값:', state.majorList[0]?.active);
     state.collegeList = collegesRes.data?.data ?? []
   } catch {
     await modal.showAlert('데이터를 불러오지 못했습니다.', 'error')
@@ -193,13 +177,12 @@ const gridCols = '1.4fr 1fr 1.1fr 1.2fr 0.9fr 0.7fr 0.7fr 0.7fr'
       <article v-else-if="pagedList.length === 0" class="no-data"><p>조회된 데이터가 없습니다.</p></article>
     </section>
 
-    <div v-if="totalPages > 1" class="d-flex jc-center g5" style="margin-top:15px;">
-      <button
-        v-for="p in totalPages" :key="p"
-        class="page-btn" :class="{ active: p === state.currentPage }"
-        @click="state.currentPage = p"
-      >{{ p }}</button>
-    </div>
+    <Pagination
+      :currentPage="state.currentPage"
+      :maxPage="totalPages"
+      :pageGroupSize="5"
+      @goToPage="state.currentPage = $event"
+    />
   </div>
 </template>
 
@@ -232,12 +215,8 @@ const gridCols = '1.4fr 1fr 1.1fr 1.2fr 0.9fr 0.7fr 0.7fr 0.7fr'
   grid-column: 1 / -1; text-align: center; color: #aaa; padding: 40px 0;
   background: #fff; border: 1px solid var(--table-border-color); border-radius: 0 0 5px 5px;
 }
+
 .status-badge { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-.page-btn {
-  width: 32px; height: 32px; border: 1px solid var(--line-color);
-  border-radius: 4px; background: #fff; cursor: pointer;
-  font-size: var(--text-sm); color: var(--font-color-light); transition: all 0.2s;
-  &:hover  { border-color: var(--main-color); color: var(--main-color); }
-  &.active { background: var(--main-color); color: #fff; border-color: var(--main-color); }
-}
+.badge-running { background: #eafdf6; color: #3e9e7e; }
+.badge-closed  { background: #f5f5f5; color: #aaa; }
 </style>
