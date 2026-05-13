@@ -25,6 +25,7 @@ const getCurrentTerm = () => {
 };
 
 // ── 역할 판단 ────────────────────────────────────
+const isAdmin = computed(() => authStore.role === 'ADMIN');
 const isProfessor = computed(() => authStore.role === 'PROFESSOR');
 const isStudent = computed(() => authStore.role === 'STUDENT');
 
@@ -119,11 +120,13 @@ const fetchList = async () => {
     if (isProfessor.value) {
       const res = await LectureService.getProfessorMyLectures(params);
       data = res.data || [];
-    } else {
+    } else if (isStudent.value) {
       const res = await LectureService.getStudentMyLectures(params);
-      data = res.data || [];
+      data = res.data || []; 
+    } else {
+      // 관리자는 내 강의 목록 없음 → 빈 배열
+      data = [];
     }
-
     state.list = data;
     state.totalCount = data[0]?.totalCount ?? 0;
 
@@ -196,7 +199,7 @@ const goToPage = (page) => {
 // ── 상세 이동 ─────────────────────────────────────
 const moveToDetail = (id) => {
   router.push({
-    path: `/lectures/my/${id}`,
+    path: `/lectures/${id}`,
     query: {
       from: 'my',
       year: filter.year,
@@ -230,12 +233,15 @@ watch(
 // 연도 옵션만 가져오는 함수
 const fetchYearOptions = async () => {
   try {
-    const res = await LectureService.getProfessorMyLectures({ 
-      page: 1, 
-      size: 100,
-      startIdx: 0
-    });
-    const data = res.data || [];
+    let res;
+    if (isProfessor.value) {
+      res = await LectureService.getProfessorMyLectures({ page: 1, size: 100, startIdx: 0 });
+    } else if (isStudent.value) {
+      res = await LectureService.getStudentMyLectures({ page: 1, size: 100, startIdx: 0 });
+    } else {
+      return; // 관리자는 스킵
+    }
+    const data = res.data || []; 
     const years = [...new Set(data.map(i => i.year).filter(Boolean))].sort((a, b) => b - a);
     yearOptions.value = years;
   } catch (err) {

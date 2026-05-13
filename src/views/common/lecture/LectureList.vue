@@ -81,7 +81,7 @@ const fetchList = async () => {
       year: filter.year || undefined,
       semester: filter.semester || undefined,
       lectureName: searchInput.value || undefined,
-      proName: undefined,
+      proName: searchInput.value || undefined, 
       majorId: filter.majorId || undefined,
       page: state.currentPage,
       size: PAGE_SIZE,
@@ -153,7 +153,7 @@ const moveToDetail = (id) => {
   router.push({
     path: `/lectures/${id}`,
     query: {
-      from: 'all',
+      from: 'ALL',
       year: filter.year,
       semester: filter.semester,
       search: searchInput.value,
@@ -245,7 +245,7 @@ onMounted(() => {
             :list="state.list"
             :realtime="false"
             labelKey="lectureName"
-            placeholder="강의명 검색"
+            placeholder="강의명 또는 교수명 검색"
             @select="(item) => { searchInput.value = item.lectureName; searchQuery.value = item.lectureName; state.currentPage = 1; }"
             @enter="onSearch"
           />

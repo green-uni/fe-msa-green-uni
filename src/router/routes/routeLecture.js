@@ -19,6 +19,7 @@ export const lectureRoutes = [
       auth: ['STUDENT', 'PROFESSOR'],
     },
   },
+
   {
     path: `${url}/create`,
     component: () => import('@/views/academic/lecture/LectureCreate.vue'),
@@ -26,6 +27,14 @@ export const lectureRoutes = [
       title: '강의 개설',
       groupTitle: '강의 관리',
       auth: ['PROFESSOR'],
+    },
+  },
+    {
+    path: `${url}/:lectureId`,
+    component: () => import('@/views/common/lecture/LectureDetail.vue'),
+    meta: {
+      title: '강의 상세',
+      auth: ['PROFESSOR', 'STUDENT', 'ADMIN'],
     },
   },
 ]
