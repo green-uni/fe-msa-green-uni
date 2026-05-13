@@ -217,13 +217,6 @@ onMounted(async () => {
         <!--form-grid-->
         <div class="content-wrap d-flex direct-col d-flex-grow1" v-if="targetRole === 'PROFESSOR'">
           <h3><font-awesome-icon icon="fa-solid fa-circle-info" />학적 정보</h3>
-            <StudentFields
-              v-if="targetRole === 'STUDENT'"
-              :student="student"
-              :majorList="majorList"
-              :statusList="studentStatusList"
-              :mode="editMode"
-            />
             <ProfessorFields
               v-if="targetRole === 'PROFESSOR'"
               :professor="professor"
@@ -232,12 +225,6 @@ onMounted(async () => {
               :positionList="professorPositionList"
               :degreeList="professorDegreeList"
               :buildingList="buildingList"
-              :mode="editMode"
-            />
-            <AdminFields
-              v-if="targetRole === 'ADMIN'"
-              :admin="admin"
-              :statusList="adminStatusList"
               :mode="editMode"
             />
         </div>

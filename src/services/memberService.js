@@ -54,9 +54,25 @@ class MemberService {
     const res = await axios.patch(`${this.#adminPath}/professors/${memberCode}`, formData)
     return res.data;
   }
-  // 교수 계정 개인정보 수정
+  // 학생 계정 개인정보 수정
   async updateStudent(memberCode, formData) {
     const res = await axios.patch(`${this.#adminPath}/students/${memberCode}`, formData)
+    return res.data;
+  }
+
+  // 관리자 상태 변경
+  async updateAdminStatus(memberCode, formData) {
+    const res = await axios.patch(`${this.#adminPath}/admins/${memberCode}/status`, formData)
+    return res.data;
+  }
+  // 교수 상태 변경
+  async updateProfessorStatus(memberCode, formData) {
+    const res = await axios.patch(`${this.#adminPath}/professors/${memberCode}/status`, formData)
+    return res.data;
+  }
+  // 학생 상태 변경
+  async updateStudentStatus(memberCode, formData) {
+    const res = await axios.patch(`${this.#adminPath}/students/${memberCode}/status`, formData)
     return res.data;
   }
 
