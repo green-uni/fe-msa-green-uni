@@ -4,6 +4,7 @@ import { useModalStore } from '@/stores/modal'
 import { useRouter } from 'vue-router'
 import { ref, onMounted, computed, reactive, watch, nextTick } from 'vue'
 import Pagination from '@/components/common/Pagination.vue'
+import DataTable from '@/components/common/DataTable.vue'
 
 const modal = useModalStore()
 const router = useRouter()
@@ -213,10 +214,13 @@ onMounted(async () => {
 
     <div><p>전체: {{ filteredList.length }}개</p></div>
 
-    <section class="tbl-wrap" style="--grid-cols: 1fr 1fr 200px 100px 50px 100px 200px 50px 100px 100px;">
-      <article class="tbl-head">
-        <div v-for="col in ['학과명','강의명','강의실','이수구분','학년','담당교수','수업시간','학점','여석/정원','신청']" :key="col">{{ col }}</div>
-      </article>
+    <DataTable
+      :columns="['학과명','강의명','강의실','이수구분','학년','담당교수','수업시간','학점','여석/정원','신청']"
+      :rows="pagedCourseList"
+      :isLoading="state.isLoading"
+      gridCols="1fr 1fr 200px 100px 50px 100px 200px 50px 100px 100px"
+      emptyMessage="조회된 강의가 없습니다."
+    >
       <template v-if="!state.isLoading && pagedCourseList.length > 0">
         <article
           class="tbl-row no-hover"
@@ -238,9 +242,7 @@ onMounted(async () => {
           </div>
         </article>
       </template>
-      <article v-if="state.isLoading" class="no-data"><p>불러오는 중...</p></article>
-      <article v-else-if="pagedCourseList.length === 0" class="no-data"><p>조회된 강의가 없습니다.</p></article>
-    </section>
+    </DataTable>
 
     <Pagination
       :currentPage="state.coursePage"
@@ -258,10 +260,13 @@ onMounted(async () => {
       </h1>
     </div>
 
-    <section class="tbl-wrap" style="--grid-cols: 1fr 1fr 200px 100px 50px 100px 200px 50px 100px 100px;">
-      <article class="tbl-head">
-        <div v-for="col in ['학과명','강의명','강의실','이수구분','학년','담당교수','수업시간','학점','여석/정원','신청']" :key="col">{{ col }}</div>
-      </article>
+<DataTable
+      :columns="['학과명','강의명','강의실','이수구분','학년','담당교수','수업시간','학점','여석/정원','신청']"
+      :rows="pagedMyCourseList"
+      :isLoading="false" 
+      gridCols="1fr 1fr 200px 100px 50px 100px 200px 50px 100px 100px"
+      emptyMessage="신청한 강의가 없습니다."
+    >
       <template v-if="pagedMyCourseList.length > 0">
         <article
           class="tbl-row no-hover"
@@ -287,8 +292,7 @@ onMounted(async () => {
           </div>
         </article>
       </template>
-      <article v-else class="no-data"><p>신청한 강의가 없습니다.</p></article>
-    </section>
+    </DataTable>
 
     <Pagination
       :currentPage="state.myPage"
@@ -299,45 +303,21 @@ onMounted(async () => {
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .page-title {
   font-size: var(--text-xl); font-weight: 600; display: flex; align-items: center; gap: 8px;
+  .title-icon { color: var(--main-color); font-size: 0.8em; }
 }
-.page-title .title-icon { color: var(--main-color); font-size: 0.8em; }
 .breadcrumb { font-size: var(--text-sm); color: var(--font-color-light); }
 
-.tbl-wrap { width: 100%; display: grid; }
-.tbl-head, .tbl-row {
-  display: grid;
-  grid-template-columns: var(--grid-cols);
-  align-items: center;
-  text-align: center;
-}
-.tbl-head {
-  font-size: var(--text-sm); font-weight: bold; background: #f5f5f5;
-  border-radius: 5px; margin-bottom: 5px; border: 1px solid var(--table-border-color);
-}
-.tbl-head div { padding: 10px; }
-.tbl-row {
-  background: #fff; border: 1px solid var(--table-border-color); border-top-width: 0;
-}
-.tbl-row:nth-of-type(2) { border-radius: 5px 5px 0 0; border-width: 1px; }
-.tbl-row:last-child { border-radius: 0 0 5px 5px; }
-.tbl-row div { padding: 12px 10px; line-height: 1.2; }
-.no-data {
-  grid-column: 1 / -1; text-align: center; color: #aaa; padding: 40px 0;
-  background: #fff; border: 1px solid var(--table-border-color); border-radius: 0 0 5px 5px;
-}
-
 .my-course-header {
-  margin-bottom: 15px;
-  padding-bottom: 15px;
-  border-bottom: 2px solid var(--font-color);
+  margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid var(--font-color);
 }
 .totalCredit { float: right; font-size: var(--text-md); color: var(--font-color); }
 .totalCredit strong { color: var(--main-color); font-size: var(--text-lg); margin-left: 5px; }
 .not-cancel { opacity: .4; cursor: default; }
 
+/* 버튼 스타일은 이 페이지 고유의 것이므로 유지 */
 .btn-register {
   background-color: var(--main-color); color: #fff; border: none;
   border-radius: 4px; padding: 5px 10px; cursor: pointer;

@@ -4,6 +4,8 @@ import { useRouter } from 'vue-router'
 import majorService from '@/services/majorService'
 import { useModalStore } from '@/stores/modal'
 import Pagination from '@/components/common/Pagination.vue'
+import SearchInput from '@/components/util/SearchInput.vue'
+import DataTable from '@/components/common/DataTable.vue'
 
 const router = useRouter()
 const modal  = useModalStore()
@@ -84,6 +86,11 @@ function onTabChange(tab) { state.activeTab = tab; state.currentPage = 1 }
 function onSearch()       { state.currentPage = 1 }
 function goToEdit(id)     { router.push(`/admin/majors/${id}/edit`) }
 
+function onSelectMajor(item) {
+  state.searchKeyword = item.name
+  state.currentPage = 1
+}
+
 async function fetchData() {
   state.isLoading = true
   try {
@@ -137,8 +144,17 @@ const gridCols = '1.4fr 1fr 1.1fr 1.2fr 0.9fr 0.7fr 0.7fr 0.7fr'
           </div>
         </div>
 
-        <div class="search-area">
-          <input v-model="state.searchKeyword" type="text" placeholder="학과명을 입력하세요" @keydown.enter="onSearch" />
+        <div class="search-area d-flex ai-center g5">
+          <SearchInput 
+            v-model="state.searchKeyword"
+            :list="state.majorList"
+            labelKey="name"
+            valueKey="majorId"
+            placeholder="학과명을 입력하세요"
+            :showOnFocus="true"
+            @select="onSelectMajor"
+            @enter="onSearch"
+          />
           <button class="btn search-btn" @click="onSearch">
             <font-awesome-icon icon="fa-solid fa-magnifying-glass" /> 검색
           </button>
@@ -146,36 +162,37 @@ const gridCols = '1.4fr 1fr 1.1fr 1.2fr 0.9fr 0.7fr 0.7fr 0.7fr'
       </div>
     </div>
 
-    <section class="tbl-wrap" :style="`--grid-cols: ${gridCols}`">
-      <article class="tbl-head">
-        <div v-for="col in columns" :key="col">{{ col }}</div>
-      </article>
-
-      <template v-if="!state.isLoading && pagedList.length > 0">
-        <article
-          v-for="m in pagedList" :key="m.majorId"
-          class="tbl-row" :class="{ 'row-disabled': m.active === '폐지' }"
-          style="cursor:pointer;"
-          @click="goToEdit(m.majorId)"
-        >
-          <div>{{ m.name }}</div>
-          <div>{{ getCollegeName(m.collegeId) }}</div>
-          <div>{{ m.majorBuilding ? `${getBuildingLabel(m.majorBuilding)} ${m.room}` : '-' }}</div>
-          <div>{{ m.tel ?? '-' }}</div>
-          <div>{{ m.professorCode ?? '-' }}</div>
-          <div>{{ m.capacity ?? '-' }}</div>
-          <div>{{ m.professorCount ?? '-' }}</div>
-          <div>
-            <span class="status-badge" :class="getStatusBadge(m.active).cls">
-              {{ getStatusBadge(m.active).label }}
-            </span>
-          </div>
-        </article>
-      </template>
-
-      <article v-if="state.isLoading" class="no-data"><p>불러오는 중...</p></article>
-      <article v-else-if="pagedList.length === 0" class="no-data"><p>조회된 데이터가 없습니다.</p></article>
-    </section>
+<DataTable
+  :columns="columns"
+  :rows="pagedList"
+  :isLoading="state.isLoading"
+  gridCols="1.4fr 1fr 1.2fr 1.2fr 100px 80px 80px 100px"
+  emptyMessage="조회된 학과가 없습니다."
+>
+  <template v-if="!state.isLoading && pagedList.length > 0">
+    <article
+      v-for="m in pagedList"
+      :key="m.majorId"
+      class="tbl-row"
+      :class="{ 'row-disabled': m.active === '폐지' }"
+      style="cursor: pointer;"
+      @click="goToEdit(m.majorId)"
+    >
+      <div>{{ m.name }}</div>
+      <div>{{ getCollegeName(m.collegeId) }}</div>
+      <div>{{ m.majorBuilding ? `${getBuildingLabel(m.majorBuilding)} ${m.room}` : '-' }}</div>
+      <div>{{ m.tel ?? '-' }}</div>
+      <div>{{ m.professorCode ?? '-' }}</div>
+      <div>{{ m.capacity ?? '-' }}</div>
+      <div>{{ m.professorCount ?? '-' }}</div>
+      <div>
+        <span class="status-badge" :class="getStatusBadge(m.active).cls">
+          {{ getStatusBadge(m.active).label }}
+        </span>
+      </div>
+    </article>
+  </template>
+</DataTable>
 
     <Pagination
       :currentPage="state.currentPage"
@@ -188,35 +205,15 @@ const gridCols = '1.4fr 1fr 1.1fr 1.2fr 0.9fr 0.7fr 0.7fr 0.7fr'
 
 <style scoped lang="scss">
 .page-title {
-  font-size: var(--text-xl); font-weight: 600; display: flex; align-items: center; gap: 8px;
+  font-size: var(--text-xl); 
+  font-weight: 600; 
+  display: flex; 
+  align-items: center; 
+  gap: 8px;
   .title-icon { color: var(--main-color); font-size: 0.8em; }
 }
-.breadcrumb { font-size: var(--text-sm); color: var(--font-color-light); }
-
-.tbl-wrap { width: 100%; display: grid; }
-.tbl-head, .tbl-row {
-  display: grid; grid-template-columns: var(--grid-cols);
-  align-items: center; text-align: center;
+.breadcrumb { 
+  font-size: var(--text-sm); 
+  color: var(--font-color-light); 
 }
-.tbl-head {
-  font-size: var(--text-sm); font-weight: bold; background: #f5f5f5;
-  border-radius: 5px; margin-bottom: 5px; border: 1px solid var(--table-border-color);
-  div { padding: 10px; }
-}
-.tbl-row {
-  background: #fff; border: 1px solid var(--table-border-color); border-top-width: 0;
-  &:nth-of-type(2) { border-radius: 5px 5px 0 0; border-width: 1px; }
-  &:last-child     { border-radius: 0 0 5px 5px; }
-  &:hover { background: var(--hover-bg-color); }
-  div { padding: 12px 10px; line-height: 1.2; position: relative; }
-}
-.row-disabled div { color: #ccc; }
-.no-data {
-  grid-column: 1 / -1; text-align: center; color: #aaa; padding: 40px 0;
-  background: #fff; border: 1px solid var(--table-border-color); border-radius: 0 0 5px 5px;
-}
-
-.status-badge { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-.badge-running { background: #eafdf6; color: #3e9e7e; }
-.badge-closed  { background: #f5f5f5; color: #aaa; }
 </style>
