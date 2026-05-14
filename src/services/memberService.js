@@ -16,6 +16,22 @@ class MemberService {
     return res.data;
   }
 
+  // 학생 변동 이력 조회
+  async findStudentStatus() {
+    const res = await axios.get(`${this.#path}/student/history`)
+    return res.data;    
+  }
+  // 교수 변동 이력 조회
+  async findProfessorStatus() {
+    const res = await axios.get(`${this.#path}/professor/history`)
+    return res.data;    
+  }
+  // 관리자 변동 이력 조회
+  async findAdminStatus() {
+    const res = await axios.get(`${this.#path}/admin/history`)
+    return res.data;    
+  }
+
   //////////////////////// 관리자 ////////////////////////
 
   // 계정 생성
