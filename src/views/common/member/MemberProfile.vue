@@ -3,6 +3,7 @@ import MemberService from '@/services/memberService';
 import { useAuthStore } from '@/stores/authentication';
 import { onMounted, reactive, computed } from 'vue';
 import ProfileImg from '@/components/common/ProfileImg.vue';
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import StatusList from '@/components/member/StatusList.vue';
 import { useRouter } from 'vue-router';
 import { formatTel } from '@/utils/phoneNumber'
@@ -50,15 +51,18 @@ const birthDate = yearDate =>{
 
 // 라이프사이클
 onMounted(async () => {
-    console.log('로그인 유저 정보:', authStore)
-    getUserData();
-    getStatusList();
+    state.isLoading = true
+    try {
+        await Promise.all([getUserData(), getStatusList()])
+    } finally {
+        state.isLoading = false
+    }
 })
-
 </script>
 
 <template>
-    <div class="d-grid g20" style="--grid-cols:300px 1fr;">
+    <div class="d-grid g20" style="--grid-cols:300px 1fr;position: relative; min-height: 200px;">
+              <LoadingSpinner v-if="state.isLoading" :overlay="true" size="md" />
         <div class="">
             <div class="info-card g20 content-wrap ">
                 <div class="info-img d-flex jc-center">
@@ -80,7 +84,7 @@ onMounted(async () => {
                 </div>
             </div>
         </div>
-        <div class="">
+        <div>
             <div class="info-wrap content-wrap direct-row g30">
                 <div class="info-row g30">
                     <dl v-if="authStore.role == 'STUDENT' || authStore.role == 'PROFESSOR'">
@@ -92,7 +96,7 @@ onMounted(async () => {
                             <template v-if="authStore.role == 'STUDENT'">주전공</template>
                             <template v-else>전공</template>
                         </dt>
-                        <dd>{{ authStore.major }}</dd>
+                        <dd>{{ state.profileInfo.mainMajorName }}</dd>
                     </dl>
                     <dl v-if="authStore.role == 'STUDENT'">
                         <dt>부전공</dt>
@@ -116,7 +120,7 @@ onMounted(async () => {
                     </dl>
                     <dl>
                         <dt>상태</dt>
-                        <dd>{{ STATUS_LABEL[role][state.profileInfo.status] }}</dd>
+                        <dd>{{ STATUS_LABEL[role]?.[state.profileInfo.status] ?? '-' }}</dd>
                     </dl>
                     <dl>
                         <dt>
@@ -178,6 +182,7 @@ onMounted(async () => {
             </div>
             <StatusList :role="role" :list="state.statusList" :isLoading="state.isLoading"  />
         </div>
+
     </div>
 </template>
 

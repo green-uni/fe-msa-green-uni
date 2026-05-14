@@ -62,7 +62,10 @@ const tableColumns = computed(() => {
         <div>{{ item.newStatus || item.newPosition }}</div>
         <div>{{ item.startDate || '-' }}</div>
         <div>{{ item.endDate || '-' }}</div>
-        <div v-if="role == 'STUDENT' && (item.returnYear || item.returnSemester)">{{ item.returnYear }}년 {{ item.returnSemester }} 학기</div>
+        <div>
+          <template  v-if="role == 'STUDENT' && (item.returnYear || item.returnSemester)">{{ item.returnYear }}년 {{ item.returnSemester }} 학기</template>
+          <template v-else>-</template>
+        </div>
         <div>{{ item.reason }}</div>
       </article>
     </DataTable>
