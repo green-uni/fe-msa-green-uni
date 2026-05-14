@@ -17,8 +17,8 @@ const triggerShake = () => {// 강조용 흔들기 효과
 }
 
 const state = reactive({
-  memberCode: '',
-  email: '',
+  memberCode: '20263001',
+  email: 'tndud4615@gmail.com',
   verifyCode: '', // 인증코드
   memberId: null,  // 인증 완료 후 저장
   password: '',
@@ -84,7 +84,7 @@ const checkCode = async () => {
   try {
     isLoading.value = true  // 로딩 시작
     const res = await MailService.checkCode({ email: state.email, verifyCode: state.verifyCode })
-    // state.memberCode = res.data.result  // memberCode 저장
+    await modal.showAlert(res.message, 'success')
     step.value = 3 // step3으로 이동
     stepArray[1].active = false
     stepArray[2].active = true
@@ -113,8 +113,8 @@ const resetPw = async () => {
     return
   }
   try {
-    const res = await memberService.resetPw({ memberCode: state.memberCode, password: state.password })
-    await modal.showAlert(res.result, 'success')
+    const res = await AuthService.resetPw({ email: state.email, newPassword: state.password })
+    await modal.showAlert(res.message, 'success')
     init();
     router.push('/') // 로그인 페이지로 이동
   } catch (e) { console.error(e) }
