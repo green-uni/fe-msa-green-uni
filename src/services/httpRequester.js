@@ -3,7 +3,7 @@ import AuthService from "./authService";
 import { useAuthStore } from "@/stores/authentication";
 import { useModalStore } from "@/stores/modal";
 
-axios.defaults.baseURL = '/api';
+axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL;
 axios.defaults.withCredentials = true;
 
 // 인터셉터
