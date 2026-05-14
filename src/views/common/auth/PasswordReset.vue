@@ -5,7 +5,7 @@ import AuthService from '@/services/authService';
 import { useModalStore } from '@/stores/modal';
 import { useRouter } from 'vue-router';
 import PwCheckList from '@/components/util/PwCheckList.vue';
-import { isValidEmail } from '@/utils/validation.js'
+import { isValidEmail, isValidMemberCode } from '@/utils/validation.js'
 
 const modal = useModalStore();
 const router = useRouter();
@@ -18,10 +18,9 @@ const triggerShake = () => {// 강조용 흔들기 효과
 }
 
 const state = reactive({
-  memberCode: '20263001',
-  email: 'tndud4615@gmail.com',
+  memberCode: '',
+  email: '',
   verifyCode: '', // 인증코드
-  memberId: null,  // 인증 완료 후 저장
   password: '',
   chkPw: '',
   modeShowPw: false,
@@ -39,7 +38,7 @@ const pwView = () => { state.modeShowPw = !state.modeShowPw }
 // 초기화
 const init = () => {
   Object.assign(state, {
-    code: '', email: '', verifyCode: '', memberCode: null, password: '', chkPw: ''
+    memberCode: '', email: '', verifyCode: '', password: '', chkPw: ''
   })
 }
 
@@ -68,7 +67,10 @@ const stepArray = [
 
 // step 1: 이메일 발송
 const sendEmail = async () => {
-  if (!isValidEmail(state.email)) {
+  if(!isValidMemberCode(state.memberCode)){
+    await modal.showAlert('정확한 로그인 코드를 입력해 주세요', 'info')
+    return
+  } else if (!isValidEmail(state.email)) {
     await modal.showAlert('이메일 형식을 입력해주세요', 'info')
     return
   }
@@ -86,6 +88,10 @@ const sendEmail = async () => {
 
 // step 2: 인증코드 확인
 const checkCode = async () => {
+  if (!state.verifyCode.trim()) {
+    await modal.showAlert('본인 인증 코드를 입력해주세요', 'info')
+    return
+  }
   try {
     isLoading.value = true  // 로딩 시작
     const res = await MailService.checkCode({ email: state.email, verifyCode: state.verifyCode })
@@ -106,13 +112,13 @@ const resetPw = async () => {
     state.errors.password = true
     return
   }
-  // 유효성 체크
+  // 새 비밀번호 유효성 체크
   const checks = pwCheck.value?.checks
     if (!checks?.minLength || !checks?.letter || !checks?.number || !checks?.special) {
       triggerShake()
       return
     }
-  // 비밀번호 확인
+  // 비밀번호 확인 일치 여부
   if (state.password !== state.chkPw) {
     state.errors.chkPw = true
     return
