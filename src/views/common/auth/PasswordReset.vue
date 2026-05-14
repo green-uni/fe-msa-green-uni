@@ -5,6 +5,7 @@ import AuthService from '@/services/authService';
 import { useModalStore } from '@/stores/modal';
 import { useRouter } from 'vue-router';
 import PwCheckList from '@/components/util/PwCheckList.vue';
+import { isValidEmail } from '@/utils/validation.js'
 
 const modal = useModalStore();
 const router = useRouter();
@@ -67,6 +68,10 @@ const stepArray = [
 
 // step 1: 이메일 발송
 const sendEmail = async () => {
+  if (!isValidEmail(state.email)) {
+    await modal.showAlert('이메일 형식을 입력해주세요', 'info')
+    return
+  }
   try {
     isLoading.value = true  // 로딩 시작
     await MailService.sendCode({ memberCode: state.memberCode, email: state.email })
