@@ -218,7 +218,7 @@ const resetPw = async () => {
             <div class="input-content">
               <label>
                 <input :type="state.modeShowPw ? 'text' : 'password'" v-model="state.chkPw" placeholder="변경할 비밀번호를 다시 입력해주세요"
-                  autocomplete="off" @keyup.enter="resetPw">
+                  autocomplete="off" @keyup.enter="resetPw" @input="state.errors.chkPw = state.chkPw.length > 0 && state.chkPw !== state.password">
               </label>
               <span v-if="state.errors.chkPw" class="check-msg error-msg">비밀번호와 확인 비밀번호가 일치하지 않습니다 </span>
             </div>
