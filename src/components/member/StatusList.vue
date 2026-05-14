@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, reactive, computed, watch } from 'vue'
 import DataTable from '@/components/common/DataTable.vue'
+import { formatDateTime } from '@/utils/DateNumber'
 
 const props = defineProps({
     role: { type: String },
@@ -15,7 +16,7 @@ const tableColumns = computed(() => {
     case 'STUDENT':
       return {
         colName: [
-          '변경일시',
+          '변경일',
           '변동구분',
           '변경전',
           '변경후',
@@ -28,12 +29,12 @@ const tableColumns = computed(() => {
       }
     case 'PROFESSOR':
       return {
-        colName: ['변경일시', '변동구분', '변경전', '변경후', '시작일', '종료일', '사유'],
+        colName: ['변경일', '변동구분', '변경전', '변경후', '시작일', '종료일', '사유'],
         cols: '120px 180px 100px 80px 80px 100px 1fr',
       }
     default: // ADMIN
       return {
-        colName: ['변경일시', '변동구분', '변경전', '변경후', '시작일', '종료일', '사유'],
+        colName: ['변경일', '변동구분', '변경전', '변경후', '시작일', '종료일', '사유'],
         cols: '120px 180px 100px 80px 80px 100px 1fr',
       }
   }
@@ -55,10 +56,10 @@ const tableColumns = computed(() => {
       emptyMessage="조회된 이력이 없습니다."
     >
       <article class="tbl-row no-hover" v-for="item in props.list" :key="item.createdAt">
-        <div>{{ item.createdAt }}</div>
+        <div>{{ formatDateTime(item.createdAt) }}</div>
         <div>{{ item.changeType }}</div>
-        <div>{{ item.oldStatus }}</div>
-        <div>{{ item.newStatus }}</div>
+        <div>{{ item.oldStatus || item.oldPosition }}</div>
+        <div>{{ item.newStatus || item.newPosition }}</div>
         <div>{{ item.startDate || '-' }}</div>
         <div>{{ item.endDate || '-' }}</div>
         <div v-if="role == 'STUDENT' && (item.returnYear || item.returnSemester)">{{ item.returnYear }}년 {{ item.returnSemester }} 학기</div>
@@ -68,4 +69,27 @@ const tableColumns = computed(() => {
   </div>
 </template>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.tbl-wrap { width: 100%; display: grid;}
+
+.tbl-head, .tbl-row { display: grid; grid-template-columns: var(--grid-cols); align-items: center; text-align: center;}
+
+.tbl-head {
+  font-size: var(--text-sm); font-weight: bold;  background: #f5f5f5;border-radius: 5px;margin-bottom: 5px;  border: 1px solid var(--table-border-color);
+  div {  padding: 10px;}
+}
+.tbl-row {
+  background: #fff;  border: 1px solid var(--table-border-color);border-top-width: 0;
+  &:nth-of-type(2){ border-radius: 5px 5px 0 0;  border-width: 1px;}
+  &:last-child{ border-radius: 0 0 5px 5px; }
+  &:not(.no-hover):hover {  background: var(--hover-bg-color);  z-index: 2;  color: #111;} /*class명에 'tbl-row no-hover' 이렇게 no-hover가 붙으면 hover 효과 없음 */
+  div {  padding: 12px 10px;  line-height: 1.2;  position: relative;}
+ .no-data { text-align: center;  color: #aaa;  padding: 40px 0;  background: #fff;  border-radius: var(--bdrs-sm);} /* 빈 row */
+}
+.row-disabled div {  color: #ddd;} /* 비활성 row */
+
+.input-content{
+  padding: 0;width: 100%;
+  select{padding: 2px 5px;width:70px;}
+}
+</style>
