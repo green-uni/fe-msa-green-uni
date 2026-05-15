@@ -1,5 +1,9 @@
 <template>
   <div class="my-attend-page">
+    <!-- [추가] PWA 모바일(/student/attendances) 진입 시 홈으로 돌아가기 버튼 -->
+    <button v-if="isMobilePwa" class="btn-back" @click="router.push('/student/attendances/home')">
+      ← 홈으로 돌아가기
+    </button>
     <h2 class="page-title">내 출석 현황</h2>
 
     <!-- 로딩 -->
@@ -54,8 +58,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import attendanceService from '@/services/attendanceService.js'
+
+const router = useRouter()
+const route  = useRoute()
+
+// [추가] /student/attendances/** 경로면 출석 전용 PWA 진입 → 뒤로가기 버튼 표시
+const isMobilePwa = computed(() => route.path.startsWith('/student/attendances'))
 
 // ── 상태 ────────────────────────────────────────────────────────────────────
 const lectures  = ref([])
@@ -113,6 +124,23 @@ function statusClass(code) {
   max-width: 720px;
   margin: 0 auto;
   padding: 28px 16px;
+}
+
+/* [추가] PWA 모바일 뒤로가기 버튼 */
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding: 8px 14px;
+  background: #f0f4ff;
+  color: #4a7cf7;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  &:hover { background: #dde8ff; }
 }
 
 .page-title {

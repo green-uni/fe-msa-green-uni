@@ -55,14 +55,33 @@ export const attendanceRoutes = [
 
 export const mobileAttendanceRoutes = [
   {
-    //학생 QR 스캔 출석 체크 화면(API-ATTD-03)
+    // [추가] 학생 PWA 출석 메인 화면 — 출석 현황·QR 출석 진입점
+    // 경로: /student/attendances/home (AttendanceLayout 하위)
+    // PWA start_url 및 로그인 후 모바일 리다이렉트 대상
+    path: 'attendances/home',
+    component: () => import('@/views/attendance/StudentAttendHome.vue'),
+    meta: {
+      title: '전자출결 홈',
+      auth: ['STUDENT'],
+    },
+  },
+  {
+    // 학생 QR 스캔 출석 체크 화면 (API-ATTD-03)
     // 경로: /student/attendances/scan (AttendanceLayout 하위)
-    // PWA로 모바일에서 접근하는 화면
-
     path: 'attendances/scan',
     component: () => import('@/views/attendance/AttendanceScan.vue'),
     meta: {
       title: 'QR 출석 체크',
+      auth: ['STUDENT'],
+    },
+  },
+  {
+    // 학생 본인 출석 현황 조회 — 모바일 PWA 버전
+    // 경로: /student/attendances/my (AttendanceLayout 하위)
+    path: 'attendances/my',
+    component: () => import('@/views/attendance/AttendanceMyList.vue'),
+    meta: {
+      title: '내 출석 현황',
       auth: ['STUDENT'],
     },
   },

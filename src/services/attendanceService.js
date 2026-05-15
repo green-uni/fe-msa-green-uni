@@ -31,8 +31,9 @@ class AttendanceService {
   }
 
   // API-ATTD-03: 학생 QR 스캔 출석 체크
+  // [수정] _skipModal: true — 스캔 페이지 자체 에러 카드가 있으므로 전역 모달 억제
   async checkInByQR(token) {
-    const res = await axios.post(`${student}/scan`, { token })
+    const res = await axios.post(`${student}/scan`, { token }, { _skipModal: true })
     return res.data
   }
 

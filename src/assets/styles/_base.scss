@@ -5,6 +5,8 @@ html { color: var(--color-font); font-size: 16px; font-family: 'Pretendard'; }
 body { min-height: 100vh; transition: color 0.5s, background-color 0.5s; line-height: 1.4; }
 
 #app { height: 100vh; overflow: hidden; }
+/* [추가] PWA 출석 레이아웃(/student/attendances/**)에서 overflow 해제 — AttendanceLayout이 body에 클래스 추가 */
+body.pwa-view #app { height: auto; min-height: 100vh; overflow: visible; }
 
 .pointer { cursor: pointer; }
 .c-default { cursor: default }

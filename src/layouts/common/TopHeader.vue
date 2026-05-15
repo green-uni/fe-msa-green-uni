@@ -5,18 +5,25 @@ import { useAuthStore } from '@/stores/authentication';
 import { useRouter,useRoute } from 'vue-router';
 import { STATUS_LABEL } from '@/utils/constants.js'
 
+// [수정] URL 경로 대신 부모 레이아웃이 prop으로 모바일 여부를 전달
+// AttendanceLayout → :mobile="true", AcademicLayout/AdminLayout → 기본값 false
+const props = defineProps({ mobile: { type: Boolean, default: false } })
+
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
 const role = authStore.role
 const isAdmin = route.path.startsWith('/admin');
-const isMobile = route.path.startsWith('/attend');
+const isMobile = props.mobile;
 
 const doLogOut = async () => {
   try {
     await AuthService.logOut();
     authStore.logOut();
-    router.push('/')
+    // [수정] '/' 대신 '/login'으로 직접 이동
+    // '/'는 publicPages에 없어 router guard가 redirectAfterLogin='/'를 저장 →
+    // 재로그인 시 모바일 학생도 AcademicLayout으로 리다이렉트되는 버그 수정
+    router.push('/login')
   } catch(e){
     console.error(e)
   }
@@ -44,7 +51,8 @@ else { userRole = '학생' }
           <span>{{ authStore.memberCode }}</span>
           <span>{{ authStore.major }}</span>
           <span>{{ authStore.name }}</span>
-          <span>{{ STATUS_LABEL[role][authStore.status] }}</span>
+          <!-- [수정] role이 빈 문자열일 때 TypeError 방지 — optional chaining 적용 -->
+        <span>{{ STATUS_LABEL[role]?.[authStore.status] ?? '' }}</span>
           <span>{{ userRole }}</span>
         </p>
       </div>

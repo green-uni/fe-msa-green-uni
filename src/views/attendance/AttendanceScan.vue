@@ -1,15 +1,6 @@
 <template>
   <div class="scan-page">
 
-    <!-- ── 홈화면 설치 유도 배너 (아직 설치 안 한 경우만 표시) ── -->
-    <div v-if="showInstallBanner" class="install-banner">
-      <span>홈화면에 추가하면 앱처럼 바로 실행됩니다</span>
-      <div class="install-banner-actions">
-        <button class="btn-install" @click="installPwa">설치</button>
-        <button class="btn-dismiss" @click="showInstallBanner = false">닫기</button>
-      </div>
-    </div>
-
     <!-- ── 카메라 스캔 화면 ──────────────────────────────── -->
     <template v-if="phase === 'scanning'">
       <div class="camera-wrap">
@@ -19,6 +10,8 @@
 
         <!-- 스캔 가이드 오버레이 -->
         <div class="scan-overlay">
+          <!-- [추가] 스캔 취소 후 홈으로 돌아가기 버튼 -->
+          <button class="btn-back-home" @click="cancelScan">← 홈으로</button>
           <div class="scan-frame-box" />
           <p class="scan-hint">QR 코드를 네모 안에 맞춰주세요</p>
         </div>
@@ -59,7 +52,7 @@
         <p class="result-date">{{ scanResult?.classDate }}</p>
         <div class="result-actions">
           <button class="btn btn-primary" @click="goToMyAttendance">내 출석 확인</button>
-          <button class="btn btn-secondary" @click="restartScan">다시 스캔</button>
+          <button class="btn btn-secondary" @click="goToHome">홈으로</button>
         </div>
       </div>
     </template>
@@ -70,7 +63,7 @@
         <span class="result-icon">✔️</span>
         <p class="result-title">이미 출석 처리됨</p>
         <p class="result-sub">오늘 이 강의는 이미 출석 체크되었습니다.</p>
-        <button class="btn btn-secondary" @click="goToMyAttendance">내 출석 확인</button>
+        <button class="btn btn-secondary" @click="goToHome">홈으로</button>
       </div>
     </template>
 
@@ -97,26 +90,6 @@ import attendanceService from '@/services/attendanceService.js'
 
 const router = useRouter()
 const route  = useRoute()
-
-// ── PWA 설치 프롬프트 ────────────────────────────────────────────────────────
-// beforeinstallprompt: 브라우저가 PWA 설치 조건 충족 시 자동 발생하는 이벤트
-// 이벤트를 변수에 저장해뒀다가 버튼 클릭 시 직접 프롬프트를 띄움
-const showInstallBanner = ref(false)
-let deferredPrompt = null  // BeforeInstallPromptEvent 저장
-
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault()        // 브라우저 자동 프롬프트 막기
-  deferredPrompt = e        // 나중에 수동으로 띄우기 위해 보관
-  showInstallBanner.value = true
-})
-
-async function installPwa() {
-  if (!deferredPrompt) return
-  deferredPrompt.prompt()                              // 설치 다이얼로그 표시
-  const { outcome } = await deferredPrompt.userChoice  // 사용자 선택 대기
-  if (outcome === 'accepted') showInstallBanner.value = false
-  deferredPrompt = null
-}
 
 // ── 상태 ────────────────────────────────────────────────────────────────────
 // phase: 'desktop' | 'scanning' | 'processing' | 'success' | 'already' | 'error' | 'denied'
@@ -234,9 +207,20 @@ async function restartScan() {
   await startCamera()
 }
 
+// ── [추가] 스캔 취소 후 홈으로 이동 ──────────────────────────────────────────
+function cancelScan() {
+  stopScan()
+  router.push('/student/attendances/home')
+}
+
 // ── 내 출석 확인 페이지로 이동 ──────────────────────────────────────────────
 function goToMyAttendance() {
-  router.push('/attendances/my')
+  router.push('/student/attendances/my')
+}
+
+// ── 홈으로 돌아가기 ──────────────────────────────────────────────────────────
+function goToHome() {
+  router.push('/student/attendances/home')
 }
 
 // ── 모바일 기기 여부 확인 ─────────────────────────────────────────────────────
@@ -301,6 +285,23 @@ onUnmounted(stopScan)
   align-items: center;
   justify-content: center;
   gap: 24px;
+}
+
+/* [추가] 스캔 화면 홈으로 버튼 */
+.btn-back-home {
+  position: absolute;
+  top: 20px;
+  left: 16px;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .scan-frame-box {

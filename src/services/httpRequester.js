@@ -22,12 +22,16 @@ axios.interceptors.response.use(
         // 중단된 요청을(에러난 요청)을 토큰 갱신 후 재요청
         return await axios.request(err.config);
 
-      } else { // 위 두가지 경우가 아닐 경우 에러메세지를 저장하고 띄우겠다.
-        console.log("err: ", err)
-        const message = err.response.data?.message  || err.response.data?.result
-                                                    || `${err.response.status} 오류가 발생했습니다.`;
-        const modalStore = useModalStore();
-        modalStore.showAlert(message, 'error');
+      } else {
+        // [수정] axios 요청 설정에 _skipModal: true가 있으면 모달 생략
+        // — 자체 에러 UI가 있는 화면(스캔 페이지 등)에서 중복 팝업 방지
+        if (!err.config?._skipModal) {
+          console.log("err: ", err)
+          const message = err.response.data?.message  || err.response.data?.result
+                                                      || `${err.response.status} 오류가 발생했습니다.`;
+          const modalStore = useModalStore();
+          modalStore.showAlert(message, 'error');
+        }
       }
     }
 

@@ -15,10 +15,8 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [
       vue(),
-      // [주석 처리] ngrok 사용 시 HTTPS는 ngrok이 담당하므로 basicSsl 불필요
-      // 같은 WiFi 내 IP 접근 테스트 시에는 주석 해제
-      // [주석 처리] ngrok 사용 시 HTTPS는 ngrok이 담당하므로 basicSsl 불필요
-      // 같은 WiFi 내 IP 접근 테스트 시에는 주석 해제
+      // [주석] ngrok 사용 시 HTTPS는 ngrok이 담당 → basicSsl 불필요
+      // 같은 WiFi 직접 접근 시에는 주석 해제
       // basicSsl({
       //   domains: ['localhost', '192.168.0.31'],
       // }),
@@ -26,23 +24,25 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         // 새 버전 배포 시 사용자 개입 없이 서비스 워커 자동 갱신
         registerType: 'autoUpdate',
-        // [수정] 개발 서버에서 서비스 워커 비활성화 → ngrok 테스트 시 SW가 요청을 가로막는 문제 방지
-        // PWA 설치·오프라인 테스트가 필요할 때만 true로 변경
-        devOptions: { enabled: false },
+        // [수정] 개발 서버에서 서비스 워커 활성화 → PWA 아이콘·설치 배너 테스트
+        devOptions: { enabled: true },
         // 캐싱할 정적 자산 패턴
-        includeAssets: ['icons/*.png', 'icons/favicon.ico', 'icons/apple-touch-icon.png'],
+        // [수정] public/ 기준 상대 경로 — icons/ 폴더 안 모든 아이콘 캐싱 대상
+        includeAssets: ['icons/*.png', 'icons/*.ico', 'icons/*.svg'],
 
         // ── Web App Manifest: 홈화면 설치 시 앱 정보 ──────────────────────
         manifest: {
-          name: '그린uni 학사관리',
-          short_name: '그린uni',          // 홈화면 아이콘 아래 표시될 짧은 이름
+          name: '그린대학교 출결 시스템',
+          // [수정] 홈화면 아이콘 아래 표시될 이름 — iOS는 apple-mobile-web-app-title 우선, Android는 이 값 사용
+          short_name: '그린대학출결시스템',
           description: '그린uni 학사관리 시스템 - QR 출석체크',
           theme_color: '#4a7cf7',         // 상단 브라우저 바 색상
           background_color: '#ffffff',    // 스플래시 화면 배경색
           display: 'standalone',          // 주소창·탭바 숨김 → 앱처럼 보임
           orientation: 'portrait',        // 세로 고정
           scope: '/',
-          start_url: '/student/attendances/scan', // 앱 아이콘 탭 시 첫 화면
+          // [수정] 홈 화면으로 변경 — 출석 현황·QR 출석 선택 진입점
+          start_url: '/student/attendances/home',
           icons: [
             {
               // iOS 홈화면 아이콘
@@ -95,10 +95,9 @@ export default defineConfig(({ mode }) => {
     server: {
       // [추가] 모든 네트워크 인터페이스 수신 → 같은 WiFi의 모바일에서 PC IP로 접근 가능
       host: '0.0.0.0',
-      // [추가] ngrok 도메인 허용 (Vite 7 기본 차단 우회)
-      // ngrok 무료 고정 도메인은 세션이 바뀌어도 동일하게 유지됨
+      // [추가] ngrok 도메인 허용 (Vite 기본 차단 우회)
       allowedHosts: ['bottom-gleaming-lather.ngrok-free.dev'],
-      // [주석 처리] ngrok 사용 시 HTTP로 운영 (ngrok이 HTTPS 처리)
+      // [주석] ngrok 사용 시 HTTP로 운영 (ngrok이 HTTPS 처리)
       // https: true,
       // [추가] /api/* 요청을 게이트웨이(8000)로 프록시
       // VITE_API_BASE_URL을 /api(상대경로)로 바꾸면 PC·모바일 모두 이 프록시를 경유
