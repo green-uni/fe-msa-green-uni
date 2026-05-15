@@ -3,42 +3,44 @@ import MemberService from '@/services/memberService';
 import { useAuthStore } from '@/stores/authentication';
 import { onMounted, reactive, computed } from 'vue';
 import ProfileImg from '@/components/common/ProfileImg.vue';
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
+import StatusList from '@/components/member/StatusList.vue';
 import { useRouter } from 'vue-router';
 import { formatTel } from '@/utils/phoneNumber'
-import { STATUS_LABEL, POSITION_LABEL, DEGREE_LABEL } from '@/utils/constants.js'
+import { STATUS_LABEL, POSITION_LABEL, DEGREE_LABEL, BUILDING_LABEL } from '@/utils/constants.js'
 
 const authStore = useAuthStore()
 const router = useRouter();
 const role = authStore.role
 
 const state = reactive({
-    profileInfo: {}
+    profileInfo: {},
+    statusList:[],
+  isLoading: false,
 })
 
-
-
-// 상태에 따른 수정 불가 여부
-const unActive = computed(() => {
-    const role = authStore.role
-    const status = authStore.stdStatus || authStore.profStatus || authStore.stfStatus
-
-    if (role === 'STUDENT') return status === '졸업' || status === '자퇴' || status === '퇴학'
-    if (role === 'PROFESSOR') return status === '퇴임'
-    if (role === 'ADMIN') return status === '퇴직'
-    return false
-})
-
-
-// 로그인 유저 본인의 프로파일 가져오기
+// 로그인 회원 본인의 프로파일 가져오기
 const getUserData = async () => {
     try {
         const res = await MemberService.findProfile();
-        // console.log(res.data)
+        console.log( '로그인 회원 정보 조회', res.data)
         state.profileInfo = res.data;
     } catch (e) {
         console.error(e)
     }
 };
+// 로그인 회원 변동 이력 가져오기
+const getStatusList = async () => {
+    try {
+        const res = role == 'STUDENT' ? await MemberService.findStudentStatus()
+            : role == 'PROFESSOR' ? await MemberService.findProfessorStatus()
+            : await MemberService.findAdminStatus()
+        state.statusList = res.data
+        console.log( '로그인 회원 변동 이력', res.data)
+    } catch (e) {
+        console.error(e)
+    }
+}
 
 // 생년월일 표기
 const birthDate = yearDate =>{
@@ -49,14 +51,18 @@ const birthDate = yearDate =>{
 
 // 라이프사이클
 onMounted(async () => {
-    getUserData();
-    console.log(authStore)
+    state.isLoading = true
+    try {
+        await Promise.all([getUserData(), getStatusList()])
+    } finally {
+        state.isLoading = false
+    }
 })
-
 </script>
 
 <template>
-    <div class="d-grid g20" style="--grid-cols:300px 1fr;">
+    <div class="d-grid g20" style="--grid-cols:300px 1fr;position: relative; min-height: 200px;">
+              <LoadingSpinner v-if="state.isLoading" :overlay="true" size="md" />
         <div class="">
             <div class="info-card g20 content-wrap ">
                 <div class="info-img d-flex jc-center">
@@ -69,7 +75,7 @@ onMounted(async () => {
                 </span>
             </div>
             <div class="btn-row direct-col g5 w100p">
-                <button class="btn btn-line" @click="router.push(role == 'ADMIN' ? '/admin/members/edit': '/members/edit')" v-if="!unActive">
+                <button class="btn btn-line" @click="router.push(role == 'ADMIN' ? '/admin/members/edit': '/members/edit')">
                     <font-awesome-icon icon="fa-solid fa-pen-to-square" /> 내 정보 수정
                 </button>
                 <button class="btn btn-line" @click="router.push('/members/my/password')">
@@ -78,7 +84,7 @@ onMounted(async () => {
                 </div>
             </div>
         </div>
-        <div class="">
+        <div>
             <div class="info-wrap content-wrap direct-row g30">
                 <div class="info-row g30">
                     <dl v-if="authStore.role == 'STUDENT' || authStore.role == 'PROFESSOR'">
@@ -86,11 +92,11 @@ onMounted(async () => {
                         <dd>{{ state.profileInfo.collegeName }}</dd>
                     </dl>
                     <dl v-if="authStore.role == 'STUDENT' || authStore.role == 'PROFESSOR'">
-                        <dt>                
+                        <dt>
                             <template v-if="authStore.role == 'STUDENT'">주전공</template>
                             <template v-else>전공</template>
                         </dt>
-                        <dd>{{ authStore.major }}</dd>
+                        <dd>{{ state.profileInfo.mainMajorName }}</dd>
                     </dl>
                     <dl v-if="authStore.role == 'STUDENT'">
                         <dt>부전공</dt>
@@ -103,7 +109,7 @@ onMounted(async () => {
                     <dl v-if="authStore.role == 'STUDENT'">
                         <dt>학기</dt>
                         <dd>{{ state.profileInfo.semester }}</dd>
-                    </dl>  
+                    </dl>
                     <dl v-if="authStore.role == 'PROFESSOR'">
                         <dt>학위</dt>
                         <dd>{{ DEGREE_LABEL[state.profileInfo.degree] }}</dd>
@@ -114,8 +120,8 @@ onMounted(async () => {
                     </dl>
                     <dl>
                         <dt>상태</dt>
-                        <dd>{{ STATUS_LABEL[role][state.profileInfo.status] }}</dd>
-                    </dl>  
+                        <dd>{{ STATUS_LABEL[role]?.[state.profileInfo.status] ?? '-' }}</dd>
+                    </dl>
                     <dl>
                         <dt>
                         <template v-if="authStore.role == 'STUDENT'">입학시기</template>
@@ -132,13 +138,13 @@ onMounted(async () => {
                         <dd>{{ state.profileInfo.exitDate }}</dd>
                     </dl>
                 </div>
-            </div>  
+            </div>
             <div v-if="authStore.role == 'PROFESSOR' && (state.profileInfo.labRoom || state.profileInfo.labTel)" class="info-wrap info-title-wrap content-wrap" style="--grid-cols:repeat(auto-fill, minmax(150px,1fr))">
                 <h3>연구실 정보</h3>
                 <div class="info-row g30">
                     <dl v-if="state.profileInfo.labRoom">
                         <dt>연구실 위치</dt>
-                        <dd>{{ state.profileInfo.labBuilding || '-' }} {{ state.profileInfo.labRoom || '-' }}호</dd>
+                        <dd>{{ BUILDING_LABEL[state.profileInfo.labBuilding] || '-' }} {{ state.profileInfo.labRoom || '-' }}호</dd>
                     </dl>
                     <dl v-if="state.profileInfo.labTel">
                         <dt>연구실 번호</dt>
@@ -174,7 +180,9 @@ onMounted(async () => {
                     </dl>
                 </div>
             </div>
+            <StatusList :role="role" :list="state.statusList" :isLoading="state.isLoading"  />
         </div>
+
     </div>
 </template>
 
