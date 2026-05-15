@@ -16,13 +16,13 @@ export const authRoutes = [
     },
   },
   {
-    path: 'member/my/password',
+    path: 'members/my/password',
     component: () => import('@/views/common/auth/PasswordChange.vue'),
     meta: {
       title: '비밀번호 변경',
       groupTitle: '내 정보 관리',
       showInNav: false,
-      activeMenu: '/member/me',
+      activeMenu: '/member/my',
       auth: ['student', 'professor', 'admin'],
     },
   },
