@@ -295,7 +295,7 @@ const submitLecture = async () => {
   }
 
   const payload = {
-    majorId: Number(state.data.majorId),
+    majorId: (state.data.majorId),
     year: Number(state.data.year),
     semester: state.data.semester,
     lectureName: state.data.lectureName,

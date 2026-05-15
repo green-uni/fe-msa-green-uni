@@ -19,9 +19,14 @@ class LectureService {
   }
 
   // 전공 목록 조회
-  async getMajorList() {
-    const res = await axios.get('/core/majors');
-    return res.data;
+  // async getMajorList() {
+  //   const res = await axios.get('/core/majors');
+  //   return res.data;
+  // }
+    async getMajorList() {
+    const res = await axios.get('/core/majors', { responseType: 'text' });
+    const replaced = res.data.replace(/"majorId"\s*:\s*(\d+)/g, '"majorId":"$1"');
+    return JSON.parse(replaced);
   }
 
   // ── 교수 ──────────────────────────────────────
