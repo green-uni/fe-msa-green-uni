@@ -39,8 +39,12 @@ export const useAuthStore = defineStore(
     const logOut = () => {
       memberCode.value = 0
       role.value = '';
-      isFirstLogin.value = false
+      deviceId.value = '';
+      isFirstLogin.value = false;
       isLogin.value = false;
+      name.value = '';
+      major.value = '';
+      status.value = '';
     }
 
     return { memberCode, role, name, major, deviceId, isFirstLogin, status, setProfile, setFirstLogin, isLogin, logIn, logOut }

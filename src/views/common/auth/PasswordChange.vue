@@ -30,7 +30,6 @@ const state = reactive({
     chkPw: false
   }
 });
-const pwView = () => { state.modeShowPw = !state.modeShowPw }
 const oldPwView = () => { state.modeShowOldPw = !state.modeShowOldPw }
 
 const submit = async () => {

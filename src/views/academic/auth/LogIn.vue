@@ -35,7 +35,7 @@
       const res = await AuthService.logIn(state.form);
       // console.log(res)
 
-      if(res.data.isFirstLogin == true){
+      if(res.data.isFirstLogin){
         await modal.showAlert('최초 로그인 입니다. 비밀번호를 변경해주세요', 'warning')
         authStore.logIn(res.data);
         const profile = await MemberService.findProfile();
@@ -72,7 +72,7 @@
           <button @click="router.push('/admin/login')">관리자 로그인 페이지로</button>
         </div>
         <div class="d-flex ai-center jc-center">
-          <img :src="logo" @click="moveToMain" />
+          <img :src="logo" />
         </div>
 
 
