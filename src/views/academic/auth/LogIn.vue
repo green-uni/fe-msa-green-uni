@@ -72,7 +72,7 @@
           <button @click="router.push('/admin/login')">관리자 로그인 페이지로</button>
         </div>
         <div class="d-flex ai-center jc-center">
-          <img :src="logo" @click="moveToMain" />
+          <img :src="logo" />
         </div>
 
 

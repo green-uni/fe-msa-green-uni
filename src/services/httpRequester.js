@@ -2,6 +2,7 @@ import axios from "axios";
 import AuthService from "./authService";
 import { useAuthStore } from "@/stores/authentication";
 import { useModalStore } from "@/stores/modal";
+import router from '@/router'
 
 axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL;
 axios.defaults.withCredentials = true;
@@ -15,7 +16,9 @@ axios.interceptors.response.use(
     if (err.response) {
       const authStore = useAuthStore(); // 이하 토큰 만료시 자동 연장 // 로그인 인증 관련
       if (err.config.url === "/auth/reissue") {  //AT 재발급 시도했으나 에러 >> RT 만료
+        const redirectPath = authStore.role === 'ADMIN' ? '/admin/login' : '/login';
         authStore.logOut(); //로그아웃 처리
+        router.push(redirectPath)
       } else if (err.response.status === 401 && authStore.isLogin) {  //로그인 상태인데 401 응답 >> AT 만료 >> AT 재발행
         //401 UnAuthorized 에러인데 FE 로그인 처리 되어 있다면
         if (!reissuePromise) { //AccessToken 재발행 시도
