@@ -1,6 +1,15 @@
 <template>
   <div class="scan-page">
 
+    <!-- ── 홈화면 설치 유도 배너 (아직 설치 안 한 경우만 표시) ── -->
+    <div v-if="showInstallBanner" class="install-banner">
+      <span>홈화면에 추가하면 앱처럼 바로 실행됩니다</span>
+      <div class="install-banner-actions">
+        <button class="btn-install" @click="installPwa">설치</button>
+        <button class="btn-dismiss" @click="showInstallBanner = false">닫기</button>
+      </div>
+    </div>
+
     <!-- ── 카메라 스캔 화면 ──────────────────────────────── -->
     <template v-if="phase === 'scanning'">
       <div class="camera-wrap">
@@ -13,6 +22,15 @@
           <div class="scan-frame-box" />
           <p class="scan-hint">QR 코드를 네모 안에 맞춰주세요</p>
         </div>
+      </div>
+    </template>
+
+    <!-- ── PC 접속 차단 ───────────────────────────────── -->
+    <template v-else-if="phase === 'desktop'">
+      <div class="result-card denied">
+        <span class="result-icon">📱</span>
+        <p class="result-title">모바일 전용 기능</p>
+        <p class="result-sub">QR 출석은 모바일에서만 사용할 수 있습니다.<br>스마트폰으로 접속해주세요.</p>
       </div>
     </template>
 
@@ -73,14 +91,35 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import jsQR from 'jsqr'
 import attendanceService from '@/services/attendanceService.js'
 
 const router = useRouter()
+const route  = useRoute()
+
+// ── PWA 설치 프롬프트 ────────────────────────────────────────────────────────
+// beforeinstallprompt: 브라우저가 PWA 설치 조건 충족 시 자동 발생하는 이벤트
+// 이벤트를 변수에 저장해뒀다가 버튼 클릭 시 직접 프롬프트를 띄움
+const showInstallBanner = ref(false)
+let deferredPrompt = null  // BeforeInstallPromptEvent 저장
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault()        // 브라우저 자동 프롬프트 막기
+  deferredPrompt = e        // 나중에 수동으로 띄우기 위해 보관
+  showInstallBanner.value = true
+})
+
+async function installPwa() {
+  if (!deferredPrompt) return
+  deferredPrompt.prompt()                              // 설치 다이얼로그 표시
+  const { outcome } = await deferredPrompt.userChoice  // 사용자 선택 대기
+  if (outcome === 'accepted') showInstallBanner.value = false
+  deferredPrompt = null
+}
 
 // ── 상태 ────────────────────────────────────────────────────────────────────
-// phase: 'scanning' | 'processing' | 'success' | 'already' | 'error' | 'denied'
+// phase: 'desktop' | 'scanning' | 'processing' | 'success' | 'already' | 'error' | 'denied'
 const phase      = ref('scanning')
 const scanResult = ref(null)   // { attendId, status, classDate }
 const errorMsg   = ref('')
@@ -128,7 +167,8 @@ function scanFrame() {
 
   if (code?.data) {
     stopScan()
-    handleToken(code.data)
+    // QR 내용이 URL이면 token 파라미터 추출, UUID 그대로면 그대로 사용 (하위 호환)
+    handleToken(extractToken(code.data))
   }
 }
 
@@ -175,6 +215,17 @@ function resolveErrorMsg(status, message) {
   return message || '출석 처리 중 오류가 발생했습니다.'
 }
 
+// ── QR 데이터에서 토큰 추출 ──────────────────────────────────────────────────
+// QR 내용이 URL이면 ?token= 파라미터 추출, UUID 직접이면 그대로 반환
+function extractToken(data) {
+  try {
+    const url = new URL(data)
+    return url.searchParams.get('token') ?? data
+  } catch {
+    return data
+  }
+}
+
 // ── 재스캔: 카메라 다시 열기 ─────────────────────────────────────────────────
 async function restartScan() {
   phase.value      = 'scanning'
@@ -188,8 +239,27 @@ function goToMyAttendance() {
   router.push('/attendances/my')
 }
 
+// ── 모바일 기기 여부 확인 ─────────────────────────────────────────────────────
+// userAgent로 모바일(Android/iOS) 판별 — PC 브라우저 접속 시 카메라 시작 대신 안내 화면 표시
+function isMobile() {
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+}
+
 // ── 라이프사이클 ─────────────────────────────────────────────────────────────
-onMounted(startCamera)
+onMounted(() => {
+  if (!isMobile()) {
+    phase.value = 'desktop'
+    return
+  }
+  // 일반 카메라/QR 스캐너로 스캔 시 URL에 ?token= 포함되어 진입
+  // → 카메라 없이 즉시 API 제출. 만료된 경우 error 화면 + "다시 시도" 버튼으로 카메라 재시작
+  const urlToken = route.query.token
+  if (urlToken) {
+    handleToken(urlToken)
+    return
+  }
+  startCamera()
+})
 onUnmounted(stopScan)
 </script>
 
@@ -282,6 +352,49 @@ onUnmounted(stopScan)
   gap: 10px;
   width: 100%;
   margin-top: 8px;
+}
+
+/* ── 홈화면 설치 배너 ── */
+.install-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #1a1a2e;
+  color: #fff;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 100;
+  font-size: 14px;
+}
+
+.install-banner-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-install {
+  flex: 1;
+  padding: 9px 0;
+  background: #4a7cf7;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-dismiss {
+  padding: 9px 16px;
+  background: transparent;
+  color: #aaa;
+  border: 1px solid #555;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
 }
 
 /* ── 버튼 ── */

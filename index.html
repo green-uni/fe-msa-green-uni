@@ -16,5 +16,13 @@
   <body>
     <div id="app"></div>
     <script type="module" src="/src/main.js"></script>
+    <!-- [추가] 개발 환경에서 이전에 등록된 PWA 서비스 워커를 강제 해제 → ngrok 테스트 시 SW 캐시로 인한 빈 화면 방지 -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(regs) {
+          regs.forEach(function(r) { r.unregister(); });
+        });
+      }
+    </script>
   </body>
 </html>

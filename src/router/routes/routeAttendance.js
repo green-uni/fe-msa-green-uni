@@ -56,10 +56,10 @@ export const attendanceRoutes = [
 export const mobileAttendanceRoutes = [
   {
     //학생 QR 스캔 출석 체크 화면(API-ATTD-03)
-    // 경로: /attend/scan (AttendanceLayout 하위)
+    // 경로: /student/attendances/scan (AttendanceLayout 하위)
     // PWA로 모바일에서 접근하는 화면
 
-    path: 'scan',
+    path: 'attendances/scan',
     component: () => import('@/views/attendance/AttendanceScan.vue'),
     meta: {
       title: 'QR 출석 체크',

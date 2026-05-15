@@ -239,20 +239,45 @@ onMounted(async () => {
 })
 
 // ── 내부 변수 ────────────────────────────────────────────────────
-let eventSourceRef = null
-let countTimerRef  = null
+let eventSourceRef  = null
+let countTimerRef   = null
+let reconnectTimer  = null  // [추가] SSE 재연결 타이머
+let reconnectCount  = 0     // [추가] 연속 재연결 시도 횟수
+const MAX_RECONNECT = 5     // [추가] 이 횟수 초과 시에만 세션 종료로 처리
+
+// ── QR 코드에 담길 URL 생성 ──────────────────────────────────────
+// 일반 카메라/QR 스캐너로 찍으면 브라우저가 이 URL을 열어 로그인 후 자동 출석 처리
+// VITE_SCAN_BASE_URL: 교수가 localhost로 접속해도 QR에는 모바일이 접근 가능한 네트워크 IP를 사용
+// 미설정 시 window.location.origin으로 fallback (운영 서버에서는 동일 도메인이므로 정상 동작)
+function buildScanUrl(token) {
+  const base = import.meta.env.VITE_SCAN_BASE_URL || window.location.origin
+  return `${base}/student/attendances/scan?token=${token}`
+}
 
 // ── 공통: SSE + 카운트다운 시작 ─────────────────────────────────
 function startStream(sid) {
   eventSourceRef = attendanceService.openTokenStream(
     sid,
-    (token) => { currentToken.value = token; countdown.value = 5 },
-    // 세션 자동 종료(스케줄러)로 서버가 SSE를 닫은 경우 → 결과 화면으로 전환
-    (err)   => {
-      console.error('QR 스트림 오류', err)
+    (token) => {
+      currentToken.value = buildScanUrl(token)
+      countdown.value    = 5
+      reconnectCount     = 0  // [추가] 토큰 수신 성공 시 재연결 카운터 초기화
+    },
+    // [수정] SSE 오류 → 즉시 종료 대신 재연결 시도
+    // 단순 네트워크 끊김(게이트웨이 타임아웃 등)과 실제 세션 종료를 구분
+    (err) => {
+      console.warn('SSE 연결 끊김, 재연결 시도:', reconnectCount + 1, '/', MAX_RECONNECT, err)
       stopStream()
-      isSessionActive.value = false
-      isSessionEnded.value  = true
+
+      if (reconnectCount < MAX_RECONNECT && isSessionActive.value) {
+        reconnectCount++
+        // 3초 후 재연결 — 세션이 아직 활성 상태면 SSE 스트림 재시작
+        reconnectTimer = setTimeout(() => startStream(sid), 3_000)
+      } else {
+        // MAX_RECONNECT 초과 → 세션이 실제로 종료된 것으로 판단
+        isSessionActive.value = false
+        isSessionEnded.value  = true
+      }
     },
   )
   countTimerRef = setInterval(() => {
@@ -262,7 +287,8 @@ function startStream(sid) {
 
 // ── 공통: SSE + 카운트다운 정리 ─────────────────────────────────
 function stopStream() {
-  if (eventSourceRef) { eventSourceRef.close(); eventSourceRef = null }
+  if (reconnectTimer)  { clearTimeout(reconnectTimer); reconnectTimer = null }  // [추가]
+  if (eventSourceRef)  { eventSourceRef.close(); eventSourceRef = null }
   clearInterval(countTimerRef); countTimerRef = null
 }
 

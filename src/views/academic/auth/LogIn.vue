@@ -53,8 +53,17 @@
       const profile = await MemberService.findProfile();
       authStore.setProfile(profile.data);
 
+      // [추가] QR URL 직접 접근 후 로그인한 경우 → 원래 경로(token 포함)로 복귀
+      const redirect = sessionStorage.getItem('redirectAfterLogin')
+      if (redirect) {
+        sessionStorage.removeItem('redirectAfterLogin')
+        router.push(redirect)
+        return
+      }
+
+      // [수정] /attend → /student/attendances/scan (경로 변경에 따른 수정)
       if (res.data.role === 'STUDENT' && res.data.deviceId === 'mobile') {
-        router.push('/attend')
+        router.push('/student/attendances/scan')
         return
       }
       router.push('/members/my')
