@@ -10,6 +10,11 @@ class AuthService {
     });
     return res.data;
   }
+  async adminLogIn(form) { //관리자 로그인
+    const res = await axios.post(`${this.#path}/login`, form,{ headers: { 'X-Device-Id': 'pc' }
+    });
+    return res.data;
+  }
   async logOut(){ return await axios.post(`${this.#path}/logout`) }
 
   async reissue(data) { return axios.post(`${this.#path}/reissue`, data)}
