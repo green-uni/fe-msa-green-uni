@@ -52,6 +52,17 @@ export const adminMemberRoutes = [
     },
   },
   {
+    path: `${url}/edit`,
+    component: () => import('@/views/common/member/MemberEdit.vue'),
+    meta: {
+      title: '내 정보 수정',
+      groupTitle: '내 정보 관리',
+      showInNav: false,
+      activeMenu: `${url}/my`,
+      auth: ['ADMIN'],
+    },
+  },
+  {
     path: `${url}/new`,
     component: () => import('@/views/admin/member/MemberCreate.vue'),
     meta: {
@@ -70,8 +81,8 @@ export const adminMemberRoutes = [
     },
   },
   {
-    path: `${url}/:memberCode/edit`,
-    component: () => import('@/views/common/member/MemberEdit.vue'),
+    path: `${url}/:memberCode`,
+    component: () => import('@/views/admin/member/AdminMemberEdit.vue'),
     meta: {
       title: '인사 정보 수정',
       groupTitle: '인사 정보 관리',

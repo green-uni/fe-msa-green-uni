@@ -1,6 +1,6 @@
 <script setup>
-import { onMounted, reactive, computed, watch, ref } from 'vue'
-import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
+import { onMounted, reactive, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authentication'
 import StudentFields from '@/components/member/StudentFields.vue'
 import ProfessorFields from '@/components/member/ProfessorFields.vue'
@@ -10,6 +10,7 @@ import CommonFields from '@/components/member/CommonFields.vue'
 import ProfileImg from '@/components/common/ProfileImg.vue'
 
 import MemberService from '@/services/memberService'
+import codeListService from '@/services/codeService'
 
 import { useModalStore } from '@/stores/modal'
 
@@ -18,10 +19,7 @@ const route = useRoute()
 const authStore = useAuthStore()
 const modal = useModalStore()
 
-const isAdminEditMode = computed(() => !!route.params.memberCode)
-console.log("관리자 수정 모드: ", isAdminEditMode.value)
-const editMode = computed(() => isAdminEditMode.value ? 'adminEdit' : 'selfEdit')
-const role = authStore.role
+const editMode = 'selfEdit';
 const targetRole = ref('')
 
 const pic = ref(null)
@@ -133,12 +131,12 @@ onMounted(async () => {
     adminStatus,
   ] = await Promise.all([
     MemberService.getMajorList(),
-    MemberService.getStudentStatusList(),
-    MemberService.getProfessorStatusList(),
-    MemberService.getProfessorPositionList(),
-    MemberService.getProfessorDegreeList(),
-    MemberService.getBuildingList(),
-    MemberService.getAdminStatusList(),
+    codeListService.getStudentStatusList(),
+    codeListService.getProfessorStatusList(),
+    codeListService.getProfessorPositionList(),
+    codeListService.getProfessorDegreeList(),
+    codeListService.getBuildingList(),
+    codeListService.getAdminStatusList(),
   ])
 
   majorList.value = majors.data
@@ -149,17 +147,9 @@ onMounted(async () => {
   buildingList.value = building.data
   adminStatusList.value = adminStatus.data
 
-  const res = isAdminEditMode.value
-    ? await MemberService.getMemberProfile(route.params.memberCode)
-    : await MemberService.findProfile()
+  const res = await MemberService.findProfile()
   const data = res.data
-  targetRole.value = isAdminEditMode.value ? data.role : authStore.role
-
-  console.log("data.role: ", data.role)
-  console.log("data 전체: ", data)
-
-  console.log(res.data)
-  console.log("ROLE: ", targetRole.value)
+  targetRole.value = authStore.role
 
   // 공통 필드 채우기
   common.name = data.name
@@ -171,7 +161,7 @@ onMounted(async () => {
   common.address = data.address
   common.detailAddress = data.detailAddress
   common.pic = data.pic
-  
+
   // 역할별 필드 채우기
   if (targetRole.value === 'STUDENT') {
     student.academicYear = data.academicYear
@@ -180,7 +170,7 @@ onMounted(async () => {
     student.isTransfer = data.isTransfer
     student.isMultiChild = data.isMultiChild
     student.isVeteran = data.isVeteran
-    student.majorName = data.mainMajorName 
+    student.majorName = data.mainMajorName
   student.entryDate = data.entryDate,
   student.exitDate = data.exitDate
   } else if (targetRole.value === 'PROFESSOR') {
@@ -206,8 +196,6 @@ onMounted(async () => {
   } else {
     original.value = JSON.parse(JSON.stringify({ ...common, ...admin }))
   }
-
-  // console.log(targetRole.value)
 })
 </script>
 
@@ -217,7 +205,7 @@ onMounted(async () => {
     <div class="d-flex g20 jc-center">
       <div class="pf-profile content-wrap">
         <h3><font-awesome-icon icon="fa-solid fa-circle-info" /> 사진 수정</h3>
-        <ProfileImg :editable="true" v-model:pic="pic" />
+        <ProfileImg :editable="true" v-model:pic="pic"/>
       </div>
       <!-- pf-profile-->
 
@@ -227,15 +215,8 @@ onMounted(async () => {
           <CommonFields :common="common" :mode="editMode" />
         </div>
         <!--form-grid-->
-        <div class="content-wrap d-flex direct-col d-flex-grow1" v-if="targetRole === 'PROFESSOR' || isAdminEditMode">
+        <div class="content-wrap d-flex direct-col d-flex-grow1" v-if="targetRole === 'PROFESSOR'">
           <h3><font-awesome-icon icon="fa-solid fa-circle-info" />학적 정보</h3>
-            <StudentFields
-              v-if="targetRole === 'STUDENT'"
-              :student="student"
-              :majorList="majorList"
-              :statusList="studentStatusList"
-              :mode="editMode"
-            />
             <ProfessorFields
               v-if="targetRole === 'PROFESSOR'"
               :professor="professor"
@@ -244,12 +225,6 @@ onMounted(async () => {
               :positionList="professorPositionList"
               :degreeList="professorDegreeList"
               :buildingList="buildingList"
-              :mode="editMode"
-            />
-            <AdminFields
-              v-if="targetRole === 'ADMIN'"
-              :admin="admin"
-              :statusList="adminStatusList"
               :mode="editMode"
             />
         </div>
