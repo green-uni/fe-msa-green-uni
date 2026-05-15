@@ -34,6 +34,12 @@ class MemberService {
 
   //////////////////////// 관리자 ////////////////////////
 
+  // 목록 조회
+  async findStudents() {
+    const res = await axios.get(`${this.#adminPath}/students`)
+    return res.data;
+  }
+
   // 계정 생성
   async createStudent(formData) {
     const res = await axios.post(`${this.#adminPath}/students`, formData)
