@@ -119,139 +119,130 @@ function statusClass(code) {
 }
 </script>
 
+/* [수정] 1차 프로젝트 공통 디자인 토큰(CSS 변수)으로 통일 */
 <style scoped lang="scss">
 .my-attend-page {
   max-width: 720px;
   margin: 0 auto;
-  padding: 28px 16px;
+  padding: 28px var(--size-df);
 }
 
-/* [추가] PWA 모바일 뒤로가기 버튼 */
+/* PWA 모바일 뒤로가기 버튼 */
 .btn-back {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   margin-bottom: 16px;
   padding: 8px 14px;
-  background: #f0f4ff;
-  color: #4a7cf7;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
+  background: var(--hover-bg-color);
+  color: var(--main-color);
+  border: 1px solid var(--main-color);
+  border-radius: var(--bdrs-sm);
+  font-size: var(--text-sm);
   font-weight: 600;
   cursor: pointer;
-  &:hover { background: #dde8ff; }
+  &:hover { background: var(--main-color); color: #fff; }
 }
 
 .page-title {
-  font-size: 22px;
+  font-size: var(--text-xl);
   font-weight: 700;
-  color: #222;
+  color: var(--font-color);
   margin-bottom: 24px;
 }
 
 .hint {
   text-align: center;
   padding: 60px 0;
-  font-size: 14px;
-  color: #aaa;
+  font-size: var(--text-sm);
+  color: var(--font-color-light);
 }
 
 /* ── 강의 카드 ── */
-.lecture-list { display: flex; flex-direction: column; gap: 14px; }
+.lecture-list { display: flex; flex-direction: column; gap: 12px; }
 
 .lecture-card {
   background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 14px;
+  border: 1px solid var(--line-color);
+  border-radius: var(--bdrs-df);
   overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+  box-shadow: 0 1px 4px rgba(0,0,0,.04);
 }
 
-/* 카드 헤더: 강의명 + 출석률 + 토글 버튼 */
+/* 카드 헤더 */
 .card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
+  padding: 14px 20px;
   cursor: pointer;
-  background: #f8f9ff;
-  border-bottom: 1px solid #eee;
+  background: var(--hover-bg-color);
+  border-bottom: 1px solid var(--line-color);
   user-select: none;
-  &:hover { background: #eef2ff; }
+  &:hover { background: #eaf5ef; }
 }
 
-.header-left {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
+.header-left { display: flex; flex-direction: column; gap: 4px; }
 
 .lec-name {
-  font-size: 16px;
+  font-size: var(--text-md);
   font-weight: 700;
-  color: #1a1a2e;
+  color: var(--font-color);
 }
 
 .attend-rate {
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 600;
   &.rate-good { color: #2e7d32; }
   &.rate-warn { color: #f57f17; }
   &.rate-bad  { color: #c62828; }
 }
 
-.toggle-icon {
-  font-size: 13px;
-  color: #999;
-}
+.toggle-icon { font-size: var(--text-sm); color: var(--font-color-light); }
 
 /* 요약 뱃지 */
 .summary-row {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  padding: 12px 20px;
-  border-bottom: 1px solid #f5f5f5;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--line-color);
 }
 
 .summary-chip {
   padding: 3px 10px;
   border-radius: 20px;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 700;
   &.attend  { background: #e6f9ee; color: #2e7d32; }
   &.late    { background: #fff8e1; color: #f57f17; }
   &.early   { background: #fff3e0; color: #e65100; }
   &.absent  { background: #fdecea; color: #c62828; }
-  &.total   { background: #f0f4ff; color: #4a7cf7; }
+  &.total   { background: var(--hover-bg-color); color: var(--main-color); }
 }
 
 /* 세부 이력 */
-.detail-list {
-  display: flex;
-  flex-direction: column;
-  padding: 8px 0;
-}
+.detail-list { display: flex; flex-direction: column; padding: 4px 0; }
 
 .detail-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 20px;
-  border-bottom: 1px solid #fafafa;
+  padding: 9px 20px;
+  border-bottom: 1px solid var(--line-color);
   &:last-child { border-bottom: none; }
+  &:hover { background: var(--default-hover-bg-color); }
 }
 
 .detail-date {
-  font-size: 13px;
-  color: #555;
+  font-size: var(--text-sm);
+  color: var(--font-color);
   min-width: 130px;
 }
 
 .detail-reason {
-  font-size: 12px;
-  color: #999;
+  font-size: var(--text-xs);
+  color: var(--font-color-light);
 }
 
 /* 상태 뱃지 */
@@ -259,11 +250,11 @@ function statusClass(code) {
   display: inline-block;
   padding: 2px 10px;
   border-radius: 12px;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 700;
-  &.attend       { background: #e6f9ee; color: #2e7d32; }
-  &.absent       { background: #fdecea; color: #c62828; }
-  &.late         { background: #fff8e1; color: #f57f17; }
-  &.early-leave  { background: #fff3e0; color: #e65100; }
+  &.attend      { background: #e6f9ee; color: #2e7d32; }
+  &.absent      { background: #fdecea; color: #c62828; }
+  &.late        { background: #fff8e1; color: #f57f17; }
+  &.early-leave { background: #fff3e0; color: #e65100; }
 }
 </style>

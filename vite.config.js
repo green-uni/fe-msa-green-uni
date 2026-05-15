@@ -24,8 +24,9 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         // 새 버전 배포 시 사용자 개입 없이 서비스 워커 자동 갱신
         registerType: 'autoUpdate',
-        // [수정] 개발 서버에서 서비스 워커 활성화 → PWA 아이콘·설치 배너 테스트
-        devOptions: { enabled: true },
+        // [수정] dev 서버에서는 SW 비활성화 — 활성화 시 팀원 hot reload 캐시 문제 발생
+        // PWA 테스트 필요 시 enabled: true 로 변경 후 Ctrl+Shift+R 강력 새로고침
+        devOptions: { enabled: false },
         // 캐싱할 정적 자산 패턴
         // [수정] public/ 기준 상대 경로 — icons/ 폴더 안 모든 아이콘 캐싱 대상
         includeAssets: ['icons/*.png', 'icons/*.ico', 'icons/*.svg'],
