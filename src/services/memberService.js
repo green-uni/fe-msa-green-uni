@@ -6,7 +6,7 @@ class MemberService {
 
   // 내 정보 조회
   async findProfile(){
-    const res = await axios.get(`${this.#path}/my`)
+    const res = await axios.get(`/member/my`) 
     return res.data;
   };
 
