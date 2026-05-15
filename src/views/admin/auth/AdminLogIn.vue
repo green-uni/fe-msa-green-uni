@@ -22,16 +22,15 @@
 
   const login = async () => {
     try {
-      const res = await AuthService.logIn(state.form);
-      // console.log(res)
+      const res = await AuthService.adminLogIn(state.form);
 
-      if(res.data.isFirstLogin == true){
+      if(res.data.isFirstLogin){
         await modal.showAlert('최초 로그인 입니다. 비밀번호를 변경해주세요', 'warning')
         authStore.logIn(res.data);
         const profile = await MemberService.findProfile();
         authStore.setProfile(profile.data);
 
-        await router.push('/member/my/password')
+        await router.push('/members/my/password')
         return
       }
 
@@ -54,7 +53,7 @@
           <button @click="router.push('/login')">학사 로그인 페이지로</button>
         </div>
         <div class="d-flex ai-center jc-center">
-          <img :src="logo" @click="moveToMain" />
+          <img :src="logo"/>
         </div>
         <LoginForm
           :form="state.form"

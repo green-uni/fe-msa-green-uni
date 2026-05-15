@@ -4,31 +4,37 @@ class MemberService {
   #adminPath = '/member/admin'
   #path = '/member'
 
+  // 내 정보 조회
   async findProfile(){
     const res = await axios.get(`${this.#path}/my`)
     return res.data;
   };
 
-    // 관리자 - 회원 프로파일 조회
-  async getMemberProfile(memberCode) {
-    const res = await axios.get(`${this.#adminPath}/${memberCode}`)
+  // 내 정보 수정  
+  async modifyMyProfile(formData) {
+    const res = await axios.patch(`${this.#path}/my`, formData)
     return res.data;
   }
 
-  // 관리자 - 회원 개인정보 수정
-  async updateMemberProfile(memberCode, formData) {
-    const res = await axios.patch(`${this.#adminPath}/${memberCode}/profile`, formData)
-    return res.data;
+  // 학생 변동 이력 조회
+  async findStudentStatus() {
+    const res = await axios.get(`${this.#path}/student/history`)
+    return res.data;    
+  }
+  // 교수 변동 이력 조회
+  async findProfessorStatus() {
+    const res = await axios.get(`${this.#path}/professor/history`)
+    return res.data;    
+  }
+  // 관리자 변동 이력 조회
+  async findAdminStatus() {
+    const res = await axios.get(`${this.#path}/admin/history`)
+    return res.data;    
   }
 
+  //////////////////////// 관리자 ////////////////////////
 
-  //////////// 계정 생성 //////////////
-  // 역할 조회
-  async getMemberRole() {
-    const res = await axios.get('/auth/code?code_type=memberRole')
-    return res.data;
-  }
-
+  // 계정 생성
   async createStudent(formData) {
     const res = await axios.post(`${this.#adminPath}/students`, formData)
     return res.data;
@@ -47,41 +53,44 @@ class MemberService {
     const res = await axios.get(`${this.#path}/majors`)
     return res.data;
   }
-
-  // 학생 상태 목록 조회
-  async getStudentStatusList() {
-    const res = await axios.get('/auth/code?code_type=studentStatus')
-    return res.data;
-  }
-  // 교수 상태 목록 조회
-  async getProfessorStatusList() {
-    const res = await axios.get('/auth/code?code_type=professorStatus')
-    return res.data;
-  }
-  async getProfessorPositionList() {
-    const res = await axios.get('/member/code?code_type=professorPosition')
-    return res.data;
-  }
-  async getProfessorDegreeList() {
-    const res = await axios.get('/member/code?code_type=professorDegree')
-    return res.data;
-  }
-  async getBuildingList() {
-    const res = await axios.get('/auth/code?code_type=building')
-    return res.data;
-  }
-  // 관리자 상태 목록 조회
-  async getAdminStatusList() {
-    const res = await axios.get('/member/code?code_type=adminStatus')
-    return res.data;
-  }
-
-  // 내 정보 수정  
-  async modifyMyProfile(formData) {
-    const res = await axios.patch(`${this.#path}/my`, formData)
-    return res.data;
-  }
   
+  // 회원 프로파일 조회
+  async getMemberProfile(memberCode) {
+    const res = await axios.get(`${this.#adminPath}/${memberCode}`)
+    return res.data;
+  }
+
+  // 관리자 계정 개인정보 수정
+  async updateAdmin(memberCode, formData) {
+    const res = await axios.patch(`${this.#adminPath}/admins/${memberCode}`, formData)
+    return res.data;
+  }
+  // 교수 계정 개인정보 수정
+  async updateProfessor(memberCode, formData) {
+    const res = await axios.patch(`${this.#adminPath}/professors/${memberCode}`, formData)
+    return res.data;
+  }
+  // 학생 계정 개인정보 수정
+  async updateStudent(memberCode, formData) {
+    const res = await axios.patch(`${this.#adminPath}/students/${memberCode}`, formData)
+    return res.data;
+  }
+
+  // 관리자 상태 변경
+  async updateAdminStatus(memberCode, formData) {
+    const res = await axios.patch(`${this.#adminPath}/admins/${memberCode}/status`, formData)
+    return res.data;
+  }
+  // 교수 상태 변경
+  async updateProfessorStatus(memberCode, formData) {
+    const res = await axios.patch(`${this.#adminPath}/professors/${memberCode}/status`, formData)
+    return res.data;
+  }
+  // 학생 상태 변경
+  async updateStudentStatus(memberCode, formData) {
+    const res = await axios.patch(`${this.#adminPath}/students/${memberCode}/status`, formData)
+    return res.data;
+  }
 
 }
 
