@@ -1,8 +1,10 @@
 <script setup>
 import logo from '@/assets/logo.png';
 import AuthService from '@/services/authService';
+import NotificationService from '@/services/notificationService';
 import { useAuthStore } from '@/stores/authentication';
 import { useRouter,useRoute } from 'vue-router';
+import { onMounted } from 'vue';
 import { STATUS_LABEL } from '@/utils/constants.js'
 
 const router = useRouter();
@@ -27,6 +29,14 @@ if( authStore.role == 'ADMIN'){ userRole = '관리자' }
 else if( authStore.role == 'PROFESSOR' ){ userRole = '교수'}
 else { userRole = '학생' }
 
+// 최초 미읽음 수 로드
+onMounted(async () => {
+  if (!isMobile) {
+    try {
+      NotificationService.unreadCount.value = await NotificationService.getUnreadCount()
+    } catch (e) { console.error(e) }
+  }
+})
 </script>
 
 <template>
@@ -39,6 +49,16 @@ else { userRole = '학생' }
       <h1>그린대학교 전자출결 시스템</h1>
     </div>
     <div class="user-box">
+      <!-- 알림 벨 (학생/교수만) -->
+      <div v-if="!isMobile" class="bell-wrap">
+        <button class="bell-btn" @click="NotificationService.isPanelOpen.value = !NotificationService.isPanelOpen.value">
+          <font-awesome-icon icon="fa-solid fa-bell" />
+          <span v-if="NotificationService.unreadCount.value > 0" class="badge">
+            {{ NotificationService.unreadCount.value > 99 ? '99+' : NotificationService.unreadCount.value }}
+          </span>
+        </button>
+      </div>
+
       <div class="user-info" v-if="!isMobile">
         <p>
           <span>{{ authStore.memberCode }}</span>
@@ -78,5 +98,16 @@ else { userRole = '학생' }
     font-size: .9rem;opacity: .5;font-weight: 500;
     &:hover{opacity: 1;}
   }
+}
+.bell-wrap{ position: relative; }
+.bell-btn{
+  position: relative;background: none;border: none;color: #fff;
+  font-size: 1.1rem;cursor: pointer;opacity: .6;padding: 4px;
+  &:hover{ opacity: 1; }
+}
+.badge{
+  position: absolute;top: -4px;right: -6px;background: #e74c3c;color: #fff;
+  font-size: .65rem;font-weight: 700;border-radius: 10px;padding: 1px 5px;
+  line-height: 1.4;pointer-events: none;
 }
 </style>
