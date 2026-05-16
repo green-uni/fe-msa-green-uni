@@ -14,6 +14,7 @@ export default defineConfig(({ mode }) => {
       emptyOutDir: true,
     },
     plugins: [vue()],
+    define: { global: 'globalThis' },
     resolve: {
       alias: { '@': path.resolve(__dirname, './src') }
     }  
