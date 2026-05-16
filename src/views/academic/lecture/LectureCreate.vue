@@ -14,15 +14,21 @@ const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 
+// lectureType 한글 → 코드 변환
+const LECTURE_TYPE_CODE = {
+  '교양필수': 'GENERAL_REQUIRED',
+  '교양선택': 'GENERAL_ELECTIVE',
+  '전공필수': 'MAJOR_REQUIRED',
+  '전공선택': 'MAJOR_ELECTIVE',
+};
+
 const state = reactive({
   majorList: [],
   scheduleList: ['월', '화', '수', '목', '금'],
   periodList: Array.from({ length: 9 }, (_, i) => i + 1),
   buildingList: [],
-  roomList: [],
+  roomListMap: {}, // { [idx]: roomList } 강의실 그룹별 목록
   data: {
-    building: '',
-    roomNumber: '',
     loginUserCode: '',
     loginUserName: '',
     majorId: 0,
@@ -39,18 +45,78 @@ const state = reactive({
     refBooks: '',
     goal: '',
     weeklyPlan: '',
-    schedules: [
+    // 요일/교시 그룹
+    timeSlots: [
       { dayOfWeek: '', startPeriod: '', endPeriod: '' }
+    ],
+    // 강의실 그룹
+    rooms: [
+      { building: '', room: '', roomId: null }
     ],
   },
 });
 
-const addSchedule = () => {
-  state.data.schedules.push({ dayOfWeek: '', startPeriod: '', endPeriod: '' });
+// ── 요일/교시 추가/삭제 ────────────────────────────
+const addTimeSlot = () => {
+  state.data.timeSlots.push({ dayOfWeek: '', startPeriod: '', endPeriod: '' });
 };
-const removeSchedule = (idx) => {
-  if (state.data.schedules.length === 1) return;
-  state.data.schedules.splice(idx, 1);
+const removeTimeSlot = (idx) => {
+  if (state.data.timeSlots.length === 1) return;
+  state.data.timeSlots.splice(idx, 1);
+};
+
+// ── 강의실 추가/삭제 ──────────────────────────────
+const addRoom = () => {
+  state.data.rooms.push({ building: '', room: '', roomId: null });
+};
+const removeRoom = (idx) => {
+  if (state.data.rooms.length === 1) return;
+  state.data.rooms.splice(idx, 1);
+  delete state.roomListMap[idx];
+};
+
+// ── 강의실 목록 불러오기 ──────────────────────────
+const loadRoomsByIdx = async (idx) => {
+  const building = state.data.rooms[idx].building;
+  state.data.rooms[idx].room = '';
+  state.data.rooms[idx].roomId = null;
+  if (!building) { state.roomListMap[idx] = []; return; }
+  try {
+    const res = await LectureService.getRoomNumber({ building });
+    state.roomListMap[idx] = res || [];
+  } catch (err) {
+    console.error('강의실 로드 실패:', err);
+  }
+};
+
+// ── 강의실 선택 시 roomId 저장 ────────────────────
+const onRoomSelect = (idx) => {
+  const roomList = state.roomListMap[idx] || [];
+  const found = roomList.find(r => r.room === state.data.rooms[idx].room);
+  state.data.rooms[idx].roomId = found ? Number(found.roomId) : null;
+};
+
+// ── 강의실 용량 표시 ──────────────────────────────
+const getRoomCapacity = (idx) => {
+  const roomList = state.roomListMap[idx] || [];
+  const found = roomList.find(r => r.room === state.data.rooms[idx].room);
+  return found?.capacity ?? null;
+};
+
+// ── payload용 schedules 생성 ─────────────────────
+// timeSlots N개 + rooms M개 → N개 스케줄
+// rooms[i] 없으면 rooms[마지막] 사용
+const buildSchedules = () => {
+  const { timeSlots, rooms } = state.data;
+  return timeSlots.map((slot, i) => {
+    const room = rooms[i] ?? rooms[rooms.length - 1];
+    return {
+      roomId: Number(room.roomId),
+      dayOfWeek: slot.dayOfWeek,
+      startPeriod: Number(slot.startPeriod),
+      endPeriod: Number(slot.endPeriod),
+    };
+  });
 };
 
 const isEdit = computed(() => !!route.params.lectureId);
@@ -93,33 +159,81 @@ onMounted(async () => {
     console.error('전공 목록 로드 실패:', error);
   }
 
+  try {
+    const buildingRes = await LectureService.getBuildings();
+    state.buildingList = buildingRes || [];
+  } catch (error) {
+    console.error('건물 목록 로드 실패:', error);
+  }
+
   if (isEdit.value) {
     try {
-      const res = await LectureService.findByIdForEdit(route.params.lectureId);
-      Object.assign(state.data, res);
-      state.buildingList = res.buildingList || [];
-      state.roomList = res.roomList || [];
+      const res = await LectureService.getLectureDetail(route.params.lectureId);
+
+      // lectureType 한글 → 코드 변환
+      const lectureTypeCode = LECTURE_TYPE_CODE[res.lectureType] || res.lectureType;
+
+      // startDate, endDate T 이전 날짜만 추출
+      const startDate = res.startDate ? res.startDate.split('T')[0] : '';
+      const endDate = res.endDate ? res.endDate.split('T')[0] : '';
+
+      // schedules → timeSlots + rooms 분리
+      const schedules = res.schedules || [];
+
+      // timeSlots: 모든 스케줄의 요일/교시
+      const timeSlots = schedules.map(s => ({
+        dayOfWeek: s.dayOfWeek,
+        startPeriod: s.startPeriod,
+        endPeriod: s.endPeriod,
+      }));
+
+      // rooms: 중복 제거 (building + room 기준)
+      const seen = new Set();
+      const rooms = [];
+      for (const s of schedules) {
+        const key = `${s.building}__${s.room}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          rooms.push({ building: s.building, room: s.room, roomId: null });
+        }
+      }
+
+      Object.assign(state.data, {
+        ...res,
+        lectureType: lectureTypeCode,
+        startDate,
+        endDate,
+        timeSlots: timeSlots.length ? timeSlots : [{ dayOfWeek: '', startPeriod: '', endPeriod: '' }],
+        rooms: rooms.length ? rooms : [{ building: '', room: '', roomId: null }],
+      });
+
+      // 강의실 목록 불러오기 + roomId 세팅
+      for (let i = 0; i < state.data.rooms.length; i++) {
+        const r = state.data.rooms[i];
+        if (r.building) {
+          const roomRes = await LectureService.getRoomNumber({ building: r.building });
+          state.roomListMap[i] = roomRes || [];
+          const found = (roomRes || []).find(item => item.room === r.room);
+          state.data.rooms[i].roomId = found ? Number(found.roomId) : null;
+        }
+      }
     } catch (error) {
       console.error('강의 데이터 로드 실패:', error);
       modal.showAlert('데이터를 불러오는 중 오류가 발생했습니다.', 'error');
     }
   } else {
-    try {
-      const buildingRes = await LectureService.getBuildings();
-      state.buildingList = buildingRes || [];
-    } catch (error) {
-      console.error('건물 목록 로드 실패:', error);
-    }
-
     const draft = localStorage.getItem(DRAFT_KEY);
     if (draft) {
       const isConfirm = await modal.showConfirm('기존에 작성 중이던 내용을 불러오시겠습니까?', 'info');
       if (isConfirm) {
         const draftData = JSON.parse(draft);
         Object.assign(state.data, draftData);
-        if (state.data.building) {
-          await loadRooms();
-          state.data.roomNumber = draftData.roomNumber;
+        for (let i = 0; i < (state.data.rooms || []).length; i++) {
+          const r = state.data.rooms[i];
+          if (r.building) {
+            const roomRes = await LectureService.getRoomNumber({ building: r.building });
+            state.roomListMap[i] = roomRes || [];
+          }
         }
         isContent.value = true;
       } else {
@@ -130,39 +244,31 @@ onMounted(async () => {
   isMounted.value = true;
 });
 
-const loadRooms = async () => {
-  state.data.roomNumber = '';
-  if (!state.data.building) { state.roomList = []; return; }
-  try {
-    const res = await LectureService.getRoomNumber({ building: state.data.building });
-    state.roomList = res || [];
-  } catch (err) {
-    console.error('강의실 로드 실패:', err);
-  }
-};
-
-const selectedRoom = computed(() =>
-  state.roomList.find(r => r.room === state.data.roomNumber)
-);
-
 const submitLecture = async () => {
   if (isSubmitting.value) return;
 
-  // 강의시간 필수 체크
-  const hasEmptySchedule = state.data.schedules.some(
+  // 요일/교시 필수 체크
+  const hasEmptySlot = state.data.timeSlots.some(
     s => !s.dayOfWeek || !s.startPeriod || !s.endPeriod
   );
-  if (hasEmptySchedule) {
+  if (hasEmptySlot) {
     await modal.showAlert('강의 시간을 모두 입력해주세요.', 'error');
     return;
   }
 
   // 교시 순서 체크
-  const hasInvalidPeriod = state.data.schedules.some(
+  const hasInvalidPeriod = state.data.timeSlots.some(
     s => s.startPeriod && s.endPeriod && Number(s.startPeriod) > Number(s.endPeriod)
   );
   if (hasInvalidPeriod) {
     await modal.showAlert('시작 교시는 종료 교시보다 작아야 합니다.', 'error');
+    return;
+  }
+
+  // 강의실 필수 체크
+  const hasEmptyRoom = state.data.rooms.some(r => !r.building || !r.room);
+  if (hasEmptyRoom) {
+    await modal.showAlert('강의실을 모두 선택해주세요.', 'error');
     return;
   }
 
@@ -176,10 +282,8 @@ const submitLecture = async () => {
     { value: state.data.credit, label: '이수학점' },
     { value: state.data.majorId, label: '전공명' },
     { value: state.data.academicYear, label: '대상학년' },
-    { value: state.data.building, label: '건물' },
-    { value: state.data.roomNumber, label: '강의실' },
     { value: state.data.maxStd, label: '수강인원' },
-    { value: state.data.refBooks, label: '참고 교재' },   
+    { value: state.data.refBooks, label: '참고 교재' },
     { value: state.data.goal, label: '강의 목표' },
     { value: state.data.weeklyPlan, label: '주차별 강의 계획' }
   ];
@@ -191,26 +295,30 @@ const submitLecture = async () => {
   }
 
   const payload = {
-    ...state.data,
+    majorId: Number(state.data.majorId),
     year: Number(state.data.year),
+    semester: state.data.semester,
+    lectureName: state.data.lectureName,
+    credit: state.data.credit,
+    lectureType: state.data.lectureType,
+    refBooks: state.data.refBooks,
+    goal: state.data.goal,
+    weeklyPlan: state.data.weeklyPlan,
+    academicYear: state.data.academicYear,
     maxStd: Number(state.data.maxStd),
-    lectureId: route.params.lectureId || null,
-    startDate: state.data.startDate ? `${state.data.startDate}T00:00:00` : null,
-    endDate: state.data.endDate ? `${state.data.endDate}T00:00:00` : null,
-    schedules: state.data.schedules.map(s => ({
-      ...s,
-      roomId: selectedRoom.value?.roomId ? Number(selectedRoom.value.roomId) : null
-    }))
+    startDate: state.data.startDate?.includes('T') ? state.data.startDate : `${state.data.startDate}T00:00:00`,
+    endDate: state.data.endDate?.includes('T') ? state.data.endDate : `${state.data.endDate}T00:00:00`,
+    schedules: buildSchedules(),
   };
 
-    try {
+  try {
     isSubmitting.value = true;
     if (isEdit.value) {
-      await LectureService.editLecture({ ...payload, lectureId: route.params.lectureId });
+      await LectureService.editLecture(route.params.lectureId, payload);
       await modal.showAlert('강의정보가 수정되었습니다.', 'success');
       router.push('/lectures/my');
     } else {
-      await LectureService.postLecture(payload);  // 여기서 에러나면 catch로 감
+      await LectureService.postLecture(payload);
       removeDraft();
       isContent.value = false;
       await modal.showAlert('강의가 신청되었습니다.', 'success');
@@ -218,7 +326,6 @@ const submitLecture = async () => {
     }
   } catch (err) {
     console.error('저장 실패:', err);
-    // httpRequester.js에서 에러 모달 처리하므로 여기선 아무것도 안 함
   } finally {
     isSubmitting.value = false;
   }
@@ -371,59 +478,87 @@ onBeforeRouteLeave(async (to, from, next) => {
             </div>
           </div>
 
+          <!-- 강의시간 -->
           <div class="input-wrap input-grid2">
             <div class="input-label">강의시간</div>
             <div class="input-content" style="display:flex; flex-direction:column; gap:8px;">
-              <div v-for="(schedule, idx) in state.data.schedules" :key="idx"
-                  style="display:flex; align-items:center; gap:5px;">
-                <select v-model="schedule.dayOfWeek" style="flex:1">
+              <div
+                v-for="(slot, idx) in state.data.timeSlots"
+                :key="idx"
+                style="display:flex; align-items:center; gap:5px;"
+              >
+                <select v-model="slot.dayOfWeek" style="flex:1">
                   <option value="">---요일선택---</option>
                   <option v-for="(day, i) in state.scheduleList" :key="i" :value="day">{{ day }}요일</option>
                 </select>
-                <select v-model="schedule.startPeriod" style="flex:1">
+                <select v-model="slot.startPeriod" style="flex:1">
                   <option value="">시작 교시</option>
                   <option v-for="period in state.periodList" :key="period" :value="period">{{ period }}교시</option>
                 </select>
-                <select v-model="schedule.endPeriod" style="flex:1">
+                <select v-model="slot.endPeriod" style="flex:1">
                   <option value="">종료 교시</option>
                   <option v-for="period in state.periodList" :key="period" :value="period">{{ period }}교시</option>
                 </select>
-                <button v-if="state.data.schedules.length > 1"
-                        class="btn btn-default" @click="removeSchedule(idx)"
-                        style="padding:8px; flex-shrink:0;">
+                <button
+                  v-if="state.data.timeSlots.length > 1"
+                  class="btn btn-default" @click="removeTimeSlot(idx)"
+                  style="padding:8px; flex-shrink:0;"
+                >
                   <font-awesome-icon icon="fa-solid fa-minus" />
                 </button>
-                <button v-if="idx === state.data.schedules.length - 1"
-                        class="btn btn-line" @click="addSchedule"
-                        style="padding:8px; flex-shrink:0;">
+                <button
+                  v-if="idx === state.data.timeSlots.length - 1"
+                  class="btn btn-line" @click="addTimeSlot"
+                  style="padding:8px; flex-shrink:0;"
+                >
                   <font-awesome-icon icon="fa-solid fa-plus" />
                 </button>
               </div>
             </div>
           </div>
 
+          <!-- 강의실 -->
           <div class="input-wrap input-grid2">
             <div class="input-label">강의실</div>
-            <div class="input-content two-input">
-              <label>
-                <select v-model="state.data.building" @change="loadRooms">
+            <div class="input-content" style="display:flex; flex-direction:column; gap:8px;">
+              <div
+                v-for="(room, idx) in state.data.rooms"
+                :key="idx"
+                style="display:flex; align-items:center; gap:8px;"
+              >
+                <select v-model="room.building" @change="loadRoomsByIdx(idx)" style="flex:1">
                   <option value="">---건물선택---</option>
                   <option v-for="building in state.buildingList" :key="building.code" :value="building.code">
                     {{ building.value }}
                   </option>
                 </select>
-              </label>
-              <label style="display:flex; align-items:center; gap:8px;">
-                <select v-model="state.data.roomNumber">
+                <select v-model="room.room" @change="onRoomSelect(idx)" style="flex:1">
                   <option value="">---강의실선택---</option>
-                  <option v-for="item in state.roomList" :key="item.roomId" :value="item.room">
+                  <option v-for="item in (state.roomListMap[idx] || [])" :key="item.roomId" :value="item.room">
                     {{ item.room }}
                   </option>
                 </select>
-                <span v-if="state.data.roomNumber" style="white-space:nowrap; font-size:var(--text-sm); color:var(--font-color-light);">
-                  최대수용 {{ selectedRoom?.capacity }}명
+                <span
+                  v-if="room.room && getRoomCapacity(idx)"
+                  style="white-space:nowrap; font-size:var(--text-sm); color:var(--font-color-light); flex-shrink:0;"
+                >
+                  최대수용 {{ getRoomCapacity(idx) }}명
                 </span>
-              </label>
+                <button
+                  v-if="state.data.rooms.length > 1"
+                  class="btn btn-default" @click="removeRoom(idx)"
+                  style="padding:8px; flex-shrink:0;"
+                >
+                  <font-awesome-icon icon="fa-solid fa-minus" />
+                </button>
+                <button
+                  v-if="idx === state.data.rooms.length - 1"
+                  class="btn btn-line" @click="addRoom"
+                  style="padding:8px; flex-shrink:0;"
+                >
+                  <font-awesome-icon icon="fa-solid fa-plus" />
+                </button>
+              </div>
             </div>
           </div>
 

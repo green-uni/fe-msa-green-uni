@@ -137,7 +137,7 @@ const goToPage = (page) => {
 // ── 상세 이동 ─────────────────────────────────────
 const moveToDetail = (id) => {
   router.push({
-    path: `/lectures/${id}`,
+    path: `/admin/lectures/${id}`,
     query: {
       from: 'ADMIN',
       status: filter.status,
