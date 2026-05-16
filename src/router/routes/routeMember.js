@@ -63,10 +63,19 @@ export const adminMemberRoutes = [
     },
   },
   {
-    path: `${url}`,
+    path: `${url}/students`,
     component: () => import('@/views/admin/member/AdminStudentList.vue'),
     meta: {
       title: '학생 목록 조회',
+      groupTitle: '인사 정보 관리',
+      auth: ['ADMIN'],
+    },
+  },
+  {
+    path: `${url}/professors`,
+    component: () => import('@/views/admin/member/AdminProfessorList.vue'),
+    meta: {
+      title: '교수 목록 조회',
       groupTitle: '인사 정보 관리',
       auth: ['ADMIN'],
     },
@@ -76,15 +85,6 @@ export const adminMemberRoutes = [
     component: () => import('@/views/admin/member/MemberCreate.vue'),
     meta: {
       title: '계정 생성',
-      groupTitle: '인사 정보 관리',
-      auth: ['ADMIN'],
-    },
-  },
-  {
-    path: `${url}`,
-    component: () => import('@/views/common/BlankPage.vue'),
-    meta: {
-      title: '인사 정보 조회',
       groupTitle: '인사 정보 관리',
       auth: ['ADMIN'],
     },
