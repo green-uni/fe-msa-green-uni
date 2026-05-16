@@ -6,6 +6,7 @@ import StudentFields from '@/components/member/StudentFields.vue'
 import ProfessorFields from '@/components/member/ProfessorFields.vue'
 import AdminFields from '@/components/member/AdminFields.vue'
 import CommonFields from '@/components/member/CommonFields.vue'
+import codeListService from '@/services/codeService'
 
 // import { saveToLocalStorage, loadfromLocalStorage, clearLocalStorage, DRAFT_KEY } from '@/utils/button';
 // import { checkValidation, validateFields } from '@/utils/validation';
@@ -117,7 +118,6 @@ const submit = async () => {
   }
 }
 
-
 onMounted(async () => {
   const [
     majors,
@@ -130,13 +130,13 @@ onMounted(async () => {
     roles
   ] = await Promise.all([
     MemberService.getMajorList(),
-    MemberService.getStudentStatusList(),
-    MemberService.getProfessorStatusList(),
-    MemberService.getProfessorPositionList(),
-    MemberService.getProfessorDegreeList(),
-    MemberService.getBuildingList(),
-    MemberService.getAdminStatusList(),
-    MemberService.getMemberRole()
+    codeListService.getStudentStatusList(),
+    codeListService.getProfessorStatusList(),
+    codeListService.getProfessorPositionList(),
+    codeListService.getProfessorDegreeList(),
+    codeListService.getBuildingList(),
+    codeListService.getAdminStatusList(),
+    codeListService.getMemberRole(),
   ])
 
   majorList.value = majors.data
@@ -152,12 +152,6 @@ onMounted(async () => {
 
 <template>
   <div class="form-wrap">
-    <div class="input-content radio-group radio-tab">
-      <label class="radio-label" v-for="memberRole in memberRoles">
-        <input type="radio" name="role" :value="memberRole.code" v-model="role" />
-        <span>{{ memberRole.value }}</span>
-      </label>
-    </div>
     <div class="d-flex g20 jc-center">
       <div class="pf-profile content-wrap">
         <h3><font-awesome-icon icon="fa-solid fa-circle-info" /> 사진 등록</h3>
@@ -166,6 +160,13 @@ onMounted(async () => {
       <!-- pf-profile-->
 
       <div class="pf-content d-grid g10 d-flex-grow1">
+        
+    <div class="input-content radio-group radio-tab">
+      <label class="radio-label" v-for="memberRole in memberRoles">
+        <input type="radio" name="role" :value="memberRole.code" v-model="role" />
+        <span>{{ memberRole.value }}</span>
+      </label>
+    </div>
         <div class="content-wrap d-flex direct-col d-flex-grow1">
           <h3><font-awesome-icon icon="fa-solid fa-circle-info" />개인 정보</h3>
           <CommonFields :common="common" mode="create" />
