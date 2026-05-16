@@ -5,7 +5,6 @@ import MemberService from '@/services/memberService';
 import codeListService from '@/services/codeService';
 import DataTable from '@/components/common/DataTable.vue';
 import Pagination from '@/components/common/Pagination.vue';
-import SearchInput from '@/components/util/SearchInput.vue';
 import { formatTel } from '@/utils/phoneNumber';
 import { STATUS_LABEL } from '@/utils/constants';
 
@@ -219,14 +218,11 @@ onMounted(() => {
 
       <div class="search-area">
         <div class="input-content">
-          <SearchInput
+          <input
             v-model="searchQuery"
-            :list="state.list"
-            :realtime="false"
-            labelKey="name"
+            type="text"
             placeholder="이름 검색"
-            @select="(item) => { searchInput = item.name; searchQuery = item.name; state.currentPage = 1; }"
-            @enter="onSearch"
+            @keyup.enter="onSearch"
           />
         </div>
         <button class="btn search-btn" @click="onSearch">
