@@ -44,6 +44,11 @@ class MemberService {
     const res = await axios.get(`${this.#adminPath}/professors`)
     return res.data;
   }
+  // 관리자 목록 조회
+  async findAdmins() {
+    const res = await axios.get(`${this.#adminPath}/admins`)
+    return res.data;
+  }
 
   // 계정 생성
   async createStudent(formData) {

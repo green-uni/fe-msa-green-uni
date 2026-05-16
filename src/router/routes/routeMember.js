@@ -81,6 +81,15 @@ export const adminMemberRoutes = [
     },
   },
   {
+    path: `${url}/admins`,
+    component: () => import('@/views/admin/member/AdminAdminList.vue'),
+    meta: {
+      title: '관리자 목록 조회',
+      groupTitle: '인사 정보 관리',
+      auth: ['ADMIN'],
+    },
+  },
+  {
     path: `${url}/new`,
     component: () => import('@/views/admin/member/MemberCreate.vue'),
     meta: {
