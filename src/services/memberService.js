@@ -34,6 +34,22 @@ class MemberService {
 
   //////////////////////// 관리자 ////////////////////////
 
+  // 학생 목록 조회
+  async findStudents() {
+    const res = await axios.get(`${this.#adminPath}/students`)
+    return res.data;
+  }
+  // 교수 목록 조회
+  async findProfessors() {
+    const res = await axios.get(`${this.#adminPath}/professors`)
+    return res.data;
+  }
+  // 관리자 목록 조회
+  async findAdmins() {
+    const res = await axios.get(`${this.#adminPath}/admins`)
+    return res.data;
+  }
+
   // 계정 생성
   async createStudent(formData) {
     const res = await axios.post(`${this.#adminPath}/students`, formData)
@@ -51,6 +67,11 @@ class MemberService {
   // 학과 목록 조회
   async getMajorList() {
     const res = await axios.get(`${this.#path}/majors`)
+    return res.data;
+  }
+  // 단과대 목록 조회
+  async getCollegeList() {
+    const res = await axios.get(`${this.#path}/majors/colleges`)
     return res.data;
   }
   

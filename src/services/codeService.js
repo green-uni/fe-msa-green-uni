@@ -2,6 +2,7 @@ import axios from './httpRequester'
 
 class codeListService {
   #memberPath = '/member/code?code_type='
+  #corePath = '/core/code?code_type='
   #path = '/auth/code?code_type='
 
   // 역할 조회
@@ -39,6 +40,7 @@ class codeListService {
     const res = await axios.get(`${this.#path}building`)
     return res.data;
   }
+
 
 }
 
