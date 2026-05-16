@@ -35,8 +35,8 @@ class MemberService {
   //////////////////////// 관리자 ////////////////////////
 
   // 목록 조회
-  async findStudents() {
-    const res = await axios.get(`${this.#adminPath}/students`)
+  async findStudents(params = {}) {
+    const res = await axios.get(`${this.#adminPath}/students`, { params })
     return res.data;
   }
 
@@ -57,6 +57,11 @@ class MemberService {
   // 학과 목록 조회
   async getMajorList() {
     const res = await axios.get(`${this.#path}/majors`)
+    return res.data;
+  }
+  // 단과대 목록 조회
+  async getCollegeList() {
+    const res = await axios.get(`${this.#path}/majors/colleges`)
     return res.data;
   }
   
