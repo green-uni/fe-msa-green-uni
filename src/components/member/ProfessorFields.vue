@@ -22,7 +22,7 @@ const props = defineProps({
         <SearchInput
           v-model="props.professor.majorName"
           :list="props.majorList"
-          placeholder="전공명을 입력하세요"
+          placeholder="전공명을 검색하세요"
           @select="(major) => props.professor.majorId = major.majorId"
         />
       </div>
@@ -60,7 +60,7 @@ const props = defineProps({
       <div class="input-label">학위</div>
       <div class="input-content">
         <select v-model="props.professor.degree">
-            <option value="">학위를 선택해주세요</option>
+            <option value="">최종 학위를 선택해주세요</option>
             <option v-for="s in props.degreeList" :key="s.code" :value="s.code">{{ s.value }}</option>
         </select>
       </div>
@@ -80,6 +80,7 @@ const props = defineProps({
       <div class="input-label">연구실</div>
       <div class="input-content two-input">
         <select v-model="props.professor.labBuilding">
+          <option value="">건물을 선택해주세요</option>
           <option v-for="s in props.buildingList" :key="s.code" :value="s.code">{{ s.value }}</option>
         </select>
         <input type="text" v-model="props.professor.labRoom" placeholder="연구실 호실 입력">
@@ -90,7 +91,7 @@ const props = defineProps({
       <div class="input-label">연구실<br>전화번호</div>
       <div class="input-content">
         <label>
-          <input type="text" v-model="props.professor.labTel" placeholder="연구실 전화번호를 입력해주세요">
+          <input type="text" v-model="props.professor.labTel" placeholder="-없이 작성해주세요">
         </label>
       </div>
     </div>
