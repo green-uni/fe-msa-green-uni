@@ -43,28 +43,36 @@ const columnMap = {
     },
   },
   PROFESSOR: {
-    labels: ['이름', '생년월일', '전화번호', '이메일', '학과', '학위', '직위', '상태'],
-    keys:   ['name', 'birth', 'tel', 'email', 'majorName', 'degree', 'position', 'status'],
+    labels: ['이메일', '이름', '생년월일', '전화번호', '비상연락처', '우편번호', '주소', '상세주소', '입사일', '학과명', '직위', '학위'],
+    keys:   ['email', 'name', 'birth', 'tel', 'emergencyTel', 'postcode', 'address', 'detailAddress', 'entryDate', 'majorName', 'position', 'degree'],
     headerMap: {
+      '이메일*':               'email',
       '이름*':                 'name',
       '생년월일*(YYYY-MM-DD)': 'birth',
       '전화번호*':             'tel',
-      '이메일*':               'email',
-      '학과명':                'majorName',
-      '학위':                  'degree',
-      '직위':                  'position',
-      '상태코드':              'status',
+      '비상연락처':            'emergencyTel',
+      '우편번호':              'postcode',
+      '주소':                  'address',
+      '상세주소':              'detailAddress',
+      '입사일*(YYYY-MM-DD)':   'entryDate',
+      '학과명*':               'majorName',
+      '직위*':                 'position',
+      '학위*':                 'degree',
     },
   },
   ADMIN: {
-    labels: ['이름', '생년월일', '전화번호', '이메일', '상태'],
-    keys:   ['name', 'birth', 'tel', 'email', 'status'],
+    labels: ['이메일', '이름', '생년월일', '전화번호', '비상연락처', '우편번호', '주소', '상세주소', '입사일'],
+    keys:   ['email', 'name', 'birth', 'tel', 'emergencyTel', 'postcode', 'address', 'detailAddress', 'entryDate'],
     headerMap: {
+      '이메일*':               'email',
       '이름*':                 'name',
       '생년월일*(YYYY-MM-DD)': 'birth',
       '전화번호*':             'tel',
-      '이메일*':               'email',
-      '상태코드':              'status',
+      '비상연락처':            'emergencyTel',
+      '우편번호':              'postcode',
+      '주소':                  'address',
+      '상세주소':              'detailAddress',
+      '입사일*(YYYY-MM-DD)':   'entryDate',
     },
   },
 }
@@ -112,6 +120,12 @@ function handleRoleChange() {
 }
 
 // ── 템플릿 다운로드 ───────────────────────────
+const sampleEmailMap = {
+  STUDENT:   '__student__@example.com',
+  PROFESSOR: '__professor__@example.com',
+  ADMIN:     '__admin__@example.com',
+}
+
 const downloadMap = {
   STUDENT:   { fn: () => MemberService.downloadStudentBatchTemplate(),   filename: 'student_template.xlsx' },
   PROFESSOR: { fn: () => MemberService.downloadProfessorBatchTemplate(), filename: 'professor_template.xlsx' },
@@ -182,23 +196,35 @@ async function processFile(file) {
     Object.entries(headerMap).forEach(([korKey, engKey]) => {
       mapped[engKey] = excelValToStr(row[korKey] ?? '', engKey)
     })
-    const EMAIL_RE = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
-    const TEL_RE   = /^0\d{9,10}$/
+    const EMAIL_RE     = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
+    const TEL_RE       = /^0\d{9,10}$/
+    const DATE_RE      = /^\d{4}-\d{2}-\d{2}$/
+    const entryLabel   = selectedRole.value === 'STUDENT' ? '입학일' : '입사일'
 
     const errors = []
-    if (!mapped.email) errors.push('이메일 필수')
-    else if (!EMAIL_RE.test(mapped.email)) errors.push('이메일 형식 오류')
-    if (!mapped.name) errors.push('이름 필수')
-    if (!mapped.birth) errors.push('생년월일 필수')
-    else if (!/^\d{4}-\d{2}-\d{2}$/.test(mapped.birth)) errors.push('생년월일 형식 오류 (YYYY-MM-DD)')
-    if (!mapped.tel) errors.push('전화번호 필수')
-    else if (!TEL_RE.test(mapped.tel)) errors.push('전화번호 형식 오류 (숫자 10~11자리)')
+    // 공통 필수 검증
+    if (!mapped.email)                            errors.push('이메일 필수')
+    else if (!EMAIL_RE.test(mapped.email))        errors.push('이메일 형식 오류')
+    if (!mapped.name)                             errors.push('이름 필수')
+    if (!mapped.birth)                            errors.push('생년월일 필수')
+    else if (!DATE_RE.test(mapped.birth))         errors.push('생년월일 형식 오류 (YYYY-MM-DD)')
+    if (!mapped.tel)                              errors.push('전화번호 필수')
+    else if (!TEL_RE.test(mapped.tel))            errors.push('전화번호 형식 오류 (숫자 10~11자리)')
     if (mapped.emergencyTel && !TEL_RE.test(mapped.emergencyTel)) errors.push('비상연락처 형식 오류 (숫자 10~11자리)')
-    if (!mapped.entryDate) errors.push('입학일 필수')
-    else if (!/^\d{4}-\d{2}-\d{2}$/.test(mapped.entryDate)) errors.push('입학일 형식 오류 (YYYY-MM-DD)')
-    if (!mapped.majorName) errors.push('학과명 필수')
+    if (!mapped.entryDate)                        errors.push(`${entryLabel} 필수`)
+    else if (!DATE_RE.test(mapped.entryDate))     errors.push(`${entryLabel} 형식 오류 (YYYY-MM-DD)`)
 
-    mapped.isSample = mapped.email === '__sample__@example.com'
+    // 역할별 추가 검증
+    if (selectedRole.value === 'STUDENT') {
+      if (!mapped.majorName) errors.push('학과명 필수')
+    }
+    if (selectedRole.value === 'PROFESSOR') {
+      if (!mapped.majorName) errors.push('학과명 필수')
+      if (!mapped.position)  errors.push('직위 필수')
+      if (!mapped.degree)    errors.push('학위 필수')
+    }
+
+    mapped.isSample = mapped.email === sampleEmailMap[selectedRole.value]
     mapped.hasError = errors.length > 0
     mapped.failReason = errors.join(' · ')
     return mapped
