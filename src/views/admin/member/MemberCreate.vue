@@ -17,6 +17,7 @@ import SearchInput from '@/components/util/SearchInput.vue'
 import ProfileImg from '@/components/common/ProfileImg.vue'
 
 import MemberService from '@/services/memberService'
+import MemberCreateTabNav from '@/components/member/MemberCreateTabNav.vue'
 
 import { useModalStore } from '@/stores/modal'
 import { create } from 'axios'
@@ -151,6 +152,7 @@ onMounted(async () => {
 </script>
 
 <template>
+  <MemberCreateTabNav activeTab="single" />
   <div class="form-wrap">
     <div class="d-flex g20 jc-center">
       <div class="pf-profile content-wrap">

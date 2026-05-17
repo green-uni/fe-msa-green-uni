@@ -64,6 +64,38 @@ class MemberService {
     return res.data;
   }
 
+  // 학생 일괄 등록 템플릿 다운로드
+  async downloadStudentBatchTemplate() {
+    const res = await axios.get(`${this.#adminPath}/students/batch/template`, { responseType: 'blob' })
+    return res.data
+  }  
+  // 교수 일괄 등록 템플릿 다운로드
+  async downloadProfessorBatchTemplate() {
+    const res = await axios.get(`${this.#adminPath}/professors/batch/template`, { responseType: 'blob' })
+    return res.data
+  }
+  // 관리자 일괄 등록 템플릿 다운로드
+  async downloadAdminBatchTemplate() {
+    const res = await axios.get(`${this.#adminPath}/admins/batch/template`, { responseType: 'blob' })
+    return res.data
+  }
+
+  // 학생 일괄 등록
+  async batchRegisterStudents(formData) {
+    const res = await axios.post(`${this.#adminPath}/students/batch`, formData)
+    return res.data
+  }
+  // 교수 일괄 등록
+  async batchRegisterProfessors(formData) {
+    const res = await axios.post(`${this.#adminPath}/professors/batch`, formData)
+    return res.data
+  }
+  // 관리자 일괄 등록
+  async batchRegisterAdmins(formData) {
+    const res = await axios.post(`${this.#adminPath}/admins/batch`, formData)
+    return res.data
+  }
+
   // 학과 목록 조회
   async getMajorList() {
     const res = await axios.get(`${this.#path}/majors`)

@@ -99,6 +99,17 @@ export const adminMemberRoutes = [
     },
   },
   {
+    path: `${url}/new/batch`,
+    component: () => import('@/views/admin/member/MemberBatchCreate.vue'),
+    meta: {
+      title: '계정 일괄 생성',
+      groupTitle: '인사 정보 관리',
+      showInNav: false,
+      activeMenu: `${url}/new`,
+      auth: ['ADMIN'],
+    },
+  },
+  {
     path: `${url}/:memberCode`,
     component: () => import('@/views/admin/member/AdminMemberEdit.vue'),
     meta: {
