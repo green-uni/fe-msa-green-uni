@@ -38,7 +38,7 @@
       const profile = await MemberService.findProfile();
       authStore.setProfile(profile.data);
 
-      router.push('/admin/members/my')
+      router.push('/admin/members/dashboard')
 
     } catch (e) {
       console.error(e)

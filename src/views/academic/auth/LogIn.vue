@@ -57,7 +57,7 @@
         router.push('/attend')
         return
       }
-      router.push('/members/my')
+      router.push('/members/dashboard')
 
     } catch (e) {
       console.error(e)
