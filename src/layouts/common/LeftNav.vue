@@ -195,12 +195,13 @@ nav {
   display: flex; flex-direction: column; gap: 5px;
   .group { display: flex; flex-direction: column; gap: 5px; }
   .group-title {
-    padding: 5px 7px 5px 10px; cursor: pointer; height: 40px; font-weight: 500;
-    svg {font-size: .8em;}
+    padding: 5px 7px 5px 10px; cursor: pointer; height: 40px; font-weight: 500; border-radius: 5px;
+    &:hover{background: $green-50;}
     &.active {
-      background-color: $green-500;  border-radius: 5px;  font-weight: 500;
+      background-color: $green-500;   font-weight: 500;
       span { color: #fff; opacity: 1; }
-      }
+      }    
+    svg {font-size: .8em;}
     }
   .sub-menu { border-radius: 5px; overflow: hidden; background: $default-bg;
     a { text-decoration: none;  display: flex;  justify-content: space-between;  padding: 10px;color: $font-color-light; 
