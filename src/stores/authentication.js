@@ -31,16 +31,23 @@ export const useAuthStore = defineStore(
         major.value = data.majorName
       }
     }
+    const setFirstLogin = () => {
+      isFirstLogin.value = false;
+    }
 
     // 로그아웃
     const logOut = () => {
       memberCode.value = 0
       role.value = '';
-      isFirstLogin.value = false
+      deviceId.value = '';
+      isFirstLogin.value = false;
       isLogin.value = false;
-     }
+      name.value = '';
+      major.value = '';
+      status.value = '';
+    }
 
-    return { memberCode, role, name, major, deviceId, isFirstLogin, status, setProfile, isLogin, logIn, logOut }
+    return { memberCode, role, name, major, deviceId, isFirstLogin, status, setProfile, setFirstLogin, isLogin, logIn, logOut }
   },
   { persist: true },
 )
