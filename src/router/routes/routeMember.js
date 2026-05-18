@@ -84,6 +84,7 @@ export const adminMemberRoutes = [
     meta: {
       title: '학생 목록 조회',
       groupTitle: '인사 정보 관리',
+      subTitle: '계정 목록 조회',
       auth: ['ADMIN'],
     },
   },
@@ -93,6 +94,9 @@ export const adminMemberRoutes = [
     meta: {
       title: '교수 목록 조회',
       groupTitle: '인사 정보 관리',
+      subTitle: '계정 목록 조회',
+      showInNav: false,
+      activeMenu: `${url}/students`,
       auth: ['ADMIN'],
     },
   },
@@ -102,6 +106,9 @@ export const adminMemberRoutes = [
     meta: {
       title: '관리자 목록 조회',
       groupTitle: '인사 정보 관리',
+      subTitle: '계정 목록 조회',
+      showInNav: false,
+      activeMenu: `${url}/students`,
       auth: ['ADMIN'],
     },
   },
