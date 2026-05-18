@@ -21,7 +21,7 @@ const props = defineProps({
         <SearchInput
           v-model="props.student.majorName"
           :list="props.majorList"
-          placeholder="전공명을 입력하세요"
+          placeholder="전공명을 검색하세요"
           @select="(major) => props.student.majorId = major.majorId"
         />
       </div>

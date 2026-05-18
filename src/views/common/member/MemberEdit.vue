@@ -2,9 +2,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authentication'
-import StudentFields from '@/components/member/StudentFields.vue'
 import ProfessorFields from '@/components/member/ProfessorFields.vue'
-import AdminFields from '@/components/member/AdminFields.vue'
 import CommonFields from '@/components/member/CommonFields.vue'
 
 import ProfileImg from '@/components/common/ProfileImg.vue'
