@@ -204,7 +204,7 @@ watch(
           <label class="input-label">소속대학</label>
           <div class="input-content">
             <select v-model="form.collegeId">
-              <option value="">소속대학 선택</option>
+              <option value="" disabled>소속대학 선택</option>
               <option v-for="c in collegeList" :key="c.collegeId" :value="c.collegeId">
                 {{ c.name }}
               </option>
@@ -254,7 +254,7 @@ watch(
           <label class="input-label">학과사무실</label>
           <div class="input-content two-input">
             <select v-model="form.majorBuilding">
-              <option value="">건물 선택</option>
+              <option value="" disabled>건물 선택</option>
               <option v-for="b in buildingList" :key="b.code" :value="b.name">
                 {{ b.name }}
               </option>

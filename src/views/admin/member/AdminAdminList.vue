@@ -8,6 +8,7 @@ import Pagination from '@/components/common/Pagination.vue';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import { formatTel } from '@/utils/phoneNumber';
 import { STATUS_LABEL, POSITION_LABEL } from '@/utils/constants';
+import MemberListTabNav from '@/components/member/MemberListTabNav.vue'
 
 const route = useRoute();
 const router = useRouter();
@@ -137,7 +138,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="container" style="position: relative;">
+  <div style="position: relative;">
+    <MemberListTabNav activeTab="admins" />
     <LoadingSpinner v-if="state.isLoading" :overlay="true" size="md" />
 
     <!-- 필터 헤더 -->

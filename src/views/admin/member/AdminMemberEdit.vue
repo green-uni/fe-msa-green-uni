@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, reactive, computed, ref } from 'vue'
+import { onMounted, reactive, computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authentication'
 import StudentFields from '@/components/member/StudentFields.vue'
@@ -12,6 +12,7 @@ import { STATUS_LABEL,POSITION_LABEL } from '@/utils/constants.js'
 import MemberService from '@/services/memberService'
 import codeListService from '@/services/codeService'
 
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import { useModalStore } from '@/stores/modal'
 
 const router = useRouter()
@@ -20,9 +21,9 @@ const authStore = useAuthStore()
 const modal = useModalStore()
 
 const isAdminEditMode = computed(() => !!route.params.memberCode)
-console.log('관리자 수정 모드: ', isAdminEditMode.value)
 const editMode = 'adminEdit'
 const targetRole = ref('')
+const isLoading = ref(false)
 
 const majorList = ref([])
 
@@ -94,8 +95,44 @@ const statusForm = reactive({
 
 const original = ref({})
 
+const EMAIL_RE = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
+const DATE_RE  = /^\d{4}-\d{2}-\d{2}$/
+const TEL_RE   = /^0\d{9,10}$/
+
+const validateProfile = () => {
+  const errors = []
+  if (!common.email) errors.push('이메일을 입력해주세요.')
+  else if (!EMAIL_RE.test(common.email)) errors.push('이메일 형식이 올바르지 않습니다.')
+  if (!common.name) errors.push('이름을 입력해주세요.')
+  if (!common.birth) errors.push('생년월일을 입력해주세요.')
+  else if (!DATE_RE.test(common.birth)) errors.push('생년월일 형식이 올바르지 않습니다. (YYYY-MM-DD)')
+  if (!common.tel) errors.push('전화번호를 입력해주세요.')
+  else if (!TEL_RE.test(common.tel)) errors.push('전화번호 형식이 올바르지 않습니다. (숫자 10~11자리)')
+  if (common.emergencyTel && !TEL_RE.test(common.emergencyTel)) errors.push('비상연락처 형식이 올바르지 않습니다. (숫자 10~11자리)')
+  if (errors.length > 0) { modal.showAlert(errors.join('\n'), 'warning'); return false }
+  return true
+}
+
+const validateStatus = () => {
+  const errors = []
+  if (targetRole.value === 'PROFESSOR') {
+    if (!statusForm.status && !statusForm.position) errors.push('변경할 상태 또는 직위를 선택해주세요.')
+  } else {
+    if (!statusForm.status) errors.push('변경할 상태를 선택해주세요.')
+  }
+  if (statusForm.startDate && statusForm.endDate && statusForm.startDate > statusForm.endDate)
+    errors.push('시작일이 종료일보다 늦을 수 없습니다.')
+  if (targetRole.value === 'STUDENT' && statusForm.status === 'ABSENCE' && statusForm.returnSemester !== null) {
+    if (statusForm.returnSemester < 1 || statusForm.returnSemester > 2)
+      errors.push('복학 학기는 1 또는 2만 입력 가능합니다.')
+  }
+  if (errors.length > 0) { modal.showAlert(errors.join('\n'), 'warning'); return false }
+  return true
+}
+
 const profileSubmit = async () => {
-  // 현재값 합치기
+  if (!validateProfile() || isLoading.value) return
+
   const current =
     targetRole.value === 'STUDENT'
       ? { ...common, ...student }
@@ -103,19 +140,18 @@ const profileSubmit = async () => {
         ? { ...common, ...professor }
         : { ...common, ...admin }
 
-  // 변경된 필드만 추출
   const changedData = {}
   Object.keys(current).forEach((key) => {
     if (current[key] !== original.value[key]) changedData[key] = current[key]
   })
   delete changedData.majorName
 
-  // 변경사항 없으면 early return
   if (Object.keys(changedData).length === 0) {
     await modal.showAlert('변경된 내용이 없습니다', 'info')
     return
   }
 
+  isLoading.value = true
   try {
     const res =
       targetRole.value === 'STUDENT'
@@ -124,38 +160,72 @@ const profileSubmit = async () => {
           ? await MemberService.updateProfessor(route.params.memberCode, changedData)
           : await MemberService.updateAdmin(route.params.memberCode, changedData)
 
+    original.value = {}
     await modal.showAlert(res.message, 'success')
     router.push('/admin/members')
-  } catch (e) {
-    console.error(e)
+  } finally {
+    isLoading.value = false
   }
 }
+
 const statusSubmit = async () => {
+  if (!validateStatus() || isLoading.value) return
+
+  // 변경사항 없음 체크
+  const currentStatus = targetRole.value === 'STUDENT' ? student.status
+    : targetRole.value === 'PROFESSOR' ? professor.status : admin.status
+  const statusUnchanged = !statusForm.status || statusForm.status === currentStatus
+  const positionUnchanged = !statusForm.position || statusForm.position === professor.position
+  if (statusUnchanged && positionUnchanged) {
+    await modal.showAlert('변경된 내용이 없습니다', 'info')
+    return
+  }
+
+  const payload = Object.fromEntries(
+    Object.entries(statusForm).filter(([_, v]) => v !== '' && v !== null)
+  )
+
+  isLoading.value = true
   try {
-    // 빈 문자열 필드 제거
-    const payload = Object.fromEntries(
-      Object.entries(statusForm).filter(([_, v]) => v !== '' && v !== null)
-    )
     const res =
       targetRole.value === 'STUDENT'
         ? await MemberService.updateStudentStatus(route.params.memberCode, payload)
         : targetRole.value === 'PROFESSOR'
           ? await MemberService.updateProfessorStatus(route.params.memberCode, payload)
-          : await MemberService.updateAdminStatus(route.params.memberCode, payload)    
+          : await MemberService.updateAdminStatus(route.params.memberCode, payload)
+
     await modal.showAlert(res.message, 'success')
-    // 현재 상태 업데이트
-    if (targetRole.value === 'STUDENT') student.status = statusForm.status
-    else if (targetRole.value === 'PROFESSOR') {
-      professor.status = statusForm.status
-      professor.position = statusForm.position
+
+    if (targetRole.value === 'STUDENT') {
+      student.status = statusForm.status
+      original.value = { ...original.value, status: statusForm.status }
+    } else if (targetRole.value === 'PROFESSOR') {
+      if (statusForm.status) { professor.status = statusForm.status; original.value = { ...original.value, status: statusForm.status } }
+      if (statusForm.position) { professor.position = statusForm.position; original.value = { ...original.value, position: statusForm.position } }
+    } else {
+      admin.status = statusForm.status
+      original.value = { ...original.value, status: statusForm.status }
     }
-    else admin.status = statusForm.status
-  } catch (e) {
-    console.error(e)
+
+    Object.assign(statusForm, { status: '', reason: '', startDate: '', endDate: '', returnYear: null, returnSemester: null, position: '' })
+  } finally {
+    isLoading.value = false
   }
 }
 
+// ABSENCE 외 상태 선택 시 날짜/복학 필드 초기화
+watch(() => statusForm.status, (val) => {
+  if (val !== 'ABSENCE') {
+    statusForm.startDate = ''
+    statusForm.endDate = ''
+    statusForm.returnYear = null
+    statusForm.returnSemester = null
+  }
+})
+
 onMounted(async () => {
+  isLoading.value = true
+  try {
   const [
     majors,
     studentStatus,
@@ -230,11 +300,15 @@ onMounted(async () => {
   } else {
     original.value = JSON.parse(JSON.stringify({ ...common, ...admin }))
   }
+  } finally {
+    isLoading.value = false
+  }
 })
 </script>
 
 <template>
-  <div class="form-wrap">
+  <div class="form-wrap" style="position: relative; min-height: 200px;">
+    <LoadingSpinner v-if="isLoading" :overlay="true" size="md" />
     <div class="d-flex g20 jc-center">
       <div class="pf-content d-grid g10 d-flex-grow1">
         <div class="content-wrap d-flex direct-col d-flex-grow1">
@@ -242,8 +316,8 @@ onMounted(async () => {
           <CommonFields :common="common" :mode="editMode" />
         </div>
         <!--form-grid-->
-        <div class="content-wrap d-flex direct-col d-flex-grow1" v-if="targetRole !== 'ADMIN'">
-          <h3><font-awesome-icon icon="fa-solid fa-circle-info" />학적 정보</h3>
+        <div class="content-wrap d-flex direct-col d-flex-grow1">
+          <h3><font-awesome-icon icon="fa-solid fa-circle-info" /><template v-if="targetRole === 'ADMIN'">재직</template><template v-else>학적</template> 정보</h3>
           <StudentFields
             v-if="targetRole === 'STUDENT'"
             :student="student"
@@ -277,8 +351,8 @@ onMounted(async () => {
     <button class="btn btn-default" @click="router.go(-1)">
       <font-awesome-icon icon="fa-solid fa-arrow-left" /> 돌아가기
     </button>
-    <button @click="profileSubmit" class="btn btn-submit">
-      <font-awesome-icon icon="fa-solid fa-circle-check" /> 수정
+    <button @click="profileSubmit" class="btn btn-submit" :disabled="isLoading">
+      <font-awesome-icon icon="fa-solid fa-circle-check" /> {{ isLoading ? '수정 중...' : '수정' }}
     </button>
   </div>
 
@@ -287,6 +361,10 @@ onMounted(async () => {
       <div class="content-wrap d-flex direct-col d-flex-grow1">
         <h3><font-awesome-icon icon="fa-solid fa-circle-info" />상태 정보 수정</h3>
         <div class="form-grid" style="--grid-cols: repeat(auto-fill, minmax(350px, 1fr))">
+          <div class="input-wrap">
+            <div class="input-label">회원코드</div>
+            <div class="input-content">{{ route.params.memberCode }}</div>
+          </div>
           <div class="input-wrap">
             <div class="input-label">현재 상태</div>
             <div class="input-content">
@@ -330,7 +408,7 @@ onMounted(async () => {
             <div class="input-label">직위</div>
             <div class="input-content">
               <select v-model="statusForm.position">
-                <option value="">상태를 선택하세요</option>
+                <option value="">직위를 선택하세요</option>
                 <option v-for="s in professorPositionList" :key="s.code" :value="s.code">
                   {{ s.value }}
                 </option>
@@ -347,7 +425,7 @@ onMounted(async () => {
               />
             </div>
           </div>
-          <div class="input-wrap">
+          <div class="input-wrap" v-if="statusForm.status === 'ABSENCE'">
             <div class="input-label">
               <span><template v-if="targetRole === 'PROFESSOR'">휴직 </template>시작일</span>
             </div>
@@ -355,7 +433,7 @@ onMounted(async () => {
               <CalendarDate v-model="statusForm.startDate" />
             </div>
           </div>
-          <div class="input-wrap">
+          <div class="input-wrap" v-if="statusForm.status === 'ABSENCE'">
             <div class="input-label">
               <span v-if="targetRole === 'PROFESSOR'">복직일</span><span v-else>종료일</span>
             </div>
@@ -379,17 +457,17 @@ onMounted(async () => {
   </div>
   <div>
     <div class="btn-row g10">
-      <button @click="statusSubmit" class="btn btn-submit">
-        <font-awesome-icon icon="fa-solid fa-circle-check" /> 상태변경
+      <button class="btn btn-default" @click="router.go(-1)">
+      <font-awesome-icon icon="fa-solid fa-arrow-left" /> 돌아가기
+    </button>
+      <button @click="statusSubmit" class="btn btn-submit" :disabled="isLoading">
+        <font-awesome-icon icon="fa-solid fa-circle-check" /> {{ isLoading ? '처리 중...' : '상태변경' }}
       </button>
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
-.form-wrap {
-}
-
 .pf-profile {
   max-width: 280px;
   width: 30%;

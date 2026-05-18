@@ -7,6 +7,7 @@ import DataTable from '@/components/common/DataTable.vue';
 import Pagination from '@/components/common/Pagination.vue';
 import { formatTel } from '@/utils/phoneNumber';
 import { STATUS_LABEL } from '@/utils/constants';
+import MemberListTabNav from '@/components/member/MemberListTabNav.vue'
 
 const route = useRoute();
 const router = useRouter();
@@ -168,8 +169,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="container">
-
+  <div>
+    <MemberListTabNav activeTab="students" />
     <!-- 필터 헤더 -->
     <div class="filter-header">
       <div class="filter-group">

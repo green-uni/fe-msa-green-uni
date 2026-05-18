@@ -127,8 +127,8 @@ const validate = () => {
   if (!common.name) errors.push('이름을 입력해주세요.')
   if (!common.birth) errors.push('생년월일을 입력해주세요.')
   else if (!DATE_RE.test(common.birth)) errors.push('생년월일 형식이 올바르지 않습니다. (YYYY-MM-DD)')
-  if (!common.tel)                      errors.push('전화번호를 입력해주세요.')
-  else if (!TEL_RE.test(common.tel))    errors.push('전화번호 형식이 올바르지 않습니다. (숫자 10~11자리)')
+  if (!common.tel) errors.push('전화번호를 입력해주세요.')
+  else if (!TEL_RE.test(common.tel)) errors.push('전화번호 형식이 올바르지 않습니다. (숫자 10~11자리)')
   if (common.emergencyTel && !TEL_RE.test(common.emergencyTel)) errors.push('비상연락처 형식이 올바르지 않습니다. (숫자 10~11자리)')
 
   // 역할별
@@ -180,10 +180,10 @@ const submit = async () => {
     const res = role.value === 'STUDENT'   ? await MemberService.createStudent(formData)
               : role.value === 'PROFESSOR' ? await MemberService.createProfessor(formData)
               : await MemberService.createAdmin(formData)
-
+    console.log(res.data)
     localStorage.removeItem(DRAFT_KEY)
     pageState.setContent(false)
-    await modal.showAlert(res.message, 'success')
+    await modal.showAlert(res.message + '\n' + '회원코드: ' + res.data.memberCode, 'success')
     const route = role.value === 'STUDENT' ? '/admin/members/students'
               :role.value === 'PROFESSOR' ? '/admin/members/professors'
               : '/admin/members/admins'
