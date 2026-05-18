@@ -91,7 +91,7 @@ export default defineConfig(({ mode }) => {
       }),
     ],
     //commit message > feature(noti): 알림구현
-    plugins: [vue()],
+    // plugins: [vue()], 16번라인과 겹쳐서 주석처리
     define: { global: 'globalThis' },
     
     resolve: {
