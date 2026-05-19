@@ -29,7 +29,7 @@ const tableColumns = computed(() => {
     case 'PROFESSOR':
       return {
         colName: ['변경일', '변동구분', '변경전', '변경후', '시작일', '종료일', '사유'],
-        cols: '110px 80px 60px 60px 110px 110px 1fr',
+        cols: '110px 100px 80px 80px 110px 110px 1fr',
       }
     default: // ADMIN
       return {

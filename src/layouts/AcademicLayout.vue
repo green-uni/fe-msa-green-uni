@@ -23,7 +23,7 @@ const authStore = useAuthStore()
     <TopLocation v-if="authStore.isLogin" />
     <main :class="authStore.isLogin ? 'container' : 'intro-panel'">
       <PageTitle  v-if="authStore.isLogin" />
-      <RouterView />
+      <RouterView :key="$route.path" />
     </main>
   </div>
 

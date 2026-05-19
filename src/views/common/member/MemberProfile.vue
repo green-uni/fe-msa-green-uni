@@ -29,7 +29,7 @@ const getUserData = async () => {
     try {
         const res = isAdminMode.value ? await MemberService.getMemberProfile(memberCode)
                                     : await MemberService.findProfile();
-        state.profileInfo = res.data;        
+        state.profileInfo = res.data; 
     } catch (e) {
         console.error(e)
     }
@@ -86,7 +86,7 @@ onMounted(async () => {
             <div class="info-title">
                 <h2>{{ state.profileInfo.name || '-' }}</h2>
                 <span class="info-detail">
-                    {{ authStore.memberCode }}
+                    {{ state.profileInfo.memberCode }}
                 </span>
             </div>
             <div class="btn-row direct-col g5 w100p">
@@ -105,30 +105,31 @@ onMounted(async () => {
         <div>
             <div class="info-wrap content-wrap direct-row g30">
                 <div class="info-row g30">
-                    <dl v-if="authStore.role == 'STUDENT' || authStore.role == 'PROFESSOR'">
+                    <dl v-if="role == 'STUDENT' || role == 'PROFESSOR'">
                         <dt>단과대</dt>
                         <dd>{{ state.profileInfo.collegeName || '-' }}</dd>
                     </dl>
-                    <dl v-if="authStore.role == 'STUDENT' || authStore.role == 'PROFESSOR'">
+                    <dl v-if="role == 'STUDENT' || role == 'PROFESSOR'">
                         <dt>
-                            <template v-if="authStore.role == 'STUDENT'">주전공</template>
+                            <template v-if="role == 'STUDENT'">주전공</template>
                             <template v-else>전공</template>
                         </dt>
-                        <dd>{{ state.profileInfo.mainMajorName || '-' }}</dd>
+                        <dd>{{ role == 'STUDENT' ? state.profileInfo.mainMajorName  :
+                                role == 'PROFESSOR' ? state.profileInfo.majorName : '-' }}</dd>
                     </dl>
-                    <dl v-if="authStore.role == 'STUDENT'">
+                    <dl v-if="role == 'STUDENT'">
                         <dt>부전공</dt>
                         <dd>{{ state.profileInfo.subMajorName || '-' }}</dd>
                     </dl>
-                    <dl v-if="authStore.role == 'STUDENT'">
+                    <dl v-if="role == 'STUDENT'">
                         <dt>학년/학기</dt>
                         <dd>{{ state.profileInfo.academicYear || '-' }}학년 {{ state.profileInfo.semester || '-' }}학기</dd>
                     </dl>
-                    <dl v-if="authStore.role == 'PROFESSOR'">
+                    <dl v-if="role == 'PROFESSOR'">
                         <dt>학위</dt>
                         <dd>{{ DEGREE_LABEL[state.profileInfo.degree] || '-' }}</dd>
                     </dl>
-                    <dl v-if="authStore.role == 'PROFESSOR'">
+                    <dl v-if="role == 'PROFESSOR'">
                         <dt>직위</dt>
                         <dd>{{ POSITION_LABEL[state.profileInfo.position] || '-' }}</dd>
                     </dl>
@@ -138,22 +139,22 @@ onMounted(async () => {
                     </dl>
                     <dl>
                         <dt>
-                        <template v-if="authStore.role == 'STUDENT'">입학시기</template>
+                        <template v-if="role == 'STUDENT'">입학시기</template>
                         <template v-else>입사시기</template>
                         </dt>
                         <dd>{{ state.profileInfo.entryDate || '-' }}</dd>
                     </dl>
                     <dl v-if="state.profileInfo.exitDate">
                         <dt>
-                        <template v-if="authStore.role == 'STUDENT'">졸업시기</template>
-                        <template v-else-if="authStore.role == 'PROFESSOR'">퇴임시기</template>
+                        <template v-if="role == 'STUDENT'">졸업시기</template>
+                        <template v-else-if="role == 'PROFESSOR'">퇴임시기</template>
                         <template v-else>퇴사시기</template>
                         </dt>
                         <dd>{{ state.profileInfo.exitDate || '-' }}</dd>
                     </dl>
                 </div>
             </div>
-            <div v-if="authStore.role == 'PROFESSOR' && (state.profileInfo.labRoom || state.profileInfo.labTel)" class="info-wrap info-title-wrap content-wrap" style="--grid-cols:repeat(auto-fill, minmax(150px,1fr))">
+            <div v-if="role == 'PROFESSOR' && (state.profileInfo.labRoom || state.profileInfo.labTel)" class="info-wrap info-title-wrap content-wrap" style="--grid-cols:repeat(auto-fill, minmax(150px,1fr))">
                 <h3>연구실 정보</h3>
                 <div class="info-row g30">
                     <dl v-if="state.profileInfo.labRoom">
@@ -207,5 +208,4 @@ onMounted(async () => {
 <style scoped>
 .info-wrap.content-wrap{padding: 0;}
 .info-row{display: flex; flex-wrap: wrap; flex-direction: row; padding:var(--size-df);}
-
 </style>
