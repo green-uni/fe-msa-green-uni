@@ -5,6 +5,7 @@ import MemberService from '@/services/memberService';
 import codeListService from '@/services/codeService';
 import DataTable from '@/components/common/DataTable.vue';
 import Pagination from '@/components/common/Pagination.vue';
+import TabNav from '@/layouts/common/TabNav.vue'
 import { formatTel } from '@/utils/phoneNumber';
 import { STATUS_LABEL } from '@/utils/constants';
 import MemberListTabNav from '@/components/member/MemberListTabNav.vue'
@@ -170,7 +171,7 @@ onMounted(() => {
 
 <template>
   <div>
-    <MemberListTabNav activeTab="students" />
+    <TabNav />
     <!-- 필터 헤더 -->
     <div class="filter-header">
       <div class="filter-group">

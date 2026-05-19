@@ -1,16 +1,14 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
-const groupTitle = computed(() => route.meta?.groupTitle);
-const subTitle = computed(() => route.meta?.subTitle);
 const title = computed(() => route.meta?.title);
 
 </script>
 
 <template>
-    <div class="page-location" v-if="title">
+    <div class="page-location" v-if="title && !route.meta?.navTitle">
         <h1>
             <span class="arrow-circle">
                 <font-awesome-icon icon="fa-solid fa-angle-right" />

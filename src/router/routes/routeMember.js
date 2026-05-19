@@ -97,6 +97,7 @@ export const adminMemberRoutes = [
     component: () => import('@/views/admin/member/AdminProfessorList.vue'),
     meta: {
       title: '교수 목록 조회',
+      navTitle: '회원 조회',
       groupTitle: '회원 정보 관리',
       subTitle: '회원 전체 조회',
       showInNav: false,
@@ -109,6 +110,7 @@ export const adminMemberRoutes = [
     component: () => import('@/views/admin/member/AdminAdminList.vue'),
     meta: {
       title: '관리자 목록 조회',
+      navTitle: '회원 조회',
       groupTitle: '회원 정보 관리',
       subTitle: '회원 전체 조회',
       showInNav: false,
@@ -131,7 +133,7 @@ export const adminMemberRoutes = [
     path: `${url}/:memberCode/edit`,
     component: () => import('@/views/admin/member/AdminMemberEdit.vue'),
     meta: {
-      title: '인사 정보 변경',
+      title: '회원 정보 변경',
       groupTitle: '회원 정보 관리',
       showInNav: false,
       activeMenu: `${url}/students`,
@@ -143,7 +145,9 @@ export const adminMemberRoutes = [
     path: `${url}/new`,
     component: () => import('@/views/admin/member/MemberCreate.vue'),
     meta: {
-      title: '회원 계정 생성',
+      title: '계정 개별 등록',
+      navTitle: '회원 계정 생성',
+      subTitle: '회원 계정 생성',
       groupTitle: '회원 정보 관리',
       auth: ['ADMIN'],
     },
@@ -152,7 +156,9 @@ export const adminMemberRoutes = [
     path: `${url}/new/batch`,
     component: () => import('@/views/admin/member/MemberBatchCreate.vue'),
     meta: {
-      title: '회원 계정 일괄 생성',
+      title: '계정 일괄 등록',
+      navTitle: '회원 계정 생성',
+      subTitle: '회원 계정 생성',
       groupTitle: '회원 정보 관리',
       showInNav: false,
       activeMenu: `${url}/new`,
