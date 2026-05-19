@@ -30,7 +30,7 @@ const login = async () => {
 
     if (res.data.isFirstLogin) {
       await modal.showAlert('최초 로그인 입니다. 비밀번호를 변경해주세요', 'warning')
-      await router.push('/members/my/password')
+      await router.push('/admin/members/my/password')
       return
     }
     router.push('/admin/members/dashboard')
