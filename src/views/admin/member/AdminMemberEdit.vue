@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authentication'
 import StudentFields from '@/components/member/StudentFields.vue'
 import ProfessorFields from '@/components/member/ProfessorFields.vue'
+import ProfileImg from '@/components/common/ProfileImg.vue'
 import AdminFields from '@/components/member/AdminFields.vue'
 import CommonFields from '@/components/member/CommonFields.vue'
 import CalendarDate from '@/components/util/CalendarDate.vue'
@@ -26,6 +27,7 @@ const targetRole = ref('')
 const isLoading = ref(false)
 
 const majorList = ref([])
+const pic = ref(null)
 
 // 상태값 목록
 const studentStatusList = ref([])
@@ -95,20 +97,13 @@ const statusForm = reactive({
 
 const original = ref({})
 
-const EMAIL_RE = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
 const DATE_RE  = /^\d{4}-\d{2}-\d{2}$/
-const TEL_RE   = /^0\d{9,10}$/
 
 const validateProfile = () => {
   const errors = []
-  if (!common.email) errors.push('이메일을 입력해주세요.')
-  else if (!EMAIL_RE.test(common.email)) errors.push('이메일 형식이 올바르지 않습니다.')
   if (!common.name) errors.push('이름을 입력해주세요.')
   if (!common.birth) errors.push('생년월일을 입력해주세요.')
   else if (!DATE_RE.test(common.birth)) errors.push('생년월일 형식이 올바르지 않습니다. (YYYY-MM-DD)')
-  if (!common.tel) errors.push('전화번호를 입력해주세요.')
-  else if (!TEL_RE.test(common.tel)) errors.push('전화번호 형식이 올바르지 않습니다. (숫자 10~11자리)')
-  if (common.emergencyTel && !TEL_RE.test(common.emergencyTel)) errors.push('비상연락처 형식이 올바르지 않습니다. (숫자 10~11자리)')
   if (errors.length > 0) { modal.showAlert(errors.join('\n'), 'warning'); return false }
   return true
 }
@@ -146,23 +141,27 @@ const profileSubmit = async () => {
   })
   delete changedData.majorName
 
-  if (Object.keys(changedData).length === 0) {
+  if (Object.keys(changedData).length === 0 && !pic.value) {
     await modal.showAlert('변경된 내용이 없습니다', 'info')
     return
   }
 
   isLoading.value = true
   try {
+    const formData = new FormData()
+    formData.append('req', new Blob([JSON.stringify(changedData)], { type: 'application/json' }))
+    if (pic.value) formData.append('pic', pic.value)
+
     const res =
       targetRole.value === 'STUDENT'
-        ? await MemberService.updateStudent(route.params.memberCode, changedData)
+        ? await MemberService.updateStudent(route.params.memberCode, formData)
         : targetRole.value === 'PROFESSOR'
-          ? await MemberService.updateProfessor(route.params.memberCode, changedData)
-          : await MemberService.updateAdmin(route.params.memberCode, changedData)
+          ? await MemberService.updateProfessor(route.params.memberCode, formData)
+          : await MemberService.updateAdmin(route.params.memberCode, formData)
 
     original.value = {}
     await modal.showAlert(res.message, 'success')
-    router.push('/admin/members')
+    router.push(`/admin/members/${route.params.memberCode}`)
   } finally {
     isLoading.value = false
   }
@@ -310,6 +309,10 @@ onMounted(async () => {
   <div class="form-wrap" style="position: relative; min-height: 200px;">
     <LoadingSpinner v-if="isLoading" :overlay="true" size="md" />
     <div class="d-flex g20 jc-center">
+      <div class="pf-profile content-wrap">
+        <h3><font-awesome-icon icon="fa-solid fa-circle-info" /> 사진 수정</h3>
+        <ProfileImg :editable="true" v-model:pic="pic" :memberCode="route.params.memberCode" :existPic="common.pic" />
+      </div>
       <div class="pf-content d-grid g10 d-flex-grow1">
         <div class="content-wrap d-flex direct-col d-flex-grow1">
           <h3><font-awesome-icon icon="fa-solid fa-circle-info" />개인 정보</h3>
@@ -348,7 +351,7 @@ onMounted(async () => {
   </div>
 
   <div class="btn-row g10">
-    <button class="btn btn-default" @click="router.go(-1)">
+    <button class="btn btn-default" @click="router.push(`/admin/members/${route.params.memberCode}`)">
       <font-awesome-icon icon="fa-solid fa-arrow-left" /> 돌아가기
     </button>
     <button @click="profileSubmit" class="btn btn-submit" :disabled="isLoading">
@@ -457,7 +460,7 @@ onMounted(async () => {
   </div>
   <div>
     <div class="btn-row g10">
-      <button class="btn btn-default" @click="router.go(-1)">
+      <button class="btn btn-default" @click="router.push(`/admin/members/${route.params.memberCode}`)">
       <font-awesome-icon icon="fa-solid fa-arrow-left" /> 돌아가기
     </button>
       <button @click="statusSubmit" class="btn btn-submit" :disabled="isLoading">

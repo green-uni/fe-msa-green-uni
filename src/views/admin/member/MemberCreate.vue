@@ -10,7 +10,7 @@ import codeListService from '@/services/codeService'
 import ProfileImg from '@/components/common/ProfileImg.vue'
 
 import MemberService from '@/services/memberService'
-import MemberCreateTabNav from '@/components/member/MemberCreateTabNav.vue'
+import TabNav from '@/layouts/common/TabNav.vue'
 
 import { useModalStore } from '@/stores/modal'
 import { usePageStateStore } from '@/stores/pageState'
@@ -239,7 +239,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <MemberCreateTabNav activeTab="single" />
+  <TabNav />
   <div class="form-wrap">
     <div class="d-flex g20 jc-center">
       <!-- pf-profile-->
