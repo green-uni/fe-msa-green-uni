@@ -25,6 +25,7 @@ const isAdminEditMode = computed(() => !!route.params.memberCode)
 const editMode = 'adminEdit'
 const targetRole = ref('')
 const isLoading = ref(false)
+const isSubmitting = ref(false)
 
 const majorList = ref([])
 const pic = ref(null)
@@ -87,6 +88,18 @@ const statusForm = reactive({
 
 const original = ref({})
 
+const availableStatusList = computed(() => {
+  const currentStatus = targetRole.value === 'STUDENT' ? student.status
+    : targetRole.value === 'PROFESSOR' ? professor.status : admin.status
+  const list = targetRole.value === 'STUDENT' ? studentStatusList.value
+    : targetRole.value === 'PROFESSOR' ? professorStatusList.value : adminStatusList.value
+  return list.filter(s => s.code !== currentStatus)
+})
+
+const availablePositionList = computed(() =>
+  professorPositionList.value.filter(s => s.code !== professor.position)
+)
+
 const DATE_RE  = /^\d{4}-\d{2}-\d{2}$/
 
 const validateProfile = () => {
@@ -128,7 +141,7 @@ const validateStatus = () => {
 }
 
 const profileSubmit = async () => {
-  if (!validateProfile() || isLoading.value) return
+  if (!validateProfile() || isLoading.value || isSubmitting.value) return
 
   const current =
     targetRole.value === 'STUDENT'
@@ -148,7 +161,7 @@ const profileSubmit = async () => {
     return
   }
 
-  isLoading.value = true
+  isSubmitting.value = true
   try {
     const formData = new FormData()
     formData.append('req', new Blob([JSON.stringify(changedData)], { type: 'application/json' }))
@@ -165,14 +178,14 @@ const profileSubmit = async () => {
     await modal.showAlert(res.message, 'success')
     router.push(`/admin/members/${route.params.memberCode}`)
   } finally {
-    isLoading.value = false
+    isSubmitting.value = false
   }
 }
 
 const statusSubmit = async () => {
-  if (!validateStatus() || isLoading.value) return
+  if (isLoading.value || isSubmitting.value) return
 
-  // 변경사항 없음 체크
+  // 변경사항 없음 체크 (유효성 검사 전에 먼저)
   const currentStatus = targetRole.value === 'STUDENT' ? student.status
     : targetRole.value === 'PROFESSOR' ? professor.status : admin.status
   const statusUnchanged = !statusForm.status || statusForm.status === currentStatus
@@ -182,11 +195,13 @@ const statusSubmit = async () => {
     return
   }
 
+  if (!validateStatus()) return
+
   const payload = Object.fromEntries(
     Object.entries(statusForm).filter(([_, v]) => v !== '' && v !== null)
   )
 
-  isLoading.value = true
+  isSubmitting.value = true
   try {
     const res =
       targetRole.value === 'STUDENT'
@@ -208,10 +223,9 @@ const statusSubmit = async () => {
       original.value = { ...original.value, status: statusForm.status }
     }
 
-    Object.assign(statusForm, { status: '', reason: '', startDate: '', endDate: '', returnYear: null, returnSemester: null, position: '' })
     router.push(`/admin/members/${route.params.memberCode}`)
   } finally {
-    isLoading.value = false
+    isSubmitting.value = false
   }
 }
 
@@ -356,8 +370,8 @@ onMounted(async () => {
     <button class="btn btn-default" @click="router.push(`/admin/members/${route.params.memberCode}`)">
       <font-awesome-icon icon="fa-solid fa-arrow-left" /> 돌아가기
     </button>
-    <button @click="profileSubmit" class="btn btn-submit" :disabled="isLoading">
-      <font-awesome-icon icon="fa-solid fa-circle-check" /> {{ isLoading ? '수정 중...' : '수정' }}
+    <button @click="profileSubmit" class="btn btn-submit" :disabled="isLoading || isSubmitting">
+      <font-awesome-icon icon="fa-solid fa-circle-check" /> {{ isSubmitting ? '수정 중...' : '수정' }}
     </button>
   </div>
 
@@ -395,15 +409,7 @@ onMounted(async () => {
             <div class="input-content">
               <select v-model="statusForm.status">
                 <option value="">상태를 선택하세요</option>
-                <option
-                  v-for="s in targetRole === 'STUDENT'
-                    ? studentStatusList
-                    : targetRole === 'PROFESSOR'
-                      ? professorStatusList
-                      : adminStatusList"
-                  :key="s.code"
-                  :value="s.code"
-                >
+                <option v-for="s in availableStatusList" :key="s.code" :value="s.code">
                   {{ s.value }}
                 </option>
               </select>
@@ -414,7 +420,7 @@ onMounted(async () => {
             <div class="input-content">
               <select v-model="statusForm.position">
                 <option value="">직위를 선택하세요</option>
-                <option v-for="s in professorPositionList" :key="s.code" :value="s.code">
+                <option v-for="s in availablePositionList" :key="s.code" :value="s.code">
                   {{ s.value }}
                 </option>
               </select>
@@ -471,8 +477,8 @@ onMounted(async () => {
       <button class="btn btn-default" @click="router.push(`/admin/members/${route.params.memberCode}`)">
       <font-awesome-icon icon="fa-solid fa-arrow-left" /> 돌아가기
     </button>
-      <button @click="statusSubmit" class="btn btn-submit" :disabled="isLoading">
-        <font-awesome-icon icon="fa-solid fa-circle-check" /> {{ isLoading ? '처리 중...' : '상태변경' }}
+      <button @click="statusSubmit" class="btn btn-submit" :disabled="isLoading || isSubmitting">
+        <font-awesome-icon icon="fa-solid fa-circle-check" /> {{ isSubmitting ? '처리 중...' : '상태변경' }}
       </button>
     </div>
   </div>
