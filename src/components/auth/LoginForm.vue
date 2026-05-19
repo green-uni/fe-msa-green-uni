@@ -36,7 +36,7 @@ const pwView = () => { modeShowPw.value = !modeShowPw.value }
     </div>
     <button class="btn" @click="emit('login')">로그인</button>
     <p class="login-form-hint">
-      {{ variant == 'admin' ? '신규 입사자는' : '신입생은' }} 최초 비밀번호로 <b>생년월일 6자리</b>를 사용해 주세요.
+      {{ variant == 'admin' ? '신규 입사자는' : '신입생은' }} 최초 비밀번호로 <b>생년월일 8자리</b>를 사용해 주세요.
     </p>
   </div>
 </template>
