@@ -48,8 +48,19 @@
         return
       }
 
-      if (res.data.role === 'STUDENT' && res.data.deviceId === 'mobile') {
-        router.push('/attend')
+      // [추가] QR URL 직접 접근 후 로그인한 경우 → 원래 경로(token 포함)로 복귀
+      const redirect = sessionStorage.getItem('redirectAfterLogin')
+      if (redirect) {
+        sessionStorage.removeItem('redirectAfterLogin')
+        router.push(redirect)
+        return
+      }
+
+      // [수정] deviceId(서버 판단) 또는 UA(클라이언트 직접 판단) 둘 중 하나라도 mobile이면 PWA 홈으로 이동
+      // deviceId만 쓰면 일부 모바일 브라우저(웹뷰 등)에서 감지 실패하는 경우가 있어 이중 체크
+      const isMobileUA = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+      if (res.data.role === 'STUDENT' && (res.data.deviceId === 'mobile' || isMobileUA)) {
+        router.push('/student/attendances/home')
         return
       }
       router.push('/members/dashboard')

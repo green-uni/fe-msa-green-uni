@@ -1,5 +1,6 @@
 <script setup>
-import { RouterView } from 'vue-router'
+import { computed } from 'vue'
+import { RouterView, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/authentication';
 import LeftNav from '@/layouts/common/LeftNav.vue';
 import TopLocation from '@/layouts/common/TopLocation.vue';
@@ -7,22 +8,32 @@ import BaseModal from '@/components/common/BaseModal.vue';
 import PageTitle from '@/layouts/common/PageTitle.vue';
 import NotificationList from '@/views/academic/notification/NotificationList.vue';
 import NotificationService from '@/services/notificationService';
+
 const authStore = useAuthStore()
+const route = useRoute()
+
+// [유지] 모바일에서 공개 페이지(/login 등) 접근 시 사이드바·헤더 숨김
+// 이전 세션이 남아 isLogin=true인 상태로 /login 접근하면 사이드바가 뜨는 문제 방지
+const publicRoutes = ['/login', '/admin/login', '/auth/password']
+const isMobileDevice = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+const showLayout = computed(() =>
+  authStore.isLogin && !(isMobileDevice && publicRoutes.includes(route.path))
+)
 </script>
 <template>
-  <div :class="authStore.isLogin ? 'all-wrap' : 'intro'">
-    <!-- 로그인 전 화면-->
-    <section class="intro-banner" aria-hidden="true" v-if="!authStore.isLogin">
+  <div :class="showLayout ? 'all-wrap' : 'intro'">
+    <!-- [팀원 추가] 로그인 전 왼쪽 배너 -->
+    <section class="intro-banner" aria-hidden="true" v-if="!showLayout">
       <div class="intro-banner-content">
         <p class="sub">GREEN UNIVERSITY · 통합 학사시스템</p>
         <h1>너와 나의 꿈을<br />그린(GREEN) 캠퍼스</h1>
       </div>
     </section>
     <!-- 로그인 후 화면-->
-    <LeftNav v-if="authStore.isLogin" />
-    <TopLocation v-if="authStore.isLogin" />
-    <main :class="authStore.isLogin ? 'container' : 'intro-panel'">
-      <PageTitle  v-if="authStore.isLogin" />
+    <LeftNav v-if="showLayout" />
+    <TopLocation v-if="showLayout" />
+    <main :class="showLayout ? 'container' : 'intro-panel'">
+      <PageTitle v-if="showLayout" />
       <RouterView />
     </main>
   </div>
