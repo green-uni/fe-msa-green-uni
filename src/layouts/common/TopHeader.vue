@@ -3,11 +3,11 @@ import logo from '@/assets/logo.png';
 import AuthService from '@/services/authService';
 import NotificationService from '@/services/notificationService';
 import { useAuthStore } from '@/stores/authentication';
-import { useRouter,useRoute } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { onMounted } from 'vue';
 import { STATUS_LABEL } from '@/utils/constants.js'
 
-// [수정] URL 경로 대신 부모 레이아웃이 prop으로 모바일 여부를 전달
+// [유지] URL 경로 대신 부모 레이아웃이 prop으로 모바일 여부를 전달
 // AttendanceLayout → :mobile="true", AcademicLayout/AdminLayout → 기본값 false
 const props = defineProps({ mobile: { type: Boolean, default: false } })
 
@@ -48,9 +48,9 @@ onMounted(async () => {
 
 <template>
   <div class="top-header">
-    <div v-if="!isMobile" class="uni-title" @click="router.push('/member/my')">
-      <img :src="logo" @click="moveToMain" />
-      <h1>그린대학교 {{ isAdmin? '학사 관리 시스템' : '종합 정보 시스템' }}</h1>
+    <div v-if="!isMobile" class="uni-title" @click="router.push('/members/dashboard')">
+      <img :src="logo" />
+      <h1>그린대학교 {{ isAdmin ? '학사 관리 시스템' : '종합 정보 시스템' }}</h1>
     </div>
     <div v-if="isMobile">
       <h1>그린대학교 전자출결 시스템</h1>
@@ -65,14 +65,13 @@ onMounted(async () => {
           </span>
         </button>
       </div>
-
       <div class="user-info" v-if="!isMobile">
         <p>
           <span>{{ authStore.memberCode }}</span>
           <span>{{ authStore.major }}</span>
           <span>{{ authStore.name }}</span>
           <!-- [수정] role이 빈 문자열일 때 TypeError 방지 — optional chaining 적용 -->
-        <span>{{ STATUS_LABEL[role]?.[authStore.status] ?? '' }}</span>
+          <span>{{ STATUS_LABEL[role]?.[authStore.status] ?? '' }}</span>
           <span>{{ userRole }}</span>
         </p>
       </div>
@@ -82,40 +81,44 @@ onMounted(async () => {
 </template>
 
 <style scoped lang="scss">
-.top-header{grid-column: 1 / -1;padding:0 var(--size-df);align-items: center;justify-content: space-between; display: flex; background: #333;color: #fff;}
-.uni-title{
-  display: flex; align-items:center; cursor: pointer; gap: 10px;font-size:var(--text-md);
-  img{height: 30px;}
-  h1{font-weight: normal;}
-  p{opacity: .3;text-transform: uppercase; font-size: .9em;}
+.top-header {
+  grid-column: 1 / -1;
+  padding: 0 var(--size-df);
+  align-items: center;
+  justify-content: space-between;
+  display: flex;
+  background: #333;
+  color: #fff;
 }
-.user-box{
-  display: flex; align-items:center;gap: 20px;
-  .user-info{
-    padding: 13px 30px;background: var(--default-bg);border-radius: 50px;line-height: 1;display: flex;flex-direction: column;gap: 2px;
-    .user-name{font-weight: 600;}
-    span{
-      font-size: .8rem;opacity: .5;position: relative;color:#333;
-      &:nth-of-type(2){
-        margin-left: 5px;padding: 5px;
-        &::before{content:'·';left: -2px; top: 50%; transform: translateY(-50%);position: absolute;}
+.uni-title {
+  display: flex; align-items: center; cursor: pointer; gap: 10px; font-size: var(--text-md);
+  img { height: 30px; }
+  h1 { font-weight: normal; }
+}
+.user-box {
+  display: flex; align-items: center; gap: 20px;
+  .user-info {
+    padding: 13px 30px; background: var(--default-bg); border-radius: 50px;
+    line-height: 1; display: flex; flex-direction: column; gap: 2px;
+    span {
+      font-size: .8rem; opacity: .5; position: relative; color: #333;
+      &:nth-of-type(2) {
+        margin-left: 5px; padding: 5px;
+        &::before { content: '·'; left: -2px; top: 50%; transform: translateY(-50%); position: absolute; }
       }
     }
   }
-  a{
-    font-size: .9rem;opacity: .5;font-weight: 500;
-    &:hover{opacity: 1;}
-  }
+  a { font-size: .9rem; opacity: .5; font-weight: 500; &:hover { opacity: 1; } }
 }
-.bell-wrap{ position: relative; }
-.bell-btn{
-  position: relative;background: none;border: none;color: #fff;
-  font-size: 1.1rem;cursor: pointer;opacity: .6;padding: 4px;
-  &:hover{ opacity: 1; }
+.bell-wrap { position: relative; }
+.bell-btn {
+  position: relative; background: none; border: none; color: #fff;
+  font-size: 1.1rem; cursor: pointer; opacity: .6; padding: 4px;
+  &:hover { opacity: 1; }
 }
-.badge{
-  position: absolute;top: -4px;right: -6px;background: #e74c3c;color: #fff;
-  font-size: .65rem;font-weight: 700;border-radius: 10px;padding: 1px 5px;
-  line-height: 1.4;pointer-events: none;
+.badge {
+  position: absolute; top: -4px; right: -6px; background: #e74c3c; color: #fff;
+  font-size: .65rem; font-weight: 700; border-radius: 10px; padding: 1px 5px;
+  line-height: 1.4; pointer-events: none;
 }
 </style>

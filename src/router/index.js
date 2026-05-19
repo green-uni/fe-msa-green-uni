@@ -7,29 +7,42 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore()
   await authStore.$persistedState?.isReady?.()
   const isLogin = authStore.isLogin
+  const role = authStore.role
   const publicPages = ['/login', '/admin/login', '/auth/password']
+  const isAdminRole = role === 'ADMIN'
+  const isAdminPath = to.path.startsWith('/admin/')
 
   if (!isLogin && !publicPages.includes(to.path)) {
-    // [추가] QR URL로 직접 진입한 경우(token 파라미터 포함) 로그인 후 원래 경로로 돌아올 수 있도록 저장
-    sessionStorage.setItem('redirectAfterLogin', to.fullPath)
     next('/login')
     return
   }
+  if (isLogin) {
+    // 로그인 상태에서 로그인 페이지 접근 시 역할에 맞는 홈으로 리다이렉트
+    if (to.path === '/login' || to.path === '/admin/login') {
+      next(isAdminRole ? '/admin/members/dashboard' : '/members/dashboard')
+      return
+    }
+    // ADMIN이 일반 경로 접근 시 관리자 홈으로 리다이렉트 (비밀번호 변경 제외)
+    if (isAdminRole && !isAdminPath && to.path !== '/members/my/password') {
+      next('/admin/members/dashboard')
+      return
+    }
+    // 비관리자가 /admin/ 경로 접근 시 로그인 페이지로 리다이렉트
+    if (!isAdminRole && isAdminPath) {
+      next('/login')
+      return
+    }
 
-  // [추가] meta.auth가 있는 라우트는 해당 Role만 접근 허용
-  // Role 불일치 시 역할 구분 없이 /members/my(내 정보 조회)로 리다이렉트
-  const requiredRoles = to.meta.auth
-  if (isLogin && Array.isArray(requiredRoles) && requiredRoles.length > 0) {
-    if (!requiredRoles.includes(authStore.role)) {
-      next('/members/my')
+    // meta.auth 기반 접근 제한
+    if (to.meta.auth && !to.meta.auth.map(r => r.toUpperCase()).includes(role)) {
+      next(isAdminRole ? '/admin/members/dashboard' : '/members/dashboard')
       return
     }
   }
-
   next()
 })
 

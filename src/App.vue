@@ -15,7 +15,7 @@ watch(
       NotificationService.disconnect()
     }
   },
-  { immediate: true }
+  { immediate: true, flush: 'sync' }
 )
 </script>
 

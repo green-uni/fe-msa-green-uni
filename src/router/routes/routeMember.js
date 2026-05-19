@@ -2,6 +2,14 @@ const url = 'members'
 
 export const memberRoutes = [
   {
+    path: `${url}/dashboard`,
+    component: () => import('@/views/common/member/MemberDashboard.vue'),
+    meta: {
+      showInNav: false,
+      auth: ['STUDENT', 'PROFESSOR'],
+    },
+  },
+  {
     path: `${url}/my`,
     component: () => import('@/views/common/member/MemberProfile.vue'),
     meta: {
@@ -42,6 +50,14 @@ export const memberRoutes = [
 ]
 
 export const adminMemberRoutes = [
+  {
+    path: `${url}/dashboard`,
+    component: () => import('@/views/common/member/MemberDashboard.vue'),
+    meta: {
+      showInNav: false,
+      auth: ['ADMIN'],
+    },
+  },
   {
     path: `${url}/my`,
     component: () => import('@/views/common/member/MemberProfile.vue'),

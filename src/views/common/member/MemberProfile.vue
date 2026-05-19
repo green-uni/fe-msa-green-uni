@@ -78,7 +78,7 @@ onMounted(async () => {
                 <button class="btn btn-line" @click="router.push(role == 'ADMIN' ? '/admin/members/edit': '/members/edit')">
                     <font-awesome-icon icon="fa-solid fa-pen-to-square" /> 내 정보 수정
                 </button>
-                <button class="btn btn-line" @click="router.push('/members/my/password')">
+                <button class="btn btn-line" @click="router.push(role == 'ADMIN' ? '/members/my/password' : '/members/my/password')">
                     <font-awesome-icon icon="fa-solid fa-lock" /> 비밀번호 변경
                 </button>
                 </div>

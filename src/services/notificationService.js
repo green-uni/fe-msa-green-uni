@@ -2,6 +2,7 @@ import axios from '@/services/httpRequester'
 import { Client } from '@stomp/stompjs'
 import SockJS from 'sockjs-client'
 import { ref } from 'vue'
+import { useAuthStore } from '@/stores/authentication'
 
 // 모듈 레벨 싱글톤 상태 — 컴포넌트 어디서든 import해서 공유
 const notifications = ref([])
@@ -54,6 +55,11 @@ const NotificationService = {
           transports: ['xhr-polling'],
         }),
       reconnectDelay: 5000,
+      beforeConnect: () => {
+        if (!useAuthStore().isLogin) {
+          stompClient?.deactivate()
+        }
+      },
       onConnect: () => {
         // 개인 알림
         stompClient.subscribe('/user/queue/notifications', (msg) => {
