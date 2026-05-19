@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authentication'
 import StudentFields from '@/components/member/StudentFields.vue'
 import ProfessorFields from '@/components/member/ProfessorFields.vue'
+import ProfileImg from '@/components/common/ProfileImg.vue'
 import AdminFields from '@/components/member/AdminFields.vue'
 import CommonFields from '@/components/member/CommonFields.vue'
 import CalendarDate from '@/components/util/CalendarDate.vue'
@@ -26,6 +27,7 @@ const targetRole = ref('')
 const isLoading = ref(false)
 
 const majorList = ref([])
+const pic = ref(null)
 
 // 상태값 목록
 const studentStatusList = ref([])
@@ -139,19 +141,23 @@ const profileSubmit = async () => {
   })
   delete changedData.majorName
 
-  if (Object.keys(changedData).length === 0) {
+  if (Object.keys(changedData).length === 0 && !pic.value) {
     await modal.showAlert('변경된 내용이 없습니다', 'info')
     return
   }
 
   isLoading.value = true
   try {
+    const formData = new FormData()
+    formData.append('req', new Blob([JSON.stringify(changedData)], { type: 'application/json' }))
+    if (pic.value) formData.append('pic', pic.value)
+
     const res =
       targetRole.value === 'STUDENT'
-        ? await MemberService.updateStudent(route.params.memberCode, changedData)
+        ? await MemberService.updateStudent(route.params.memberCode, formData)
         : targetRole.value === 'PROFESSOR'
-          ? await MemberService.updateProfessor(route.params.memberCode, changedData)
-          : await MemberService.updateAdmin(route.params.memberCode, changedData)
+          ? await MemberService.updateProfessor(route.params.memberCode, formData)
+          : await MemberService.updateAdmin(route.params.memberCode, formData)
 
     original.value = {}
     await modal.showAlert(res.message, 'success')
@@ -303,6 +309,10 @@ onMounted(async () => {
   <div class="form-wrap" style="position: relative; min-height: 200px;">
     <LoadingSpinner v-if="isLoading" :overlay="true" size="md" />
     <div class="d-flex g20 jc-center">
+      <div class="pf-profile content-wrap">
+        <h3><font-awesome-icon icon="fa-solid fa-circle-info" /> 사진 수정</h3>
+        <ProfileImg :editable="true" v-model:pic="pic" :memberCode="route.params.memberCode" :existPic="common.pic" />
+      </div>
       <div class="pf-content d-grid g10 d-flex-grow1">
         <div class="content-wrap d-flex direct-col d-flex-grow1">
           <h3><font-awesome-icon icon="fa-solid fa-circle-info" />개인 정보</h3>

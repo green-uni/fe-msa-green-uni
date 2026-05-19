@@ -82,7 +82,7 @@ onMounted(async () => {
         <div class="">
             <div class="info-card g20 content-wrap ">
                 <div class="info-img d-flex jc-center">
-                    <ProfileImg :memberCode="authStore.memberCode" :existPic="state.profileInfo.pic" />
+                    <ProfileImg :memberCode="isAdminMode ? memberCode : authStore.memberCode" :existPic="state.profileInfo.pic" />
                 </div>
             <div class="info-title">
                 <h2>{{ state.profileInfo.name || '-' }}</h2>
@@ -153,7 +153,7 @@ onMounted(async () => {
                         </dt>
                         <dd>{{ state.profileInfo.entryDate || '-' }}</dd>
                     </dl>
-                    <dl v-if="state.profileInfo.exitDate">
+                    <dl v-if="(role == 'STUDENT' && state.profileInfo.status  === 'GRADUATED') || (role != 'STUDENT' && state.profileInfo.exitDate)">
                         <dt>
                         <template v-if="role == 'STUDENT'">졸업시기</template>
                         <template v-else-if="role == 'PROFESSOR'">퇴임시기</template>
