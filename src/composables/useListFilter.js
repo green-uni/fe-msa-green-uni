@@ -1,6 +1,8 @@
 import { reactive, ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
+const storageKey = (path) => `listFilter:${path}`
+
 export function useListFilter(initialFilter) {
   const route = useRoute()
   const router = useRouter()
@@ -16,35 +18,38 @@ export function useListFilter(initialFilter) {
     Object.values(filter).some(v => v !== '') || !!searchInput.value
   )
 
-  const pushQuery = () => {
+  const pushQuery = () => { // 필터 쿼리 추가
     const filterQuery = Object.fromEntries(
       Object.entries(filter).filter(([, v]) => v !== '')
     )
-    router.push({
-      path: route.path,
-      query: { ...filterQuery, search: searchInput.value || undefined, page: currentPage.value },
-    })
+    const query = { ...filterQuery, search: searchInput.value || undefined, page: currentPage.value }
+    // sessionStorage에 현재 쿼리 저장
+    sessionStorage.setItem(storageKey(route.path), JSON.stringify(query))
+    router.push({ path: route.path, query })
   }
 
   const onFilterChange = () => { currentPage.value = 1; pushQuery() }
 
-  const onSearch = () => {
+  const onSearch = () => { // 검색
     searchInput.value = searchQuery.value
     currentPage.value = 1
     pushQuery()
   }
 
-  const resetFilter = () => {
+  const resetFilter = () => { // 필터 초기화
     Object.keys(filter).forEach(k => (filter[k] = ''))
     searchQuery.value = ''
     searchInput.value = ''
     currentPage.value = 1
+    sessionStorage.removeItem(storageKey(route.path))
     router.push({ path: route.path })
   }
 
   const goToPage = (page) => {
     currentPage.value = page
-    router.push({ path: route.path, query: { ...route.query, page } })
+    const query = { ...route.query, page }
+    sessionStorage.setItem(storageKey(route.path), JSON.stringify(query))
+    router.push({ path: route.path, query })
   }
 
   const onPageSizeChange = () => { currentPage.value = 1 }
@@ -61,6 +66,15 @@ export function useListFilter(initialFilter) {
   watch(
     () => route.query,
     (q) => {
+      // 쿼리 없이 진입한 경우(상세→목록 뒤로가기 등) sessionStorage에서 복원
+      if (Object.keys(q).length === 0) {
+        const stored = sessionStorage.getItem(storageKey(route.path))
+        if (stored) {
+          router.replace({ path: route.path, query: JSON.parse(stored) })
+          return
+        }
+      }
+
       Object.keys(filter).forEach(k => {
         const val = q[k]
         if (val === undefined) { filter[k] = ''; return }

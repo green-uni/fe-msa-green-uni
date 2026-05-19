@@ -59,12 +59,12 @@ const submit = async () => {
       const res = await AuthService.changeFirstPw(state.data)
       authStore.setFirstLogin();
       await modal.showAlert(res.message, 'success')
-      router.push('/members/my')
+      router.push(authStore.role === 'ADMIN' ? '/admin/members/my' : '/members/my')
       return
     }
     const res = await AuthService.changePw(state.data)
     await modal.showAlert(res.message, 'success')
-    router.push('/members/my')
+    router.push(authStore.role === 'ADMIN' ? '/admin/members/my' : '/members/my')
   } catch (e) { console.error(e) }
 }
 </script>
@@ -116,8 +116,8 @@ const submit = async () => {
 
       </div>
       <div class="btn-row g10">
-        <!-- <button class="btn btn-default" @click="router.go(-1)"><font-awesome-icon icon="fa-solid fa-arrow-left" />
-          돌아가기</button> -->
+        <button class="btn btn-default" @click="router.push(authStore.role === 'ADMIN' ? '/admin/members/my' : '/members/my')"><font-awesome-icon icon="fa-solid fa-arrow-left" />
+          돌아가기</button>
         <button @click="submit" class="btn btn-submit"><font-awesome-icon icon="fa-solid fa-circle-check" /> 비밀번호
           변경</button>
       </div>

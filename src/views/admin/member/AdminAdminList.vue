@@ -56,6 +56,8 @@ const fetchOptions = async () => {
   }
 };
 
+const GRID_COLS = '120px 150px 1fr 1fr 90px'
+
 const moveToDetail = (id) => router.push(`/admin/members/${id}`)
 
 onMounted(() => { fetchOptions(); fetchList() })
@@ -88,7 +90,7 @@ onMounted(() => { fetchOptions(); fetchList() })
     <DataTable
       :columns="['학번', '이름', '이메일', '전화번호', '상태']"
       :rows="pagedList"
-      gridCols="1fr 1fr 1fr 1fr 1fr"
+      :gridCols="GRID_COLS"
       :isLoading="state.isLoading"
       emptyMessage="조회된 관리자가 없습니다."
     >
@@ -108,11 +110,5 @@ onMounted(() => { fetchOptions(); fetchList() })
 </template>
 
 <style scoped lang="scss">
-.tbl-row {
-  cursor: pointer;
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
-  align-items: center;
-  text-align: center;
-}
+.tbl-row { cursor: pointer; }
 </style>

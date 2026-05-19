@@ -7,6 +7,7 @@ import DataTable from '@/components/common/DataTable.vue';
 import Pagination from '@/components/common/Pagination.vue';
 import FilterBar from '@/components/common/FilterBar.vue';
 import TabNav from '@/layouts/common/TabNav.vue'
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import { formatTel } from '@/utils/phoneNumber';
 import { STATUS_LABEL } from '@/utils/constants';
 import { useListFilter } from '@/composables/useListFilter';
@@ -74,6 +75,8 @@ const fetchOptions = async () => {
 };
 
 // ── 이벤트 핸들러 ─────────────────────────────────
+const GRID_COLS = '120px 150px 120px 1fr 1fr 90px 90px'
+
 const onCollegeChange = () => { filter.majorName = ''; onFilterChange() }
 const moveToDetail = (id) => router.push(`/admin/members/${id}`)
 
@@ -81,7 +84,8 @@ onMounted(() => { fetchOptions(); fetchList() })
 </script>
 
 <template>
-  <div>
+  <div style="position: relative;">
+    <LoadingSpinner v-if="state.isLoading" :overlay="true" size="md" />
     <TabNav />
     <FilterBar v-model:searchQuery="searchQuery" :hasFilter="hasFilter"
               @search="onSearch" @reset="resetFilter">
@@ -133,7 +137,7 @@ onMounted(() => { fetchOptions(); fetchList() })
     <DataTable
       :columns="['학번', '이름', '전공', '이메일', '전화번호', '학년', '상태']"
       :rows="pagedList"
-      gridCols="120px 90px 1fr 1fr 130px 70px 90px"
+      :gridCols="GRID_COLS"
       :isLoading="state.isLoading"
       emptyMessage="조회된 학생이 없습니다."
     >
@@ -155,11 +159,5 @@ onMounted(() => { fetchOptions(); fetchList() })
 </template>
 
 <style scoped lang="scss">
-.tbl-row {
-  cursor: pointer;
-  display: grid;
-  grid-template-columns: 120px 90px 1fr 1fr 130px 70px 90px;
-  align-items: center;
-  text-align: center;
-}
+.tbl-row { cursor: pointer; }
 </style>

@@ -5,6 +5,8 @@ export const memberRoutes = [
     path: `${url}/dashboard`,
     component: () => import('@/views/common/member/MemberDashboard.vue'),
     meta: {
+      // title: '대시보드',
+      groupTitle: '그린대학교',
       showInNav: false,
       auth: ['STUDENT', 'PROFESSOR'],
     },
@@ -29,12 +31,23 @@ export const memberRoutes = [
       auth: ['STUDENT', 'PROFESSOR','ADMIN'],
     },
   },
+  {
+    path: `${url}/my/password`,
+    component: () => import('@/views/common/auth/PasswordChange.vue'),
+    meta: {
+      title: '비밀번호 변경',
+      groupTitle: '내 정보 관리',
+      showInNav: false,
+      activeMenu: 'my',
+      auth: ['STUDENT', 'PROFESSOR'],
+    },
+  },
   // ------------------ 상태 변경 신청 조회 처리 ---------------
   {
     path: `${url}/status-request`,
     component: () => import('@/views/common/BlankPage.vue'),
     meta: {
-      title: '휴복학 신청서 제출',
+      title: '휴복학 신청',
       groupTitle: '내 정보 관리',
       auth: ['STUDENT'],
     },
@@ -57,6 +70,8 @@ export const adminMemberRoutes = [
     component: () => import('@/views/common/member/MemberDashboard.vue'),
     meta: {
       showInNav: false,
+      title: '대시보드',
+      groupTitle: '그린대학교',
       auth: ['ADMIN'],
     },
   },
@@ -77,6 +92,17 @@ export const adminMemberRoutes = [
       groupTitle: '내 정보 관리',
       showInNav: false,
       activeMenu: `${url}/my`,
+      auth: ['ADMIN'],
+    },
+  },
+  {
+    path: `${url}/my/password`,
+    component: () => import('@/views/common/auth/PasswordChange.vue'),
+    meta: {
+      title: '비밀번호 변경',
+      groupTitle: '내 정보 관리',
+      showInNav: false,
+      activeMenu: '/member/my',
       auth: ['ADMIN'],
     },
   },

@@ -29,8 +29,7 @@ const getUserData = async () => {
     try {
         const res = isAdminMode.value ? await MemberService.getMemberProfile(memberCode)
                                     : await MemberService.findProfile();
-        state.profileInfo = res.data; 
-        console.log(res.data)
+        state.profileInfo = res.data;
     } catch (e) {
         console.error(e)
     }
@@ -97,7 +96,7 @@ onMounted(async () => {
                     <template v-if="isAdminMode">회원</template>
                     <template v-else>내</template> 정보 수정
                 </button>
-                <button v-if="!isAdminMode" class="btn btn-line" @click="router.push(role == 'ADMIN' ? '/members/my/password' : '/members/my/password')">
+                <button v-if="!isAdminMode" class="btn btn-line" @click="router.push(role == 'ADMIN' ? '/admin/members/my/password' : '/members/my/password')">
                     <font-awesome-icon icon="fa-solid fa-lock" /> 비밀번호 변경
                 </button>
                 </div>
