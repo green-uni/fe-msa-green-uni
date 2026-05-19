@@ -64,6 +64,7 @@ const makeMenu = () => {
     }
     temp[groupTitle].subMenus.push({ // 그룹 안에 서브메뉴로 작업
       title: title,
+      navTitle: r.meta?.navTitle,
       path: (isAdmin ? '/admin/' : '/') + r.path,  // ← / 붙이기
       planTitle: r.meta?.planTitle
     });
@@ -151,7 +152,7 @@ watch(() => route.path, () => {
         <div v-show="menu.isOpen" class="sub-menu">
           <router-link :to="sub.path" v-for="sub in menu.subMenus" :key="sub.title"
             :class="{ active: sub.path === activePath, plan: sub.planTitle }">
-            <span>{{ sub.title }}</span>
+            <span>{{ sub.navTitle || sub.title }}</span>
             <span v-if="sub.planTitle">
               <font-awesome-icon icon="fa-solid fa-check-double" />
             </span>

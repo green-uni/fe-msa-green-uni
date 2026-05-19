@@ -1,42 +1,55 @@
 <script setup>
 import MemberService from '@/services/memberService';
 import { useAuthStore } from '@/stores/authentication';
-import { onMounted, reactive, computed } from 'vue';
+import { onMounted, reactive, computed, ref } from 'vue';
 import ProfileImg from '@/components/common/ProfileImg.vue';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import StatusList from '@/components/member/StatusList.vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { formatTel } from '@/utils/phoneNumber'
 import { STATUS_LABEL, POSITION_LABEL, DEGREE_LABEL, BUILDING_LABEL } from '@/utils/constants.js'
 
 const authStore = useAuthStore()
 const router = useRouter();
-const role = authStore.role
+const route = useRoute();
+
+const role = ref('');
+
+const memberCode = route.params.memberCode;
+const isAdminMode = computed(() => !!route.params.memberCode)
 
 const state = reactive({
     profileInfo: {},
     statusList:[],
-  isLoading: false,
+    isLoading: false,
 })
 
-// 로그인 회원 본인의 프로파일 가져오기
+// 회원 본인의 프로파일 가져오기
 const getUserData = async () => {
     try {
-        const res = await MemberService.findProfile();
-        console.log( '로그인 회원 정보 조회', res.data)
-        state.profileInfo = res.data;
+        const res = isAdminMode.value ? await MemberService.getMemberProfile(memberCode)
+                                    : await MemberService.findProfile();
+        state.profileInfo = res.data;        
     } catch (e) {
         console.error(e)
     }
 };
-// 로그인 회원 변동 이력 가져오기
+// 회원 변동 이력 가져오기
 const getStatusList = async () => {
     try {
-        const res = role == 'STUDENT' ? await MemberService.findStudentStatus()
-            : role == 'PROFESSOR' ? await MemberService.findProfessorStatus()
-            : await MemberService.findAdminStatus()
+        let res;
+        if (isAdminMode.value) {
+            // 관리자가 타 회원 이력 조회
+            res = role.value == 'STUDENT' ? await MemberService.findStudentStatusByAdmin(memberCode)
+                : role.value == 'PROFESSOR' ? await MemberService.findProfessorStatusByAdmin(memberCode)
+                : await MemberService.findAdminStatusByAdmin(memberCode)
+        } else {
+            // 본인 이력 조회
+            res = role.value == 'STUDENT' ? await MemberService.findStudentStatus()
+                : role.value == 'PROFESSOR' ? await MemberService.findProfessorStatus()
+                : await MemberService.findAdminStatus()
+        }
         state.statusList = res.data
-        console.log( '로그인 회원 변동 이력', res.data)
     } catch (e) {
         console.error(e)
     }
@@ -53,7 +66,9 @@ const birthDate = yearDate =>{
 onMounted(async () => {
     state.isLoading = true
     try {
-        await Promise.all([getUserData(), getStatusList()])
+        await getUserData()
+        role.value = isAdminMode.value ? state.profileInfo.role : authStore.role;
+        await getStatusList()
     } finally {
         state.isLoading = false
     }
@@ -62,7 +77,7 @@ onMounted(async () => {
 
 <template>
     <div class="d-grid g20" style="--grid-cols:300px 1fr;position: relative; min-height: 200px;">
-              <LoadingSpinner v-if="state.isLoading" :overlay="true" size="md" />
+        <LoadingSpinner v-if="state.isLoading" :overlay="true" size="md" />
         <div class="">
             <div class="info-card g20 content-wrap ">
                 <div class="info-img d-flex jc-center">
@@ -75,10 +90,13 @@ onMounted(async () => {
                 </span>
             </div>
             <div class="btn-row direct-col g5 w100p">
-                <button class="btn btn-line" @click="router.push(role == 'ADMIN' ? '/admin/members/edit': '/members/edit')">
-                    <font-awesome-icon icon="fa-solid fa-pen-to-square" /> 내 정보 수정
+                <button class="btn btn-line" @click="router.push(isAdminMode ? `/admin/members/${memberCode}/edit` : 
+                role == 'ADMIN' ? '/admin/members/edit': `/members/edit`)">
+                    <font-awesome-icon icon="fa-solid fa-pen-to-square" /> 
+                    <template v-if="isAdminMode">회원</template>
+                    <template v-else>내</template> 정보 수정
                 </button>
-                <button class="btn btn-line" @click="router.push(role == 'ADMIN' ? '/members/my/password' : '/members/my/password')">
+                <button v-if="!isAdminMode" class="btn btn-line" @click="router.push(role == 'ADMIN' ? '/members/my/password' : '/members/my/password')">
                     <font-awesome-icon icon="fa-solid fa-lock" /> 비밀번호 변경
                 </button>
                 </div>
@@ -178,7 +196,11 @@ onMounted(async () => {
             </div>
             <StatusList :role="role" :list="state.statusList" :isLoading="state.isLoading"  />
         </div>
-
+        <div v-if="isAdminMode" class="btn-row g10">
+            <button class="btn btn-default" @click="router.go(-1)">
+                <font-awesome-icon icon="fa-solid fa-arrow-left" /> 돌아가기
+            </button>
+        </div>
     </div>
 </template>
 
