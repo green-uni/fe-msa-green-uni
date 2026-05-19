@@ -48,9 +48,9 @@ export const routes = [
       ...adminScholarshipRoutes
     ],
   },
-  // 모바일 출석 화면
+  // 모바일 출석 화면 (학생 전용, /student/* 경로)
   {
-    path: '/attend',
+    path: '/student',
     component: () => import('@/layouts/AttendanceLayout.vue'),
     children: [
       ...mobileAttendanceRoutes,

@@ -1,6 +1,7 @@
 <script setup>
 import { useAuthStore } from '@/stores/authentication';
 import LectureService from '@/services/lectureService';
+import ScheduleService from '@/services/scheduleService';
 import { reactive, onMounted, computed, ref, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import DataTable from '@/components/common/DataTable.vue';
@@ -28,6 +29,34 @@ const getCurrentTerm = () => {
 const isAdmin = computed(() => authStore.role === 'ADMIN');
 const isProfessor = computed(() => authStore.role === 'PROFESSOR');
 const isStudent = computed(() => authStore.role === 'STUDENT');
+
+// ── 학사일정 기간 상태 (학생용) ────────────────────
+const periodMessage = ref('');
+const modificationNotice = ref('');
+
+const fetchPeriodStatus = async () => {
+  if (!isStudent.value) return;
+  try {
+    const res = await ScheduleService.getActiveSchedules();
+    const active = res.data?.data ?? {};
+    const isRegistration = active.COURSE_REGISTRATION || active['수강신청'];
+    const isModification = active.COURSE_MODIFICATION || active['수강정정'];
+
+    if (isRegistration) {
+      periodMessage.value = '수강신청 기간 중에는 나의 강의 목록을 확인할 수 없습니다. 수강신청 기간 종료 후 확인해 주세요.';
+      modificationNotice.value = '';
+    } else if (isModification) {
+      periodMessage.value = '';
+      modificationNotice.value = '수강정정 기간 중입니다. 정정 기간 종료 후 최종 수강내역을 확인할 수 있습니다.';
+    } else {
+      periodMessage.value = '';
+      modificationNotice.value = '';
+    }
+  } catch (e) {
+    periodMessage.value = '';
+    modificationNotice.value = '';
+  }
+};
 
 // ── 탭 (교수만) ───────────────────────────────────
 const TABS = ['전체', '대기', '승인', '반려'];
@@ -252,6 +281,7 @@ const fetchYearOptions = async () => {
 // 초기 진입: query 없으면 기본값 세팅
 onMounted(() => {
   fetchYearOptions();
+  fetchPeriodStatus();
   if (Object.keys(route.query).length === 0) {
     const { year, semester } = getCurrentTerm();
     router.replace({ path: route.path, query: { year, semester, page: 1 } });
@@ -314,8 +344,15 @@ onMounted(() => {
       </div>
     </div>
 
-    <div class="data-header">
+    <div v-if="isStudent && periodMessage" class="period-notice">
+      {{ periodMessage }}
+    </div>
+
+    <div class="data-header d-flex ai-center jc-space-b">
       전체: {{ state.totalCount }}건
+      <span v-if="isStudent && modificationNotice" class="modification-notice">
+        {{ modificationNotice }}
+      </span>
     </div>
 
     <DataTable
@@ -370,6 +407,19 @@ onMounted(() => {
   text-align: center;
 }
 .filter-header .full { justify-content: space-between; width: 100%; }
+.period-notice {
+  background: #fff8e1;
+  border: 1px solid #ffe082;
+  border-radius: 6px;
+  padding: 10px 16px;
+  color: #795548;
+  font-size: 0.9em;
+  margin-bottom: 10px;
+}
+.modification-notice {
+  font-size: 0.85em;
+  color: #e67e22;
+}
 
 .status-badge {
   position: static !important;

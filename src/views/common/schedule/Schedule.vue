@@ -45,6 +45,8 @@ const scheduleTypes = [
   { code: 'TUITION_PAYMENT', value: '등록금납부', color: '#a84c5a' },
 
   // 기타
+  { code: 'MAJOR_CHANGE', value: '전과변경신청', color: '#3b7dd8' },
+  { code: 'SEMESTER_START', value: '학기시작', color: '#2e7d32' },
   { code: 'ETC', value: '기타', color: '#475569' },
 ]
 
@@ -60,7 +62,9 @@ const currentMonthEvents = computed(() => {
 // ===== API: 학사일정 조회 =====
 const fetchSchedules = async () => {
   try {
-    const res = await ScheduleService.getSchedules({ year: currentYear.value, targetMonth: currentMonth.value })
+    const params = { year: currentYear.value }
+    if (!isYearView.value) params.targetMonth = currentMonth.value
+    const res = await ScheduleService.getSchedules(params)
     // FullCalendar exclusive end 처리 (endDate + 1일)
     events.value = res.data.data.map(s => {
       const endDate = new Date(s.endDate)
@@ -223,8 +227,8 @@ fetchSchedules()
       </div>
       <div class="view-controls">
         <div class="toggle-group">
-          <button :class="{ active: !isYearView }" @click="isYearView = false">월간일정</button>
-          <button :class="{ active: isYearView }" @click="isYearView = true">연간일정</button>
+          <button :class="{ active: !isYearView }" @click="isYearView = false; fetchSchedules()">월간일정</button>
+          <button :class="{ active: isYearView }" @click="isYearView = true; fetchSchedules()">연간일정</button>
         </div>
       </div>
     </header>

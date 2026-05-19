@@ -112,7 +112,7 @@ export default defineConfig(({ mode }) => {
       // [추가] 모든 네트워크 인터페이스 수신 → 같은 WiFi의 모바일에서 PC IP로 접근 가능
       host: '0.0.0.0',
       // [추가] ngrok 도메인 허용 (Vite 기본 차단 우회)
-      // allowedHosts: ['bottom-gleaming-lather.ngrok-free.dev'],
+      allowedHosts: ['bottom-gleaming-lather.ngrok-free.dev'],
       // [주석] ngrok 사용 시 HTTP로 운영 (ngrok이 HTTPS 처리)
       // https: true,
       // [추가] /api/* 요청을 게이트웨이(8000)로 프록시
