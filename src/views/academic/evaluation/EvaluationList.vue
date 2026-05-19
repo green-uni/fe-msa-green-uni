@@ -1,10 +1,11 @@
 <script setup>
 import { reactive, onMounted, computed, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/authentication';
 import evaluationService from '@/services/evaluationService';
 
 const router = useRouter();
+const route = useRoute();
 const authStore = useAuthStore();
 const role = computed(() => authStore.role);
 
@@ -19,8 +20,8 @@ const getCurrentTerm = () => {
 };
 
 const filter = reactive({
-  year: getCurrentTerm().year,
-  semester: getCurrentTerm().semester,
+  year: route.query.year ? Number(route.query.year) : getCurrentTerm().year,
+  semester: route.query.semester ? Number(route.query.semester) : getCurrentTerm().semester,
 });
 
 const state = reactive({
