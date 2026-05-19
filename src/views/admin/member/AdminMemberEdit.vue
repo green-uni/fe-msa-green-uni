@@ -39,15 +39,8 @@ const adminStatusList = ref([])
 
 // 공통 필드
 const common = reactive({
-  email: '',
   name: '',
-  birth: '',
-  tel: '',
-  emergencyTel: '',
-  postcode: '',
-  address: '',
-  detailAddress: '',
-  pic: '',
+  birth: ''
 })
 
 // Student 필드
@@ -70,9 +63,6 @@ const professor = reactive({
   majorId: null,
   degree: '',
   position: '',
-  labBuilding: '',
-  labRoom: '',
-  labTel: '',
   status: '',
   entryDate: '',
   exitDate: '',
@@ -101,8 +91,8 @@ const DATE_RE  = /^\d{4}-\d{2}-\d{2}$/
 
 const validateProfile = () => {
   const errors = []
-  if (!common.name) errors.push('이름을 입력해주세요.')
-  if (!common.birth) errors.push('생년월일을 입력해주세요.')
+  if (!common.name) errors.push('이름은 비워둘 수 없습니다.')
+  if (!common.birth) errors.push('생년월일은 비워둘 수 없습니다.')
   else if (!DATE_RE.test(common.birth)) errors.push('생년월일 형식이 올바르지 않습니다. (YYYY-MM-DD)')
   if (errors.length > 0) { modal.showAlert(errors.join('\n'), 'warning'); return false }
   return true
@@ -114,6 +104,18 @@ const validateStatus = () => {
     if (!statusForm.status && !statusForm.position) errors.push('변경할 상태 또는 직위를 선택해주세요.')
   } else {
     if (!statusForm.status) errors.push('변경할 상태를 선택해주세요.')
+  }
+  if (targetRole.value === 'STUDENT' && statusForm.status === 'ABSENCE') {
+    if (!statusForm.startDate) errors.push('휴학 시작일을 입력해주세요.')
+    if (!statusForm.endDate) errors.push('휴학 종료일을 입력해주세요.')
+    if (!statusForm.returnYear) errors.push('복학 연도를 입력해주세요.')
+    if (!statusForm.returnSemester) errors.push('복학 학기를 입력해주세요.')
+  }
+  if ((targetRole.value === 'PROFESSOR' || targetRole.value === 'ADMIN') && statusForm.status === 'ABSENCE') {
+    if (!statusForm.startDate) errors.push('휴직 시작일을 입력해주세요.')
+  }
+  if (targetRole.value === 'PROFESSOR' && statusForm.status === 'SABBATICAL') {
+    if (!statusForm.startDate) errors.push('안식년 시작일을 입력해주세요.')
   }
   if (statusForm.startDate && statusForm.endDate && statusForm.startDate > statusForm.endDate)
     errors.push('시작일이 종료일보다 늦을 수 없습니다.')
@@ -197,7 +199,7 @@ const statusSubmit = async () => {
 
     if (targetRole.value === 'STUDENT') {
       student.status = statusForm.status
-      original.value = { ...original.value, status: statusForm.status }
+      original.value = { ...original.value, status: statusForm.status, returnYear: statusForm.returnYear, returnSemester: statusForm.returnSemester  }
     } else if (targetRole.value === 'PROFESSOR') {
       if (statusForm.status) { professor.status = statusForm.status; original.value = { ...original.value, status: statusForm.status } }
       if (statusForm.position) { professor.position = statusForm.position; original.value = { ...original.value, position: statusForm.position } }
@@ -207,15 +209,18 @@ const statusSubmit = async () => {
     }
 
     Object.assign(statusForm, { status: '', reason: '', startDate: '', endDate: '', returnYear: null, returnSemester: null, position: '' })
+    router.push(`/admin/members/${route.params.memberCode}`)
   } finally {
     isLoading.value = false
   }
 }
 
-// ABSENCE 외 상태 선택 시 날짜/복학 필드 초기화
 watch(() => statusForm.status, (val) => {
-  if (val !== 'ABSENCE') {
+  if (val !== 'ABSENCE' && val !== 'SABBATICAL') {
     statusForm.startDate = ''
+  }
+  // ABSENCE 외 상태 선택 시 날짜/복학 필드 초기화
+  if (val !== 'ABSENCE') {
     statusForm.endDate = ''
     statusForm.returnYear = null
     statusForm.returnSemester = null
@@ -259,13 +264,8 @@ onMounted(async () => {
 
   // 공통 필드 채우기
   common.name = data.name
-  common.email = data.email
   common.birth = data.birth
   common.tel = data.tel
-  common.emergencyTel = data.emergencyTel
-  common.postcode = data.postcode
-  common.address = data.address
-  common.detailAddress = data.detailAddress
   common.pic = data.pic
 
   // 역할별 필드 채우기
@@ -306,8 +306,10 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="form-wrap" style="position: relative; min-height: 200px;">
-    <LoadingSpinner v-if="isLoading" :overlay="true" size="md" />
+<div style="position: relative; min-height: 200px;">
+  <LoadingSpinner v-if="isLoading" :overlay="true" size="md" />
+  <div class="form-wrap">
+    
     <div class="d-flex g20 jc-center">
       <div class="pf-profile content-wrap">
         <h3><font-awesome-icon icon="fa-solid fa-circle-info" /> 사진 수정</h3>
@@ -428,9 +430,14 @@ onMounted(async () => {
               />
             </div>
           </div>
-          <div class="input-wrap" v-if="statusForm.status === 'ABSENCE'">
+          <div class="input-wrap" v-if="statusForm.status === 'ABSENCE' || (targetRole === 'PROFESSOR' && statusForm.status === 'SABBATICAL')">
             <div class="input-label">
-              <span><template v-if="targetRole === 'PROFESSOR'">휴직 </template>시작일</span>
+              <span>
+                <template v-if="statusForm.status === 'SABBATICAL'">안식년 </template>
+                <template v-else-if="targetRole === 'PROFESSOR' || targetRole === 'ADMIN'">휴직 </template>
+                시작일
+              </span>
+              <span class="required-mark">*</span>
             </div>
             <div class="input-content">
               <CalendarDate v-model="statusForm.startDate" />
@@ -439,6 +446,7 @@ onMounted(async () => {
           <div class="input-wrap" v-if="statusForm.status === 'ABSENCE'">
             <div class="input-label">
               <span v-if="targetRole === 'PROFESSOR'">복직일</span><span v-else>종료일</span>
+              <span v-if="targetRole === 'STUDENT'" class="required-mark">*</span>
             </div>
             <div class="input-content">
               <CalendarDate v-model="statusForm.endDate" />
@@ -448,7 +456,7 @@ onMounted(async () => {
             class="input-wrap"
             v-if="targetRole === 'STUDENT' && statusForm.status === 'ABSENCE'"
           >
-            <div class="input-label">복학시기</div>
+            <div class="input-label">복학시기 <span class="required-mark">*</span></div>
             <div class="input-content d-flex g10">
               <input type="number" v-model="statusForm.returnYear" placeholder="연도" />
               <input type="number" v-model="statusForm.returnSemester" placeholder="학기" />
@@ -468,9 +476,14 @@ onMounted(async () => {
       </button>
     </div>
   </div>
+  </div>
 </template>
 
 <style scoped lang="scss">
+.required-mark {
+  color: var(--color-danger, #e53e3e);
+  margin-left: 2px;
+}
 .pf-profile {
   max-width: 280px;
   width: 30%;
