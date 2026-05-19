@@ -45,6 +45,8 @@ const scheduleTypes = [
   { code: 'TUITION_PAYMENT', value: '등록금납부', color: '#a84c5a' },
 
   // 기타
+  { code: 'MAJOR_CHANGE', value: '전과변경신청', color: '#3b7dd8' },
+  { code: 'SEMESTER_START', value: '학기시작', color: '#2e7d32' },
   { code: 'ETC', value: '기타', color: '#475569' },
 ]
 
