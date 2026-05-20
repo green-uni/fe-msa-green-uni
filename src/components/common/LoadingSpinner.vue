@@ -32,19 +32,17 @@ defineProps({
 </template>
 
 <style scoped lang="scss">
-/* 오버레이: 부모 기준으로 전체를 덮음 */
 .loading-overlay {
   position: absolute;
-  inset: 0;               /* top/right/bottom/left 전부 0 = 부모 꽉 채움 */
-  background: rgba(255, 255, 255, 0.75);
+  inset: 0;  
+  background: $default-bg;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10;
-  border-radius: inherit; /* 부모 border-radius 그대로 따라감 */
+  border-radius: inherit; 
 }
 
-/* 인라인: 해당 영역 안에서 중앙 정렬 */
 .loading-inline {
   display: flex;
   flex-direction: column;
@@ -55,12 +53,11 @@ defineProps({
   width: 100%;
 }
 
-/* 공통: 스피너 원형 */
 .spinner {
   border-radius: 50%;
   border-style: solid;
-  border-color: var(--line-color);           /* 기본 테두리: 연한 회색 */
-  border-top-color: var(--main-color);       /* 돌아가는 부분: 메인 컬러 */
+  border-color: $line-color;     
+  border-top-color: $green-600; 
   animation: spin 0.7s linear infinite;
 
   &.sm { width: 20px; height: 20px; border-width: 2px; }

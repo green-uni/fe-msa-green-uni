@@ -1,24 +1,22 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useAuthStore } from '@/stores/authentication'
 import ProfessorFields from '@/components/member/ProfessorFields.vue'
 import CommonFields from '@/components/member/CommonFields.vue'
-
 import ProfileImg from '@/components/common/ProfileImg.vue'
-
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import MemberService from '@/services/memberService'
 import codeListService from '@/services/codeService'
-
 import { useModalStore } from '@/stores/modal'
 
 const router = useRouter()
-const route = useRoute()
 const authStore = useAuthStore()
 const modal = useModalStore()
 
 const editMode = 'selfEdit';
 const targetRole = ref('')
+const isLoading = ref(false)
 
 const pic = ref(null)
 const majorList = ref([])
@@ -81,8 +79,32 @@ const admin = reactive({
 
 const original = ref({})
 
+const EMAIL_RE = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
+const DATE_RE  = /^\d{4}-\d{2}-\d{2}$/
+const TEL_RE   = /^0\d{9,10}$/
+
+const validate = () => {
+  const errors = []
+  if (!common.email) errors.push('이메일을 입력해주세요.')
+  else if (!EMAIL_RE.test(common.email)) errors.push('이메일 형식이 올바르지 않습니다.')
+  if (!common.name) errors.push('이름을 입력해주세요.')
+  if (!common.birth) errors.push('생년월일을 입력해주세요.')
+  else if (!DATE_RE.test(common.birth)) errors.push('생년월일 형식이 올바르지 않습니다. (YYYY-MM-DD)')
+  if (!common.tel) errors.push('전화번호를 입력해주세요.')
+  else if (!TEL_RE.test(common.tel)) errors.push('전화번호 형식이 올바르지 않습니다. (숫자 10~11자리)')
+  if (common.emergencyTel && !TEL_RE.test(common.emergencyTel)) errors.push('비상연락처 형식이 올바르지 않습니다. (숫자 10~11자리)')
+  if (errors.length > 0) {
+    modal.showAlert(errors.join('\n'), 'warning')
+    return false
+  }
+  return true
+}
+
 const submit = async () => {
-// 현재값 합치기
+  if (!validate()) return
+  if (isLoading.value) return
+
+  // 현재값 합치기
   const current = targetRole.value === 'STUDENT'   ? { ...common, ...student }
               : targetRole.value === 'PROFESSOR' ? { ...common, ...professor }
               : { ...common, ...admin }
@@ -97,7 +119,7 @@ const submit = async () => {
   delete changed.majorName
 
   // 변경사항 없으면 early return
-  if (Object.keys(changed).length === 0) {
+  if (Object.keys(changed).length === 0 && !pic.value) {
     await modal.showAlert('변경된 내용이 없습니다', 'info')
     return
   }
@@ -105,20 +127,39 @@ const submit = async () => {
   // FormData 구성
   const formData = new FormData()
   formData.append('req', new Blob([JSON.stringify(changed)], { type: 'application/json' }))
-  if (pic.value) {
-    formData.append('pic', pic.value)
-  }
+  if (pic.value) formData.append('pic', pic.value)
 
+  isLoading.value = true
   try {
     const res = await MemberService.modifyMyProfile(formData)
+    if (changed.name) authStore.name = changed.name
+    original.value = {}
     await modal.showAlert(res.message, 'success')
-    router.push('/members/my')
-  } catch (e) {
-    console.error(e)
+    router.push(authStore.role == 'ADMIN' ? '/admin/members/my' : '/members/my')
+  } finally {
+    isLoading.value = false
   }
 }
 
+onBeforeRouteLeave(async (_to, _from, next) => {
+  if (!original.value || Object.keys(original.value).length === 0) { next(); return }
+
+  const current = targetRole.value === 'STUDENT'   ? { ...common, ...student }
+              : targetRole.value === 'PROFESSOR' ? { ...common, ...professor }
+              : { ...common, ...admin }
+  delete current.majorName
+
+  const hasChanges = Object.keys(current).some(key => current[key] !== original.value[key]) || !!pic.value
+  if (hasChanges) {
+    const confirmed = await modal.showConfirm('입력한 내용이 저장되지 않습니다. 나가시겠습니까?', 'warning')
+    confirmed ? next() : next(false)
+  } else {
+    next()
+  }
+})
+
 onMounted(async () => {
+  isLoading.value = true
   const [
     majors,
     studentStatus,
@@ -194,16 +235,19 @@ onMounted(async () => {
   } else {
     original.value = JSON.parse(JSON.stringify({ ...common, ...admin }))
   }
+
+  isLoading.value = false
 })
 </script>
 
 <template>
-  <div class="form-wrap">
+  <div class="form-wrap" style="position: relative; min-height: 200px;">
+    <LoadingSpinner v-if="isLoading" :overlay="true" size="md" />
 
     <div class="d-flex g20 jc-center">
       <div class="pf-profile content-wrap">
         <h3><font-awesome-icon icon="fa-solid fa-circle-info" /> 사진 수정</h3>
-        <ProfileImg :editable="true" v-model:pic="pic"/>
+        <ProfileImg :editable="true" v-model:pic="pic" :memberCode="authStore.memberCode" :existPic="common.pic" />
       </div>
       <!-- pf-profile-->
 
@@ -235,16 +279,13 @@ onMounted(async () => {
     <button class="btn btn-default" @click="router.go(-1)">
       <font-awesome-icon icon="fa-solid fa-arrow-left" /> 돌아가기
     </button>
-    <button @click="submit" class="btn btn-submit">
-      <font-awesome-icon icon="fa-solid fa-circle-check" /> 수정
+    <button @click="submit" class="btn btn-submit" :disabled="isLoading">
+      <font-awesome-icon icon="fa-solid fa-circle-check" /> {{ isLoading ? '수정 중...' : '수정' }}
     </button>
   </div>
 </template>
 
 <style scoped lang="scss">
-.form-wrap {
-}
-
 .pf-profile {
   max-width: 280px;
   width: 30%;

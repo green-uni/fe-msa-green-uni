@@ -5,6 +5,8 @@ export const memberRoutes = [
     path: `${url}/dashboard`,
     component: () => import('@/views/common/member/MemberDashboard.vue'),
     meta: {
+      // title: '대시보드',
+      groupTitle: '그린대학교',
       showInNav: false,
       auth: ['STUDENT', 'PROFESSOR'],
     },
@@ -30,14 +32,27 @@ export const memberRoutes = [
     },
   },
   {
+    path: `${url}/my/password`,
+    component: () => import('@/views/common/auth/PasswordChange.vue'),
+    meta: {
+      title: '비밀번호 변경',
+      groupTitle: '내 정보 관리',
+      showInNav: false,
+      activeMenu: 'my',
+      auth: ['STUDENT', 'PROFESSOR'],
+    },
+  },
+  // ------------------ 상태 변경 신청 조회 처리 ---------------
+  {
     path: `${url}/status-request`,
     component: () => import('@/views/common/BlankPage.vue'),
     meta: {
-      title: '휴복학 신청서 제출',
+      title: '휴복학 신청',
       groupTitle: '내 정보 관리',
       auth: ['STUDENT'],
     },
   },
+  // ------------------ 전공 변경 신청 조회 처리 ---------------
   {
     path: `${url}/major-request`,
     component: () => import('@/views/common/BlankPage.vue'),
@@ -55,6 +70,8 @@ export const adminMemberRoutes = [
     component: () => import('@/views/common/member/MemberDashboard.vue'),
     meta: {
       showInNav: false,
+      title: '대시보드',
+      groupTitle: '그린대학교',
       auth: ['ADMIN'],
     },
   },
@@ -79,11 +96,25 @@ export const adminMemberRoutes = [
     },
   },
   {
+    path: `${url}/my/password`,
+    component: () => import('@/views/common/auth/PasswordChange.vue'),
+    meta: {
+      title: '비밀번호 변경',
+      groupTitle: '내 정보 관리',
+      showInNav: false,
+      activeMenu: '/member/my',
+      auth: ['ADMIN'],
+    },
+  },
+  // ------------------ 회원 조회 --------------------
+  {
     path: `${url}/students`,
     component: () => import('@/views/admin/member/AdminStudentList.vue'),
     meta: {
       title: '학생 목록 조회',
-      groupTitle: '인사 정보 관리',
+      navTitle: '회원 조회',
+      groupTitle: '회원 정보 관리',
+      subTitle: '회원 전체 조회',
       auth: ['ADMIN'],
     },
   },
@@ -92,7 +123,11 @@ export const adminMemberRoutes = [
     component: () => import('@/views/admin/member/AdminProfessorList.vue'),
     meta: {
       title: '교수 목록 조회',
-      groupTitle: '인사 정보 관리',
+      navTitle: '회원 조회',
+      groupTitle: '회원 정보 관리',
+      subTitle: '회원 전체 조회',
+      showInNav: false,
+      activeMenu: `${url}/students`,
       auth: ['ADMIN'],
     },
   },
@@ -101,16 +136,45 @@ export const adminMemberRoutes = [
     component: () => import('@/views/admin/member/AdminAdminList.vue'),
     meta: {
       title: '관리자 목록 조회',
-      groupTitle: '인사 정보 관리',
+      navTitle: '회원 조회',
+      groupTitle: '회원 정보 관리',
+      subTitle: '회원 전체 조회',
+      showInNav: false,
+      activeMenu: `${url}/students`,
       auth: ['ADMIN'],
     },
   },
   {
+    path: `${url}/:memberCode`,
+    component: () => import('@/views/common/member/MemberProfile.vue'),
+    meta: {
+      title: '회원 상세 정보 조회',
+      groupTitle: '회원 정보 관리',
+      showInNav: false,
+      activeMenu: `${url}/students`,
+      auth: ['ADMIN'],
+    },
+  },
+  {
+    path: `${url}/:memberCode/edit`,
+    component: () => import('@/views/admin/member/AdminMemberEdit.vue'),
+    meta: {
+      title: '회원 정보 변경',
+      groupTitle: '회원 정보 관리',
+      showInNav: false,
+      activeMenu: `${url}/students`,
+      auth: ['ADMIN'],
+    },
+  },
+  // ------------------ 계정 생성 --------------------
+  {
     path: `${url}/new`,
     component: () => import('@/views/admin/member/MemberCreate.vue'),
     meta: {
-      title: '계정 생성',
-      groupTitle: '인사 정보 관리',
+      title: '계정 개별 등록',
+      navTitle: '회원 계정 생성',
+      subTitle: '회원 계정 생성',
+      groupTitle: '회원 정보 관리',
       auth: ['ADMIN'],
     },
   },
@@ -118,39 +182,32 @@ export const adminMemberRoutes = [
     path: `${url}/new/batch`,
     component: () => import('@/views/admin/member/MemberBatchCreate.vue'),
     meta: {
-      title: '계정 일괄 생성',
-      groupTitle: '인사 정보 관리',
+      title: '계정 일괄 등록',
+      navTitle: '회원 계정 생성',
+      subTitle: '회원 계정 생성',
+      groupTitle: '회원 정보 관리',
       showInNav: false,
       activeMenu: `${url}/new`,
       auth: ['ADMIN'],
     },
   },
-  {
-    path: `${url}/:memberCode`,
-    component: () => import('@/views/admin/member/AdminMemberEdit.vue'),
-    meta: {
-      title: '인사 정보 수정',
-      groupTitle: '인사 정보 관리',
-      showInNav: false,
-      activeMenu: `${url}`,
-      auth: ['ADMIN'],
-    },
-  },
+  // ------------------ 상태 변경 신청 조회 처리 ---------------
   {
     path: `${url}/status-request`,
     component: () => import('@/views/common/BlankPage.vue'),
     meta: {
       title: '상태 변경 신청 조회',
-      groupTitle: '인사 정보 관리',
+      groupTitle: '회원 정보 관리',
       auth: ['ADMIN'],
     },
   },
+  // ------------------ 전공 변경 신청 조회 처리 ---------------
   {
     path: `${url}/major-request`,
     component: () => import('@/views/common/BlankPage.vue'),
     meta: {
       title: '전공 변경 신청 조회',
-      groupTitle: '인사 정보 관리',
+      groupTitle: '회원 정보 관리',
       auth: ['ADMIN'],
     },
   },

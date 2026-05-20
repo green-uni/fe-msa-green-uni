@@ -4,7 +4,6 @@ const modal = useModalStore();
 </script>
 
 <template>
-  <!--Transition: 엘리먼트나 컴포넌트가 나타나고 사라질 때 애니메이션 효과를 쉽게 적용할 수 있도록 도와주는 내장 컴포넌트-->
   <Transition name="modal-fade">
     <div v-if="modal.isOpen" class="modal-dim" @click.self="modal.close(false)">
       <div class="modal-box">
