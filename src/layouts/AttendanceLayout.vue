@@ -23,10 +23,14 @@ onUnmounted(() => document.body.classList.remove('pwa-view'))
 
 <style scoped lang="scss">
 .pwa-wrap {
-  min-height: 100dvh;
+  min-height: 100vh;      // 구형 Android fallback
+  min-height: 100dvh;     // 모던 브라우저
   display: flex;
   flex-direction: column;
   background: var(--default-bg);
+  // iOS 노치 safe area
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 .container {
   flex: 1;

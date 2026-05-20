@@ -117,6 +117,11 @@
   overflow-y: auto;
   color: $font-color;
 
+  @media (max-width: 960px) {
+    padding: 2em 1.5em;
+    gap: 20px;
+  }
+
   .top {
     display: flex;
     justify-content: space-between;

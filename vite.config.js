@@ -24,9 +24,14 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         // 새 버전 배포 시 사용자 개입 없이 서비스 워커 자동 갱신
         registerType: 'autoUpdate',
-        // [수정] dev 서버에서는 SW 비활성화 — 활성화 시 팀원 hot reload 캐시 문제 발생
-        // PWA 테스트 필요 시 enabled: true 로 변경 후 Ctrl+Shift+R 강력 새로고침
-        devOptions: { enabled: false },
+        // dev 서버에서 SW 활성화 — 모바일 PWA 주소창 숨김 동작 확인용
+        // 캐시 문제 발생 시 브라우저에서 Ctrl+Shift+R(강력 새로고침) 사용
+        // 팀원 개발 환경에서는 필요 시 false 로 전환 가능
+        devOptions: {
+          enabled: false,
+          type: 'module',           // Vite HMR과 충돌 방지
+          navigateFallback: 'index.html', // SPA 딥링크 정상 동작
+        },
         // 캐싱할 정적 자산 패턴
         // [수정] public/ 기준 상대 경로 — icons/ 폴더 안 모든 아이콘 캐싱 대상
         includeAssets: ['icons/*.png', 'icons/*.ico', 'icons/*.svg'],
@@ -120,6 +125,22 @@ export default defineConfig(({ mode }) => {
       proxy: {
         '/api': {
           target: 'http://localhost:8000',
+          changeOrigin: true,
+        }
+      }
+    },
+    // [추가] npm run preview 시에도 ngrok + API 프록시 동작
+    // 빌드 후 시연용: npm run build && npm run preview
+    preview: {
+      host: '0.0.0.0',
+      allowedHosts: ['bottom-gleaming-lather.ngrok-free.dev'],
+      proxy: {
+        '/api': {
+          target: proxyTarget,
+          changeOrigin: true,
+        },
+        '/file': {
+          target: proxyTarget,
           changeOrigin: true,
         }
       }

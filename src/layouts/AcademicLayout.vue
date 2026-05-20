@@ -56,6 +56,7 @@ const showLayout = computed(() =>
 // ---------- Layout ----------
 .intro {
   min-height: 100vh;
+  min-height: 100dvh; // 모던 브라우저: 주소창 높이 제외한 실제 화면 높이
   display: grid;
   grid-template-columns: 1fr 1.5fr;
 
@@ -73,6 +74,11 @@ const showLayout = computed(() =>
     url(https://images.unsplash.com/photo-1568792923760-d70635a89fdc?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D) center/cover no-repeat;
   color: #fff;
   min-height: 300px;
+
+  // 모바일: 배너 숨김 → 로그인 패널이 전체 화면을 차지
+  @media (max-width: 960px) {
+    display: none;
+  }
 
   &-content {
     position: relative;
@@ -107,6 +113,17 @@ const showLayout = computed(() =>
   display: flex;
   align-items: center;
   justify-content: center;
+
+  @media (max-width: 960px) {
+    // 배너가 없으므로 전체 화면 차지
+    min-height: 100vh;       // 구형 Android fallback
+    min-height: 100dvh;      // 모던 브라우저: 주소창 포함 실제 가용 높이
+    // 콘텐츠가 화면보다 길면 위에서부터 표시
+    align-items: flex-start;
+    // iOS 노치(상단) · 홈바(하단) safe area 여백 — Android는 값이 0이라 무해
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }
 
 // ---------- noti ----------
