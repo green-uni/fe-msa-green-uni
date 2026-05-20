@@ -227,7 +227,6 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
-/* ... 스타일은 이전과 동일 ... */
 .page-title { font-size: var(--text-xl); font-weight: 600; display: flex; align-items: center; gap: 8px; .title-icon { color: var(--main-color); font-size: 0.8em; } }
 .breadcrumb { font-size: var(--text-sm); color: var(--font-color-light); }
 .guide-text { text-align: center; padding: 60px 0; color: var(--font-color-light); font-size: var(--text-sm); }
