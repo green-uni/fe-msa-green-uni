@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, reactive } from 'vue'
+import { onMounted, reactive,computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import NotificationService from '@/services/notificationService'
 
@@ -8,7 +8,7 @@ const router = useRouter()
 const state = reactive({
   isLoading: false,
 })
-
+const sortByUnread = ref(false) // false = 최신순, true = 미읽음 먼저
 const loadNotifications = async () => {
   state.isLoading = true
   try {
@@ -24,6 +24,16 @@ const loadNotifications = async () => {
     state.isLoading = false
   }
 }
+const sortedNotifications = computed(() => {
+  const list = NotificationService.notifications.value
+  if (sortByUnread.value) {
+    return [...list].sort((a, b) => {
+      if (a.isRead === b.isRead) return 0
+      return a.isRead ? 1 : -1
+    })
+  }
+  return list // 최신순은 서버에서 이미 정렬된 상태
+})
 
 const handleClick = async (noti) => {
   if (!noti.isRead) {
@@ -96,6 +106,10 @@ onMounted(loadNotifications)
     <div class="noti-header">
       <span class="noti-title">알림</span>
       <div class="noti-actions">
+        <!-- 토글 추가 -->
+        <button class="btn-text" @click="sortByUnread = !sortByUnread">
+          {{ sortByUnread ? '최신순' : '미읽음' }}
+        </button>
         <button v-if="NotificationService.unreadCount.value > 0" class="btn-text" @click="readAll">
           전체 읽음
         </button>
@@ -117,7 +131,7 @@ onMounted(loadNotifications)
 
       <ul v-else>
         <li
-          v-for="noti in NotificationService.notifications.value"
+          v-for="noti in sortedNotifications"
           :key="noti.notiId"
           class="noti-item"
           :class="{ unread: !noti.isRead }"

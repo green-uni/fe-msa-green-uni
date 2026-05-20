@@ -18,6 +18,8 @@ const isMobile = route.path.startsWith('/attend');
 
 const doLogOut = async () => {
   try {
+    NotificationService.disconnect() // 1. 웹소켓 끊기
+    authStore.logOut()               // 2. isLogin = false로 먼저 만들기 (인터셉터가 재발급 안 하게)
     await AuthService.logOut();
     authStore.logOut();
     await router.push(role === 'ADMIN' ? '/admin/login' : '/login')
