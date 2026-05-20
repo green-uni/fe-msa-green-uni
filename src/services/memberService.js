@@ -32,6 +32,50 @@ class MemberService {
     return res.data;    
   }
 
+  //////////////////////// 학생 //////////////////////////
+  
+  // 내 전공변경 신청 조회
+  async findAllMyMajorRequest() {
+    const res = await axios.get(`${this.#path}/student/requests/major`)
+    return res.data;    
+  }
+  // 내 전공변경 신청 상세 페이지 조회
+  async findMyMajorRequest(requestId) {
+    const res = await axios.get(`${this.#path}/student/requests/major/${requestId}`)
+    return res.data;    
+  }
+  // 전공 변경 신청서 제출
+  async sendMajorRequest(formData) {
+    const res = await axios.post(`${this.#path}/student/requests/major`, formData)
+    return res.data;    
+  }
+  // 전공 변경 신청 취소
+  async cancelMajorRequest(requestId) {
+    const res = await axios.delete(`${this.#path}/student/requests/major/${requestId}`)
+    return res.data;
+  }
+  async downloadMajorRequestFile(requestId) {
+    const res = await axios.get(
+      `${this.#path}/student/requests/major/${requestId}/file`,
+        { responseType: 'blob' } 
+    );                                                                                                                                                                    
+    const disposition = res.headers['content-disposition'];
+    let fileName = 'download.pdf';
+    if (disposition) {
+        const match = disposition.match(/filename\*=UTF-8''(.+)/i);
+        if (match) fileName = decodeURIComponent(match[1]);
+    }
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+}
+
+
   //////////////////////// 관리자 ////////////////////////
 
   // 학생 목록 조회

@@ -46,3 +46,7 @@ export const BUILDING_LABEL = {
     MAIN_BUILDING: '대학본부',
     LAB: '실험동'
 }
+
+export const APPROVAL_STATUS = {
+  PENDING: '대기', APPROVED: '승인', REJECTED: '반려', CANCELLED: '취소'
+}

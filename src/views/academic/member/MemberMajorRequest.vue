@@ -1,0 +1,245 @@
+<script setup>
+import { reactive, ref, watch, onMounted, nextTick } from 'vue';
+import { useRouter, onBeforeRouteLeave } from 'vue-router';
+import { useAuthStore } from '@/stores/authentication';
+import { useModalStore } from '@/stores/modal';
+import { usePageStateStore } from '@/stores/pageState';
+import codeListService from '@/services/codeService';
+import MemberService from '@/services/memberService';
+import ScheduleService from '@/services/scheduleService';
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
+
+const router = useRouter();
+const authStore = useAuthStore();
+const modal = useModalStore();
+const pageState = usePageStateStore();
+
+const DRAFT_KEY = 'majorRequestDraft';
+const today = new Date().toISOString().slice(0, 10);
+
+const isReady = ref(false);
+const isLoading = ref(false);
+const isInPeriod = ref(false);
+const majorList = ref([]);
+const typeOptions = ref([]);
+
+const fetchPeriodStatus = async () => {
+    try {
+        const res = await ScheduleService.getActiveSchedules();
+        const active = res.data?.data ?? {};
+        isInPeriod.value = !!(active.MAJOR_CHANGE || active['전공변경신청']);
+    } catch {
+        isInPeriod.value = false;
+    }
+};
+
+const form = reactive({ type: '', targetMajorId: '', reason: '' });
+const file = ref(null);
+const fileInput = ref(null);
+
+// ── 임시저장 ─────────────────────────────────────────
+const handleTempSave = () => {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...form }));
+    modal.showAlert('임시저장 되었습니다.', 'info');
+};
+
+const loadDraft = () => {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return false;
+    Object.assign(form, JSON.parse(raw));
+    return true;
+};
+
+// ── 초기화 ────────────────────────────────────────────
+const resetForm = async () => {
+    const confirmed = await modal.showConfirm('입력한 내용이 모두 초기화됩니다. 계속하시겠습니까?', 'warning');
+    if (!confirmed) return;
+    Object.assign(form, { type: '', targetMajorId: '', reason: '' });
+    file.value = null;
+    if (fileInput.value) fileInput.value.value = '';
+    localStorage.removeItem(DRAFT_KEY);
+    pageState.setContent(false);
+    modal.showAlert('내용이 모두 초기화되었습니다.', 'info');
+};
+
+// ── 유효성 ────────────────────────────────────────────
+const validate = () => {
+    const errors = [];
+    if (!form.type) errors.push('유형을 선택해주세요.');
+    if (!form.targetMajorId) errors.push('희망 학과를 선택해주세요.');
+    if (!form.reason.trim()) errors.push('신청 사유를 입력해주세요.');
+    if (errors.length > 0) { modal.showAlert(errors.join('\n'), 'warning'); return false; }
+    return true;
+};
+
+// ── 제출 ──────────────────────────────────────────────
+const submit = async () => {
+    if (!validate() || isLoading.value) return;
+    const formData = new FormData();
+    formData.append('req', new Blob([JSON.stringify({
+        type: form.type,
+        targetMajorId: form.targetMajorId,
+        reason: form.reason,
+    })], { type: 'application/json' }));
+    if (file.value) formData.append('file', file.value);
+    isLoading.value = true;
+    try {
+        await MemberService.sendMajorRequest(formData);
+        localStorage.removeItem(DRAFT_KEY);
+        pageState.setContent(false);
+        await modal.showAlert('신청이 완료되었습니다.', 'success');
+        router.push('/members/major-request');
+    } catch (err) {
+        console.error('신청 실패:', err);
+        modal.showAlert('신청에 실패했습니다.', 'error');
+    } finally {
+        isLoading.value = false;
+    }
+};
+
+const onFileChange = (e) => { file.value = e.target.files[0] ?? null; };
+
+// ── 이탈 경고 ─────────────────────────────────────────
+onBeforeRouteLeave(async (_to, _from, next) => {
+    if (pageState.isContent) {
+        const confirmed = await modal.showConfirm('입력한 내용이 저장되지 않습니다. 나가시겠습니까?', 'warning');
+        confirmed ? next() : next(false);
+    } else {
+        next();
+    }
+});
+
+watch(() => ({ ...form }), () => {
+    if (isReady.value) pageState.setContent(true);
+}, { deep: true });
+
+// ── 초기 데이터 ───────────────────────────────────────
+onMounted(async () => {
+    try {
+        const [majors, types] = await Promise.all([
+            MemberService.getMajorList(),
+            codeListService.getMajorRequestType(),
+            fetchPeriodStatus(),
+        ]);
+        majorList.value = majors.data ?? [];
+        typeOptions.value = types.data ?? [];
+    } catch (err) {
+        console.error('옵션 로드 실패:', err);
+    }
+
+    await nextTick();
+    isReady.value = true;
+
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (raw) {
+        const confirmed = await modal.showConfirm('임시저장된 내용이 있습니다. 불러오시겠습니까?', 'info');
+        confirmed ? loadDraft() : localStorage.removeItem(DRAFT_KEY);
+    }
+});
+</script>
+
+<template>
+    <div class="form-wrap" style="position: relative;">
+        <LoadingSpinner v-if="isLoading" :overlay="true" size="md" />
+
+        <div v-if="!isInPeriod" class="period-notice">
+            현재 전공 변경 신청 기간이 아닙니다. 신청서 작성은 전공 변경 신청 기간에만 가능합니다.
+        </div>
+
+        <div class="form-grid" style="--grid-cols: 1fr 1fr;">
+            <!-- 이름 / 학번 -->
+            <div class="input-wrap">
+                <div class="input-label">이름</div>
+                <div class="input-content">
+                    <input type="text" :value="authStore.name" disabled />
+                </div>
+            </div>
+            <div class="input-wrap">
+                <div class="input-label">학번</div>
+                <div class="input-content">
+                    <input type="text" :value="authStore.memberCode" disabled />
+                </div>
+            </div>
+
+            <!-- 유형 / 신청일 -->
+            <div class="input-wrap">
+                <div class="input-label">유형</div>
+                <div class="input-content radio-group">
+                    <label class="radio-label" v-for="opt in typeOptions" :key="opt.code">
+                        <input type="radio" v-model="form.type" :value="opt.code" />{{ opt.value }}
+                    </label>
+                </div>
+            </div>
+            <div class="input-wrap">
+                <div class="input-label">신청일</div>
+                <div class="input-content">
+                    <input type="text" :value="today" disabled />
+                </div>
+            </div>
+
+            <!-- 희망 학과 -->
+            <div class="input-wrap input-grid-full">
+                <div class="input-label">희망 학과</div>
+                <div class="input-content">
+                    <select v-model="form.targetMajorId">
+                        <option value="">선택하세요</option>
+                        <option v-for="m in majorList" :key="m.majorId" :value="m.majorId">{{ m.name }}</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 신청 사유 -->
+            <div class="input-wrap input-grid-full">
+                <div class="input-label">신청 사유</div>
+                <div class="input-content">
+                    <textarea v-model="form.reason" placeholder="신청 사유를 입력해주세요." />
+                </div>
+            </div>
+
+            <!-- 첨부파일 -->
+            <div class="input-wrap input-grid-full">
+                <div class="input-label">첨부 파일</div>
+                <div class="input-content file-row">
+                    <input type="text" :value="file?.name ?? ''" placeholder="업로드된 파일 없음" disabled />
+                    <button type="button" class="btn btn-line" @click="fileInput.click()">서류 선택</button>
+                    <input ref="fileInput" type="file" class="hidden" @change="onFileChange" />
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-row g10">
+            <button class="btn btn-default" @click="router.go(-1)">
+                <font-awesome-icon icon="fa-solid fa-arrow-left" /> 뒤로가기
+            </button>
+            <button class="btn btn-default" @click="resetForm">
+                <font-awesome-icon icon="fa-solid fa-rotate-left" /> 초기화
+            </button>
+            <button class="btn btn-line point" @click="handleTempSave">
+                <font-awesome-icon icon="fa-regular fa-floppy-disk" /> 임시저장
+            </button>
+            <button class="btn btn-submit" @click="submit" :disabled="isLoading || !isInPeriod">
+                <font-awesome-icon icon="fa-solid fa-circle-check" /> {{ isLoading ? '신청 중...' : '신청' }}
+            </button>
+        </div>
+    </div>
+</template>
+
+<style scoped lang="scss">
+.period-notice {
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+    border-radius: 6px;
+    padding: 10px 16px;
+    color: #795548;
+    font-size: 0.9em;
+    margin-bottom: 16px;
+}
+
+.file-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    input[type='text'] { flex: 1; }
+}
+.hidden { display: none; }
+</style>
