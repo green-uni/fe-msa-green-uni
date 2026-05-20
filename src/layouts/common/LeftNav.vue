@@ -14,7 +14,7 @@ const router = useRouter();
 const role = authStore.role
 const menus = ref([]);
 const isAdmin = route.path.startsWith('/admin');
-const isMobile = route.path.startsWith('/attend');
+const isMobile = route.path.startsWith('/student/');
 
 const doLogOut = async () => {
   try {

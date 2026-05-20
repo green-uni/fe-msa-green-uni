@@ -136,11 +136,7 @@ export default defineConfig(({ mode }) => {
       allowedHosts: ['bottom-gleaming-lather.ngrok-free.dev'],
       proxy: {
         '/api': {
-          target: proxyTarget,
-          changeOrigin: true,
-        },
-        '/file': {
-          target: proxyTarget,
+          target: 'http://localhost:8000',
           changeOrigin: true,
         }
       }

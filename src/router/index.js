@@ -16,6 +16,13 @@ router.beforeEach(async (to, _from, next) => {
   const isAdminRole = role === 'ADMIN'
   const isAdminPath = to.path.startsWith('/admin/')
 
+  // 모바일 학생: /student/* 경로와 /login만 허용 — PC 레이아웃 접근 차단
+  const isMobileDevice = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+  if (isMobileDevice && isLogin && role === 'STUDENT' && !to.path.startsWith('/student/')) {
+    next('/student/attendances/home')
+    return
+  }
+
   if (!isLogin && !publicPages.includes(to.path)) {
     next('/login')
     return
