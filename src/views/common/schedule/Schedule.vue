@@ -33,7 +33,7 @@ const scheduleTypes = [
   // 수강 계열
   { code: 'COURSE_REGISTRATION', value: '수강신청', color: '#c1666b' },
   { code: 'COURSE_MODIFICATION', value: '수강정정', color: '#a85c5c' },
-  { code: 'COURSE_OPEN', value: '강의개설신청', color: '#c47f3a' },
+  { code: 'LECTURE_REGISTRATION', value: '강의개설신청', color: '#c47f3a' },
 
   // 성적 계열
   { code: 'GRADE_INPUT', value: '성적입력', color: '#6b5b95' },

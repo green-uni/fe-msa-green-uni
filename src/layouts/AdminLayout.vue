@@ -1,5 +1,5 @@
 <script setup>
-import { RouterView, useRouter, useRoute } from 'vue-router'
+import { RouterView } from 'vue-router'
 import { useAuthStore } from '@/stores/authentication';
 import LeftNav from '@/layouts/common/LeftNav.vue';
 import TopLocation from '@/layouts/common/TopLocation.vue';
@@ -23,7 +23,7 @@ const authStore = useAuthStore()
     <TopLocation v-if="authStore.isLogin" />
     <main :class="authStore.isLogin ? 'container' : 'intro-panel'">
       <PageTitle  v-if="authStore.isLogin" />
-      <RouterView />
+      <RouterView :key="$route.path" />
     </main>
   </div>
 
@@ -100,10 +100,11 @@ const authStore = useAuthStore()
 .noti-backdrop {
   position: fixed;
   inset: 0;
+  left: 220px;
   z-index: 900;
   background: rgba(0, 0, 0, 0.3);
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 .noti-panel {
@@ -111,7 +112,7 @@ const authStore = useAuthStore()
   min-width: 320px;
   height: 100vh;
   background: #fff;
-  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
   overflow-y: auto;
   display: flex;
   flex-direction: column;

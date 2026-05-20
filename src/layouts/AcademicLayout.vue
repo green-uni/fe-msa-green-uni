@@ -22,7 +22,7 @@ const showLayout = computed(() =>
 </script>
 <template>
   <div :class="showLayout ? 'all-wrap' : 'intro'">
-    <!-- [팀원 추가] 로그인 전 왼쪽 배너 -->
+    <!-- 로그인 전 왼쪽 배너 -->
     <section class="intro-banner" aria-hidden="true" v-if="!showLayout">
       <div class="intro-banner-content">
         <p class="sub">GREEN UNIVERSITY · 통합 학사시스템</p>
@@ -130,10 +130,11 @@ const showLayout = computed(() =>
 .noti-backdrop {
   position: fixed;
   inset: 0;
+  left: 220px; // 사이드바 제외하고 시작
   z-index: 900;
   background: rgba(0, 0, 0, 0.3);
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 .noti-panel {
@@ -141,7 +142,7 @@ const showLayout = computed(() =>
   min-width: 320px;
   height: 100vh;
   background: #fff;
-  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
