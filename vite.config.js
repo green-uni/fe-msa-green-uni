@@ -140,18 +140,6 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
         }
       }
-    },
-    // [추가] npm run preview 시에도 ngrok + API 프록시 동작
-    // 빌드 후 시연용: npm run build && npm run preview
-    preview: {
-      host: '0.0.0.0',
-      allowedHosts: ['bottom-gleaming-lather.ngrok-free.dev'],
-      proxy: {
-        '/api': {
-          target: 'http://localhost:8000',
-          changeOrigin: true,
-        }
-      }
     }
   }
 })
