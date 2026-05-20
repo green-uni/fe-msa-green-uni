@@ -3,7 +3,7 @@ import { reactive, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import MemberService from '@/services/memberService';
 import ScheduleService from '@/services/scheduleService';
-import DataTable from '@/components/common/DataTable.vue';
+import CardListDetail from '@/components/common/CardListDetail.vue';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import { useModalStore } from '@/stores/modal';
 import { APPROVAL_STATUS } from '@/utils/constants';
@@ -17,6 +17,13 @@ const selectedId = ref(null);
 const detail = reactive({ data: null, isLoading: false });
 const isInPeriod = ref(false);
 
+const STATUS_CLASS = {
+    PENDING:   'badge-pending',
+    APPROVED:  'badge-approved',
+    REJECTED:  'badge-rejected',
+    CANCELLED: 'badge-cancelled',
+};
+
 const fetchPeriodStatus = async () => {
     try {
         const res = await ScheduleService.getActiveSchedules();
@@ -27,8 +34,6 @@ const fetchPeriodStatus = async () => {
     }
 };
 
-const GRID_COLS = '100px 1fr 1fr 100px';
-
 const fetchList = async () => {
     state.isLoading = true;
     try {
@@ -36,6 +41,7 @@ const fetchList = async () => {
         state.list = res.data ?? [];
     } catch (err) {
         console.error('목록 로드 실패:', err);
+        modal.showAlert('목록을 불러오는데 실패했습니다.', 'error');
     } finally {
         state.isLoading = false;
     }
@@ -53,9 +59,10 @@ const selectItem = async (item) => {
     try {
         const res = await MemberService.findMyMajorRequest(item.requestId);
         detail.data = res.data;
-        console.log(res.data)
     } catch (err) {
         console.error('상세 로드 실패:', err);
+        modal.showAlert('상세 정보를 불러오는데 실패했습니다.', 'error');
+        selectedId.value = null;
     } finally {
         detail.isLoading = false;
     }
@@ -76,19 +83,20 @@ const cancelRequest = async () => {
     }
 };
 
-const goToNew = () => router.push('/members/major-request/new');
-
 const downloadFile = async () => {
-    if (detail.data.status === '취소') {
+    if (detail.data.status === 'CANCELLED') {
         modal.showAlert('취소된 신청서의 첨부 파일은 다운로드할 수 없습니다.', 'warning');
         return;
     }
     try {
         await MemberService.downloadMajorRequestFile(detail.data.requestId);
-    } catch (err) {
+    } catch {
         modal.showAlert('파일 다운로드에 실패했습니다.', 'error');
     }
 };
+
+const goToNew = () => router.push('/members/major-request/new');
+
 onMounted(() => { fetchPeriodStatus(); fetchList(); });
 </script>
 
@@ -100,98 +108,88 @@ onMounted(() => { fetchPeriodStatus(); fetchList(); });
             현재 전공 변경 신청 기간이 아닙니다. 신청서 작성은 전공 변경 신청 기간에만 가능합니다.
         </div>
 
-        <div class="list-detail-layout">
-            <!-- 왼쪽: 목록 -->
-            <div class="list-col">
-                <DataTable :columns="['신청일', '유형', '희망 학과', '상태']" :rows="state.list" :gridCols="GRID_COLS"
-                    :isLoading="state.isLoading" emptyMessage="신청 내역이 없습니다.">
-                    <article class="tbl-row" v-for="item in state.list" :key="item.requestId"
-                        :class="{ 'row-selected': selectedId === item.requestId }" @click="selectItem(item)">
-                        <div>{{ formatDateTime(item.createdAt) }}</div>
-                        <div>{{ item.type }}</div>
-                        <div>{{ item.targetMajorName }}</div>
-                        <div>
-                            <span class="status-badge">
-                                {{ APPROVAL_STATUS[item.status] ?? item.status }}
-                            </span>
-                        </div>
-                    </article>
-                </DataTable>
-                <div class="list-footer">
-                    <button class="btn btn-submit" @click="goToNew()" :disabled="!isInPeriod">
-                        <font-awesome-icon icon="fa-solid fa-plus" /> 신청서 작성
-                    </button>
+        <CardListDetail
+            :items="state.list"
+            :is-loading="state.isLoading"
+            item-key="requestId"
+            :selected-key="selectedId"
+            empty-message="신청 내역이 없습니다."
+            @select="selectItem"
+        >
+            <template #card="{ item }">
+                <div class="card-left">
+                    <span class="card-sub">{{ formatDateTime(item.createdAt) }}</span>
+                    <span class="major-name"><small>[{{ item.type }}]</small>  {{ item.targetMajorName }}</span>
                 </div>
-            </div>
+                <span :class="['badge', STATUS_CLASS[item.status]]">
+                    {{ APPROVAL_STATUS[item.status] ?? item.status }}
+                </span>
+            </template>
 
-            <!-- 오른쪽: 상세 -->
-            <div v-if="selectedId" class="detail-col">
+            <template #list-footer>
+                <button class="btn btn-submit" @click="goToNew" :disabled="!isInPeriod">
+                    <font-awesome-icon icon="fa-solid fa-plus" /> 신청서 작성
+                </button>
+            </template>
+
+            <template #detail>
                 <LoadingSpinner v-if="detail.isLoading" :overlay="true" size="sm" />
-
                 <template v-if="detail.data && !detail.isLoading">
                     <div class="detail-status">
-                        <span class="status-badge">
+                        <span :class="['badge', STATUS_CLASS[detail.data.status]]">
                             {{ APPROVAL_STATUS[detail.data.status] ?? detail.data.status }}
                         </span>
                     </div>
 
-                    <div class="info-wrap">
-                        <div class="detail-row">
-                            <dl>
-                                <dt>신청일</dt>
-                                <dd>{{ formatDateTime(detail.data.createdAt) }}</dd>
-                            </dl>
-                            <dl>
-                                <dt>유형</dt>
-                                <dd>{{ detail.data.type }}</dd>
-                            </dl>
-                            <dl>
-                                <dt>희망학과</dt>
-                                <dd>{{ detail.data.targetMajorName }}</dd>
-                            </dl>
-                        </div>
-                        <div class="detail-row">
-                            <dl class="w100p">
-                                <dt>신청 사유</dt>
-                                <dd class="reason-text">{{ detail.data.reason }}</dd>
-                            </dl>
-                        </div>
-                        <div class="detail-row">
-                            <dl>
-                                <dt>첨부 파일</dt>
-                                <dd>
-                                    <span v-if="detail.data.file" class="file-link" @click="downloadFile">{{ detail.data.originalFileName ?? '파일 다운로드' }}</span>
-                                    <span v-else>-</span>
-                                </dd>
-                            </dl>
-                        </div>
+                    <div class="detail-section">
+                        <dl><dt>신청일</dt><dd>{{ formatDateTime(detail.data.createdAt) }}</dd></dl>
+                        <dl><dt>유형</dt><dd>{{ detail.data.type }}</dd></dl>
+                        <dl><dt>희망 학과</dt><dd>{{ detail.data.targetMajorName }}</dd></dl>
+                    </div>
+
+                    <div class="detail-section">
+                        <dl class="full">
+                            <dt>신청 사유</dt>
+                            <dd class="reason-text">{{ detail.data.reason }}</dd>
+                        </dl>
+                    </div>
+
+                    <div class="detail-section">
+                        <dl>
+                            <dt>첨부 파일</dt>
+                            <dd>
+                                <span v-if="detail.data.file" class="file-link" @click="downloadFile">
+                                    {{ detail.data.originalFileName ?? '파일 다운로드' }}
+                                </span>
+                                <span v-else>-</span>
+                            </dd>
+                        </dl>
                     </div>
 
                     <!-- 반려: 반려 사유 + 재신청 -->
-                    <template v-if="detail.data.status === '반려'">
+                    <template v-if="detail.data.status === 'REJECTED'">
                         <div class="reject-box">
                             <p class="reject-label">반려 사유</p>
                             <p class="reject-reason">{{ detail.data.rejectReason }}</p>
                         </div>
                         <div class="btn-row g10">
-                            <button class="btn btn-submit" @click="goToNew()">재신청</button>
+                            <button class="btn btn-submit" @click="goToNew">재신청</button>
                         </div>
                     </template>
 
-                    <!-- 대기: 수정 + 신청 취소 -->
-                    <template v-else-if="detail.data.status === '대기'">
+                    <!-- 대기: 신청 취소 -->
+                    <template v-else-if="detail.data.status === 'PENDING'">
                         <div class="btn-row g10">
                             <button class="btn btn-register-del" @click="cancelRequest">신청 취소</button>
                         </div>
                     </template>
                 </template>
-            </div>
-        </div>
+            </template>
+        </CardListDetail>
     </div>
 </template>
 
 <style scoped lang="scss">
-
 .period-notice {
     background: #fff8e1;
     border: 1px solid #ffe082;
@@ -202,48 +200,62 @@ onMounted(() => { fetchPeriodStatus(); fetchList(); });
     margin-bottom: 10px;
 }
 
-.list-detail-layout {
-    display: flex;
-    gap: 20px;
-    align-items: flex-start;
-}
-
-.list-col {
-    flex: 1 1 auto;
-    max-width: 480px;
-}
-
-.list-footer {
-    margin-top: 12px;
-}
-
-.tbl-row {
-    cursor: pointer;
-    &.row-selected { background: var(--hover-bg-color) !important; }
-}
-
-.detail-col {
-    flex: 1;
-    position: relative;
-    border: 1px solid var(--table-border-color);
-    border-radius: 8px;
-    padding: 24px;
-    background: #fff;
+/* 카드 내부 */
+.card-left {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    min-height: 200px;
+    gap: 4px;
 }
 
+.major-name {
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.card-sub {
+    font-size: 13px;
+    color: #777;
+}
+
+/* 상태 배지 */
+.badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.badge-pending   { background: #fff3e0; color: #ef6c00; }
+.badge-approved  { background: #e8f4f0; color: var(--main-color, #3e9e7e); }
+.badge-rejected  { background: #fdecea; color: #d32f2f; }
+.badge-cancelled { background: #f0f0f0; color: #888; }
+
+/* 상세 패널 */
 .detail-status {
     display: flex;
     justify-content: flex-end;
 }
 
-.detail-row {
+.detail-section {
     display: flex;
     flex-wrap: wrap;
-    gap: 30px;
+    gap: 24px;
+
+    dl {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        &.full { width: 100%; }
+    }
+
+    dt {
+        font-size: 13px;
+        font-weight: 600;
+        color: #555;
+    }
+
+    dd { font-size: 14px; }
 }
 
 .reason-text {
