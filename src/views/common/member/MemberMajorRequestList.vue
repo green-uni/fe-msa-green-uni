@@ -2,6 +2,7 @@
 import { reactive, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import MemberService from '@/services/memberService';
+import ScheduleService from '@/services/scheduleService';
 import DataTable from '@/components/common/DataTable.vue';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import { useModalStore } from '@/stores/modal';
@@ -14,6 +15,17 @@ const modal = useModalStore();
 const state = reactive({ list: [], isLoading: false });
 const selectedId = ref(null);
 const detail = reactive({ data: null, isLoading: false });
+const isInPeriod = ref(false);
+
+const fetchPeriodStatus = async () => {
+    try {
+        const res = await ScheduleService.getActiveSchedules();
+        const active = res.data?.data ?? {};
+        isInPeriod.value = !!(active.MAJOR_CHANGE || active['전공변경신청']);
+    } catch {
+        isInPeriod.value = false;
+    }
+};
 
 const GRID_COLS = '100px 1fr 1fr 100px';
 
@@ -22,7 +34,6 @@ const fetchList = async () => {
     try {
         const res = await MemberService.findAllMyMajorRequest();
         state.list = res.data ?? [];
-        console.log(res.data)
     } catch (err) {
         console.error('목록 로드 실패:', err);
     } finally {
@@ -42,6 +53,7 @@ const selectItem = async (item) => {
     try {
         const res = await MemberService.findMyMajorRequest(item.requestId);
         detail.data = res.data;
+        console.log(res.data)
     } catch (err) {
         console.error('상세 로드 실패:', err);
     } finally {
@@ -66,17 +78,32 @@ const cancelRequest = async () => {
 
 const goToNew = () => router.push('/members/major-request/new');
 
-onMounted(fetchList);
+const downloadFile = async () => {
+    if (detail.data.status === '취소') {
+        modal.showAlert('취소된 신청서의 첨부 파일은 다운로드할 수 없습니다.', 'warning');
+        return;
+    }
+    try {
+        await MemberService.downloadMajorRequestFile(detail.data.requestId);
+    } catch (err) {
+        modal.showAlert('파일 다운로드에 실패했습니다.', 'error');
+    }
+};
+onMounted(() => { fetchPeriodStatus(); fetchList(); });
 </script>
 
 <template>
     <div style="position: relative;">
         <LoadingSpinner v-if="state.isLoading" :overlay="true" size="md" />
 
+        <div v-if="!isInPeriod" class="period-notice">
+            현재 전공 변경 신청 기간이 아닙니다. 신청서 작성은 전공 변경 신청 기간에만 가능합니다.
+        </div>
+
         <div class="list-detail-layout">
             <!-- 왼쪽: 목록 -->
             <div class="list-col">
-                <DataTable :columns="['신청일', '유형', '대상학과', '상태']" :rows="state.list" :gridCols="GRID_COLS"
+                <DataTable :columns="['신청일', '유형', '희망 학과', '상태']" :rows="state.list" :gridCols="GRID_COLS"
                     :isLoading="state.isLoading" emptyMessage="신청 내역이 없습니다.">
                     <article class="tbl-row" v-for="item in state.list" :key="item.requestId"
                         :class="{ 'row-selected': selectedId === item.requestId }" @click="selectItem(item)">
@@ -90,9 +117,8 @@ onMounted(fetchList);
                         </div>
                     </article>
                 </DataTable>
-                <p class="hint-text">※ 목록 클릭 시 상세 조회</p>
                 <div class="list-footer">
-                    <button class="btn btn-submit" @click="goToNew()">
+                    <button class="btn btn-submit" @click="goToNew()" :disabled="!isInPeriod">
                         <font-awesome-icon icon="fa-solid fa-plus" /> 신청서 작성
                     </button>
                 </div>
@@ -119,6 +145,10 @@ onMounted(fetchList);
                                 <dt>유형</dt>
                                 <dd>{{ detail.data.type }}</dd>
                             </dl>
+                            <dl>
+                                <dt>희망학과</dt>
+                                <dd>{{ detail.data.targetMajorName }}</dd>
+                            </dl>
                         </div>
                         <div class="detail-row">
                             <dl class="w100p">
@@ -130,10 +160,7 @@ onMounted(fetchList);
                             <dl>
                                 <dt>첨부 파일</dt>
                                 <dd>
-                                    <a v-if="detail.data.fileUrl" :href="detail.data.fileUrl" target="_blank"
-                                        class="file-link">
-                                        {{ detail.data.fileName ?? '파일 다운로드' }}
-                                    </a>
+                                    <span v-if="detail.data.file" class="file-link" @click="downloadFile">{{ detail.data.originalFileName ?? '파일 다운로드' }}</span>
                                     <span v-else>-</span>
                                 </dd>
                             </dl>
@@ -164,10 +191,15 @@ onMounted(fetchList);
 </template>
 
 <style scoped lang="scss">
-.hint-text {
-    font-size: var(--text-xs);
-    color: #aaa;
-    margin: 6px 0 0;
+
+.period-notice {
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+    border-radius: 6px;
+    padding: 10px 16px;
+    color: #795548;
+    font-size: 0.9em;
+    margin-bottom: 10px;
 }
 
 .list-detail-layout {
@@ -183,8 +215,6 @@ onMounted(fetchList);
 
 .list-footer {
     margin-top: 12px;
-    display: flex;
-    justify-content: flex-end;
 }
 
 .tbl-row {
@@ -224,6 +254,7 @@ onMounted(fetchList);
 .file-link {
     color: var(--main-color);
     text-decoration: underline;
+    cursor: pointer;
 }
 
 .reject-box {

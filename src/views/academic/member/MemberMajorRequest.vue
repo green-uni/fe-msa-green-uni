@@ -6,6 +6,7 @@ import { useModalStore } from '@/stores/modal';
 import { usePageStateStore } from '@/stores/pageState';
 import codeListService from '@/services/codeService';
 import MemberService from '@/services/memberService';
+import ScheduleService from '@/services/scheduleService';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 
 const router = useRouter();
@@ -18,8 +19,19 @@ const today = new Date().toISOString().slice(0, 10);
 
 const isReady = ref(false);
 const isLoading = ref(false);
+const isInPeriod = ref(false);
 const majorList = ref([]);
 const typeOptions = ref([]);
+
+const fetchPeriodStatus = async () => {
+    try {
+        const res = await ScheduleService.getActiveSchedules();
+        const active = res.data?.data ?? {};
+        isInPeriod.value = !!(active.MAJOR_CHANGE || active['전공변경신청']);
+    } catch {
+        isInPeriod.value = false;
+    }
+};
 
 const form = reactive({ type: '', targetMajorId: '', reason: '' });
 const file = ref(null);
@@ -107,6 +119,7 @@ onMounted(async () => {
         const [majors, types] = await Promise.all([
             MemberService.getMajorList(),
             codeListService.getMajorRequestType(),
+            fetchPeriodStatus(),
         ]);
         majorList.value = majors.data ?? [];
         typeOptions.value = types.data ?? [];
@@ -128,6 +141,10 @@ onMounted(async () => {
 <template>
     <div class="form-wrap" style="position: relative;">
         <LoadingSpinner v-if="isLoading" :overlay="true" size="md" />
+
+        <div v-if="!isInPeriod" class="period-notice">
+            현재 전공 변경 신청 기간이 아닙니다. 신청서 작성은 전공 변경 신청 기간에만 가능합니다.
+        </div>
 
         <div class="form-grid" style="--grid-cols: 1fr 1fr;">
             <!-- 이름 / 학번 -->
@@ -200,7 +217,7 @@ onMounted(async () => {
             <button class="btn btn-line point" @click="handleTempSave">
                 <font-awesome-icon icon="fa-regular fa-floppy-disk" /> 임시저장
             </button>
-            <button class="btn btn-submit" @click="submit" :disabled="isLoading">
+            <button class="btn btn-submit" @click="submit" :disabled="isLoading || !isInPeriod">
                 <font-awesome-icon icon="fa-solid fa-circle-check" /> {{ isLoading ? '신청 중...' : '신청' }}
             </button>
         </div>
@@ -208,6 +225,16 @@ onMounted(async () => {
 </template>
 
 <style scoped lang="scss">
+.period-notice {
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+    border-radius: 6px;
+    padding: 10px 16px;
+    color: #795548;
+    font-size: 0.9em;
+    margin-bottom: 16px;
+}
+
 .file-row {
     display: flex;
     gap: 8px;
