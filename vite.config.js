@@ -28,7 +28,7 @@ export default defineConfig(({ mode }) => {
         // 캐시 문제 발생 시 브라우저에서 Ctrl+Shift+R(강력 새로고침) 사용
         // 팀원 개발 환경에서는 필요 시 false 로 전환 가능
         devOptions: {
-          enabled: false,
+          enabled: true, //develop에 PR시에 false로 수정하여 PR
           type: 'module',           // Vite HMR과 충돌 방지
           navigateFallback: 'index.html', // SPA 딥링크 정상 동작
         },
@@ -122,6 +122,18 @@ export default defineConfig(({ mode }) => {
       // https: true,
       // [추가] /api/* 요청을 게이트웨이(8000)로 프록시
       // VITE_API_BASE_URL을 /api(상대경로)로 바꾸면 PC·모바일 모두 이 프록시를 경유
+      proxy: {
+        '/api': {
+          target: 'http://localhost:8000',
+          changeOrigin: true,
+        }
+      }
+    },
+    // [추가] npm run preview 시에도 ngrok + API 프록시 동작
+    // 빌드 후 시연용: npm run build && npm run preview
+    preview: {
+      host: '0.0.0.0',
+      allowedHosts: ['bottom-gleaming-lather.ngrok-free.dev'],
       proxy: {
         '/api': {
           target: 'http://localhost:8000',

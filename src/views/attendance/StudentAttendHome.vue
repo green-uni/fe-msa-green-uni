@@ -276,6 +276,20 @@ function goToQrScan()   { router.push('/student/attendances/scan') }
   color: var(--font-color-light);
 }
 
+.btn-logout {
+  background: none;
+  border: 1px solid var(--line-color);
+  border-radius: 8px;
+  padding: 6px 8px;
+  color: var(--font-color-light);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  &:hover { color: var(--font-color); border-color: var(--font-color-light); }
+  &:active { opacity: 0.7; }
+}
+
 /* ── 메인 영역 ── */
 .main-area {
   flex: 1;

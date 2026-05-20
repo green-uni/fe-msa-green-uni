@@ -100,10 +100,11 @@ const authStore = useAuthStore()
 .noti-backdrop {
   position: fixed;
   inset: 0;
+  left: 220px;
   z-index: 900;
   background: rgba(0, 0, 0, 0.3);
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 .noti-panel {
@@ -111,7 +112,7 @@ const authStore = useAuthStore()
   min-width: 320px;
   height: 100vh;
   background: #fff;
-  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
