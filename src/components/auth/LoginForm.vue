@@ -11,6 +11,10 @@ defineProps({
     type: String,
     default: 'academic',
   },
+  isLoading: {
+    type: Boolean,
+    default: false,
+  },
 })
 const emit = defineEmits(['login'])
 const pwView = () => { modeShowPw.value = !modeShowPw.value }
@@ -34,7 +38,9 @@ const pwView = () => { modeShowPw.value = !modeShowPw.value }
         <button @click="router.push('/auth/password')">비밀번호 찾기</button>
       </div>
     </div>
-    <button class="btn" @click="emit('login')">로그인</button>
+    <button class="btn" :class="{ 'btn--loading': isLoading }" :disabled="isLoading" @click="emit('login')">
+      {{ isLoading ? '로그인 중...' : '로그인' }}
+    </button>
     <p class="login-form-hint">
       {{ variant == 'admin' ? '신규 입사자는' : '신입생은' }} 최초 비밀번호로 <b>생년월일 8자리</b>를 사용해 주세요.
     </p>
@@ -137,6 +143,11 @@ const pwView = () => { modeShowPw.value = !modeShowPw.value }
   letter-spacing: 2px;
   background: $green-600;
   color: #fff;
+
+  &--loading, &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
 }
 
 .login-form-admin {

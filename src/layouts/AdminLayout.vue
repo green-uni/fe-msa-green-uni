@@ -1,5 +1,6 @@
 <script setup>
-import { RouterView } from 'vue-router'
+import { computed } from 'vue'
+import { RouterView, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/authentication';
 import LeftNav from '@/layouts/common/LeftNav.vue';
 import TopLocation from '@/layouts/common/TopLocation.vue';
@@ -7,7 +8,15 @@ import PageTitle from '@/layouts/common/PageTitle.vue';
 import BaseModal from '@/components/common/BaseModal.vue';
 import NotificationList from '@/views/academic/notification/NotificationList.vue';
 import NotificationService from '@/services/notificationService';
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
+
 const authStore = useAuthStore()
+const route = useRoute()
+const publicRoutes = ['/login', '/admin/login', '/auth/password']
+const isTransitioning = computed(() =>
+  (authStore.isLogin && publicRoutes.includes(route.path)) ||
+  (!authStore.isLogin && !publicRoutes.includes(route.path))
+)
 </script>
 <template>
   <div :class="authStore.isLogin ? 'all-wrap' : 'intro'">
@@ -26,6 +35,13 @@ const authStore = useAuthStore()
       <RouterView :key="$route.path" />
     </main>
   </div>
+
+  <!-- 로그인·로그아웃 전환 오버레이 -->
+  <Teleport to="body">
+    <div v-if="isTransitioning" class="transition-overlay">
+      <LoadingSpinner size="lg" message="잠시만 기다려주세요..." />
+    </div>
+  </Teleport>
 
   <!-- 모달 -->
   <BaseModal />
@@ -95,6 +111,16 @@ const authStore = useAuthStore()
   align-items: center;
   justify-content: center;
   border-left: 5px solid $green-600;
+}
+
+.transition-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: $admin-default-bg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .noti-backdrop {
