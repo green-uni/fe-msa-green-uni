@@ -21,8 +21,8 @@ router.beforeEach(async (to, _from, next) => {
     return
   }
   if (isLogin) {
-    // 로그인 상태에서 로그인 페이지 접근 시 역할에 맞는 홈으로 리다이렉트
-    if (to.path === '/login' || to.path === '/admin/login') {
+    // 로그인 상태에서 루트·로그인 페이지 접근 시 역할에 맞는 홈으로 리다이렉트
+    if (to.path === '/' || to.path === '/login' || to.path === '/admin/login') {
       next(isAdminRole ? '/admin/members/dashboard' : '/members/dashboard')
       return
     }

@@ -1,28 +1,26 @@
 <script setup>
-import { reactive, computed, ref, watch, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { reactive, computed, ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import MemberService from '@/services/memberService';
 import codeListService from '@/services/codeService';
 import DataTable from '@/components/common/DataTable.vue';
 import Pagination from '@/components/common/Pagination.vue';
+import FilterBar from '@/components/common/FilterBar.vue';
+import TabNav from '@/layouts/common/TabNav.vue'
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import { formatTel } from '@/utils/phoneNumber';
 import { STATUS_LABEL } from '@/utils/constants';
+import { useListFilter } from '@/composables/useListFilter';
 
-const route = useRoute();
 const router = useRouter();
 
-// ── 페이지 설정 ──────────────────────────────────
-const pageSize = ref(10);
-const pageSizeOptions = [10, 20, 50];
+const {
+  filter, searchQuery, searchInput, currentPage, pageSize, pageSizeOptions,
+  hasFilter, onFilterChange, onSearch, resetFilter, goToPage, onPageSizeChange, paginate,
+} = useListFilter({ status: '', academicYear: 0, majorName: '', collegeName: '' })
 
 // ── 반응형 상태 ──────────────────────────────────
-const state = reactive({
-  list: [],
-  isLoading: false,
-  currentPage: 1,
-});
-const searchQuery = ref('');  // 입력창 바인딩 (타이핑마다 갱신)
-const searchInput = ref('');  // 확정된 검색어 (엔터/버튼 클릭 시)
+const state = reactive({ list: [], isLoading: false })
 
 // ── 드롭다운 옵션 ─────────────────────────────────
 const collegeOptions = ref([]);
@@ -30,55 +28,38 @@ const majorOptions = ref([]);
 const statusOptions = ref([]);
 const academicYearOptions = [1, 2, 3, 4];
 
-// ── 필터 ────────────────────────────────────────
-const filter = reactive({
-  status: '',
-  academicYear: '',
-  majorName: '',
-  collegeName: '',
-});
-
 // ── computed ─────────────────────────────────────
-const filteredList = computed(() => {  // 전체 필터 조건 적용
-  return state.list.filter(item => {
+const filteredList = computed(() =>
+  state.list.filter(item => {
     if (filter.status && item.status !== filter.status) return false;
     if (filter.academicYear && String(item.academicYear) !== String(filter.academicYear)) return false;
     if (filter.majorName && item.majorName !== filter.majorName) return false;
-    if (filter.collegeName && item.collegeName !== filter.collegeName) return false;
+    if (filter.collegeName && item.college !== filter.collegeName) return false;
     if (searchInput.value && !item.name?.includes(searchInput.value)) return false;
     return true;
-  });
-});
-const pagedList = computed(() => {  // 현재 페이지 슬라이스
-  const start = (state.currentPage - 1) * pageSize.value;
-  return filteredList.value.slice(start, start + pageSize.value);
-});
-const hasFilter = computed(() =>  // 초기화 버튼 노출 여부
-  filter.status || filter.academicYear || filter.collegeName || filter.majorName || searchInput.value
+  })
 );
-const maxPage = computed(() =>  // 최대 페이지 수
-  Math.ceil(filteredList.value.length / pageSize.value) || 1
-);
-const filteredMajorOptions = computed(() =>  // 단과대 선택 시 해당 전공만  
+const { pagedList, maxPage } = paginate(filteredList)
+
+const filteredMajorOptions = computed(() =>
   filter.collegeName
     ? majorOptions.value.filter(m => m.collegeName === filter.collegeName)
     : majorOptions.value
 );
 
 // ── API ──────────────────────────────────────────
-const fetchList = async () => { // 학생 목록 전체 로드 (초기 1회)
+const fetchList = async () => {
   state.isLoading = true;
   try {
     const res = await MemberService.findStudents();
     state.list = res.data ?? [];
   } catch (err) {
     console.error('학생 목록 로드 실패:', err);
-    state.list = [];
   } finally {
     state.isLoading = false;
   }
 };
-const fetchOptions = async () => {  // 드롭다운 옵션 로드
+const fetchOptions = async () => {
   try {
     const [statusRes, majorRes, collegeRes] = await Promise.all([
       codeListService.getStudentStatusList(),
@@ -93,143 +74,58 @@ const fetchOptions = async () => {  // 드롭다운 옵션 로드
   }
 };
 
-// ── URL 동기화 ────────────────────────────────────
-const syncFromQuery = (query) => {  // URL → 필터 상태 반영
-  filter.status = query.status || '';
-  filter.academicYear = query.academicYear ? Number(query.academicYear) : '';
-  filter.majorName = query.majorName || '';
-  filter.collegeName = query.collegeName || '';
-  searchInput.value = query.search || '';
-  searchQuery.value = query.search || '';
-  state.currentPage = query.page ? Number(query.page) : 1;
-};
-
 // ── 이벤트 핸들러 ─────────────────────────────────
-const onSearch = () => {  // 검색 실행
-  searchInput.value = searchQuery.value;
-  state.currentPage = 1;
-  pushQuery();
-};
-const onFilterChange = () => { // 일반 필터 변경
-  state.currentPage = 1;
-  pushQuery();
-};
-const onCollegeChange = () => { // 단과대 변경 (전공 초기화 포함)
-  filter.majorName = '';
-  state.currentPage = 1;
-  pushQuery();
-};
-const onPageSizeChange = () => { // 페이지 크기 변경
-  state.currentPage = 1;
-};
-const resetFilter = () => { // 전체 필터 초기화
-  filter.status = '';
-  filter.academicYear = '';
-  filter.collegeName = '';
-  filter.majorName = '';
-  searchInput.value = '';
-  searchQuery.value = '';
-  state.currentPage = 1;
-  router.push({ path: route.path });
-};
-const goToPage = (page) => { // 페이지 이동
-  state.currentPage = page;
-  router.push({ path: route.path, query: { ...route.query, page } });
-};
-const moveToDetail = (id) => { // 상세 페이지 이동
-  router.push({ path: `/admin/members/${id}` });
-};
-const pushQuery = () => { // 필터 상태 → URL 반영
-  router.push({
-    path: route.path,
-    query: {
-      status: filter.status || undefined,
-      academicYear: filter.academicYear || undefined,
-      majorName: filter.majorName || undefined,
-      collegeName: filter.collegeName || undefined,
-      search: searchInput.value || undefined,
-      page: state.currentPage,
-    },
-  });
-};
+const GRID_COLS = '120px 150px 120px 1fr 1fr 90px 90px'
 
-// ── watch ─────────────────────────────────────────
-watch(
-  () => route.query,
-  (newQuery) => syncFromQuery(newQuery),
-  { immediate: true, deep: true },
-);
+const onCollegeChange = () => { filter.majorName = ''; onFilterChange() }
+const moveToDetail = (id) => router.push(`/admin/members/${id}`)
 
-// ── 라이프사이클 ──────────────────────────────────
-onMounted(() => {
-  fetchOptions();
-  fetchList();
-});
+onMounted(() => { fetchOptions(); fetchList() })
 </script>
 
 <template>
-  <div class="container">
-
-    <!-- 필터 헤더 -->
-    <div class="filter-header">
-      <div class="filter-group">
-
-        <div class="filter-item">
-          <div class="input-label">단과대</div>
-          <div class="input-content">
-            <select v-model="filter.collegeName" @change="onCollegeChange">
-              <option value="">전체</option>
-              <option v-for="c in collegeOptions" :key="c.collegeId" :value="c.name">{{ c.name }}</option>
-            </select>
-          </div>
-        </div>
-        <div class="filter-item">
-          <div class="input-label">전공</div>
-          <div class="input-content">
-            <select v-model="filter.majorName" @change="onFilterChange">
-              <option value="">전체</option>
-              <option v-for="m in filteredMajorOptions" :key="m.majorId" :value="m.name">{{ m.name }}</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="filter-item">
-          <div class="input-label">학년</div>
-          <div class="input-content">
-            <select v-model="filter.academicYear" @change="onFilterChange">
-              <option value="">전체</option>
-              <option v-for="y in academicYearOptions" :key="y" :value="y">{{ y }}학년</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="filter-item">
-          <div class="input-label">상태</div>
-          <div class="input-content">
-            <select v-model="filter.status" @change="onFilterChange">
-              <option value="">전체</option>
-              <option v-for="s in statusOptions" :key="s.code" :value="s.code">{{ s.value }}</option>
-            </select>
-          </div>
-        </div>
-
-      </div>
-      <button v-if="hasFilter" class="btn" @click="resetFilter">초기화</button>
-
-      <div class="search-area">
+  <div style="position: relative;">
+    <LoadingSpinner v-if="state.isLoading" :overlay="true" size="md" />
+    <TabNav />
+    <FilterBar v-model:searchQuery="searchQuery" :hasFilter="hasFilter"
+              @search="onSearch" @reset="resetFilter">
+      <div class="filter-item">
+        <div class="input-label">단과대</div>
         <div class="input-content">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="이름 검색"
-            @keyup.enter="onSearch"
-          />
+          <select v-model="filter.collegeName" @change="onCollegeChange">
+            <option value="">전체</option>
+            <option v-for="c in collegeOptions" :key="c.collegeId" :value="c.name">{{ c.name }}</option>
+          </select>
         </div>
-        <button class="btn search-btn" @click="onSearch">
-          <font-awesome-icon icon="fa-solid fa-magnifying-glass" /> 검색
-        </button>
       </div>
-    </div>
+      <div class="filter-item">
+        <div class="input-label">전공</div>
+        <div class="input-content">
+          <select v-model="filter.majorName" @change="onFilterChange">
+            <option value="">전체</option>
+            <option v-for="m in filteredMajorOptions" :key="m.majorId" :value="m.name">{{ m.name }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="filter-item">
+        <div class="input-label">학년</div>
+        <div class="input-content">
+          <select v-model="filter.academicYear" @change="onFilterChange">
+            <option value="">전체</option>
+            <option v-for="y in academicYearOptions" :key="y" :value="y">{{ y }}학년</option>
+          </select>
+        </div>
+      </div>
+      <div class="filter-item">
+        <div class="input-label">상태</div>
+        <div class="input-content">
+          <select v-model="filter.status" @change="onFilterChange">
+            <option value="">전체</option>
+            <option v-for="s in statusOptions" :key="s.code" :value="s.code">{{ s.value }}</option>
+          </select>
+        </div>
+      </div>
+    </FilterBar>
 
     <div class="data-header">
       전체: {{ filteredList.length }}건
@@ -241,16 +137,12 @@ onMounted(() => {
     <DataTable
       :columns="['학번', '이름', '전공', '이메일', '전화번호', '학년', '상태']"
       :rows="pagedList"
-      gridCols="120px 90px 1fr 1fr 130px 70px 90px"
+      :gridCols="GRID_COLS"
       :isLoading="state.isLoading"
       emptyMessage="조회된 학생이 없습니다."
     >
-      <article
-        class="tbl-row"
-        v-for="item in pagedList"
-        :key="item.memberCode"
-        @click="moveToDetail(item.memberCode)"
-      >
+      <article class="tbl-row" v-for="item in pagedList" :key="item.memberCode"
+               @click="moveToDetail(item.memberCode)">
         <div>{{ item.memberCode }}</div>
         <div>{{ item.name }}</div>
         <div>{{ item.majorName }}</div>
@@ -261,23 +153,11 @@ onMounted(() => {
       </article>
     </DataTable>
 
-    <!-- 페이지네이션 -->
-    <Pagination
-      :currentPage="state.currentPage"
-      :maxPage="maxPage"
-      :pageGroupSize="10"
-      @goToPage="goToPage"
-    />
-
+    <Pagination :currentPage="currentPage" :maxPage="maxPage" :pageGroupSize="10"
+                @goToPage="goToPage" />
   </div>
 </template>
 
 <style scoped lang="scss">
-.tbl-row {
-  cursor: pointer;
-  display: grid;
-  grid-template-columns: 120px 90px 1fr 1fr 130px 70px 90px;
-  align-items: center;
-  text-align: center;
-}
+.tbl-row { cursor: pointer; }
 </style>
