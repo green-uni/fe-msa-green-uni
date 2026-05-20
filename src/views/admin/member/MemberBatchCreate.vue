@@ -3,7 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import * as XLSX from 'xlsx'
 import MemberService from '@/services/memberService'
-import MemberCreateTabNav from '@/components/member/MemberCreateTabNav.vue'
+import TabNav from '@/layouts/common/TabNav.vue'
 import codeListService from '@/services/codeService'
 import { useModalStore } from '@/stores/modal'
 
@@ -290,7 +290,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <MemberCreateTabNav activeTab="batch" />
+  <TabNav />
   <div class="form-wrap">
     <div class="input-content radio-group radio-tab">
       <label class="radio-label" v-for="memberRole in memberRoles" :key="memberRole.code">

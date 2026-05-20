@@ -89,6 +89,7 @@ const selectItem = async (item) => {
 };
 
 const isWriting = ref(false);
+const showPeriodModal = ref(false);
 
 const form = reactive({
   score: 0,
@@ -96,6 +97,11 @@ const form = reactive({
 });
 
 const moveToWrite = () => {
+  const status = getEvalStatus(selectedItem.value);
+  if (status !== 'pending') {
+    showPeriodModal.value = true;
+    return;
+  }
   isWriting.value = true;
 };
 
@@ -316,6 +322,14 @@ onMounted(fetchList);
       </div>
     </div>
   </div>
+
+  <!-- 강의평가 기간 아닐 때 모달 -->
+  <div class="modal-overlay" v-if="showPeriodModal" @click.self="showPeriodModal = false">
+    <div class="modal-box">
+      <p class="modal-msg">강의평가 기간이 아닙니다.</p>
+      <button class="btn-primary" @click="showPeriodModal = false">확인</button>
+    </div>
+  </div>
 </template>
 
 <style scoped>
@@ -365,4 +379,7 @@ onMounted(fetchList);
 .char-count { font-size: 12px; color: #999; align-self: flex-end; }
 .btn-wrap { display: flex; justify-content: flex-end; gap: 8px; }
 .btn-cancel { padding: 8px 20px; background: #fff; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 14px; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 100; }
+.modal-box { background: #fff; border-radius: 10px; padding: 32px 40px; display: flex; flex-direction: column; align-items: center; gap: 20px; min-width: 280px; }
+.modal-msg { font-size: 15px; color: #333; font-weight: 500; }
 </style>

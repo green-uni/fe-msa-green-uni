@@ -27,21 +27,18 @@ const props = defineProps({
         />
       </div>
     </div>
-
     <div class="input-wrap" v-if="props.mode === 'create'">
       <div class="input-label"><span>입사연월</span></div>
       <div class="input-content">
         <CalendarDate v-model="props.professor.entryDate" />
       </div>
     </div>
-
-    <!-- <div class="input-wrap" v-if="props.mode !== 'selfEdit'">
+    <div class="input-wrap" v-if="props.mode === 'adminEdit'">
       <div class="input-label"><span>퇴임연월</span></div>
       <div class="input-content">
         <CalendarDate v-model="props.professor.exitDate" />
       </div>
-    </div> -->
-
+    </div>
     <div class="input-wrap" v-if="props.mode === 'create'">
       <div class="input-label">상태</div>
       <div class="input-content">

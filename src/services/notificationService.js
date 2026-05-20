@@ -78,13 +78,24 @@ const NotificationService = {
     stompClient.activate()
   },
 
-  disconnect() {
-    stompClient?.deactivate()
-    stompClient = null
-    notifications.value = []
-    unreadCount.value = 0
-  },
+  // disconnect() {
+  //   stompClient?.deactivate()
+  //   stompClient = null
+  //   notifications.value = []
+  //   unreadCount.value = 0
+  // },
 
+disconnect() {
+  try {
+    stompClient?.deactivate()
+  } catch (e) {
+    // 로그아웃 시 401 무시
+  }
+  stompClient = null
+  notifications.value = []
+  unreadCount.value = 0
+},
+  
   // ── 공유 상태 ──────────────────────────────────────
   notifications,
   unreadCount,

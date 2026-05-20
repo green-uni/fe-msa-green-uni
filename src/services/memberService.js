@@ -107,10 +107,25 @@ class MemberService {
     return res.data;
   }
   
-  // 회원 프로파일 조회
+  // 관리자의 회원 프로파일 조회
   async getMemberProfile(memberCode) {
     const res = await axios.get(`${this.#adminPath}/${memberCode}`)
     return res.data;
+  }
+  // 관리자의 학생 계정 변동 이력 조회
+  async findStudentStatusByAdmin(memberCode) {
+    const res = await axios.get(`${this.#adminPath}/students/${memberCode}/history`)
+    return res.data;    
+  }
+  // 관리자의 교수 계정 변동 이력 조회
+  async findProfessorStatusByAdmin(memberCode) {
+    const res = await axios.get(`${this.#adminPath}/professors/${memberCode}/history`)
+    return res.data;    
+  }
+  // 관리자의 관리자 계정 변동 이력 조회
+  async findAdminStatusByAdmin(memberCode) {
+    const res = await axios.get(`${this.#adminPath}/admins/${memberCode}/history`)
+    return res.data;    
   }
 
   // 관리자 계정 개인정보 수정
