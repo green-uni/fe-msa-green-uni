@@ -27,4 +27,17 @@ export const gradeRoutes = [
             activeMenu: `professor/${url}`,
         },
     },
+
+    // ── 학생 화면 ─────────────────────────────────────────────
+    {
+        // 학생 본인 성적 조회
+        // 브라우저: /grades
+        path: url,
+        component: () => import('@/views/academic/grade/GradeStudentList.vue'),
+        meta: {
+            title: '내 성적 조회',
+            groupTitle: '성적',
+            auth: ['STUDENT'],
+        },
+    },
 ]
