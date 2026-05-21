@@ -124,6 +124,8 @@ const submitRejection = async () => {
   }
 };
 
+const formatDate = (dt) => dt ? String(dt).slice(0, 10) : '-';
+
 const editLecture = () => {
   router.push(`/lectures/edit/${id}`);
 };
@@ -282,6 +284,10 @@ onMounted(async () => {
                 {{ s.dayOfWeek }}요일 {{ s.startPeriod }}교시 ~ {{ s.endPeriod }}교시
               </div>
             </dd>
+          </dl>
+          <dl class="info-row" v-if="state.data.startDate || state.data.endDate">
+            <dt>강의기간</dt>
+            <dd>{{ formatDate(state.data.startDate) }} ~ {{ formatDate(state.data.endDate) }}</dd>
           </dl>
         </div>
       </div>
