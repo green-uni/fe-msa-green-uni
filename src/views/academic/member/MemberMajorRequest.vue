@@ -46,8 +46,13 @@ const handleTempSave = () => {
 const loadDraft = () => {
     const raw = localStorage.getItem(DRAFT_KEY);
     if (!raw) return false;
-    Object.assign(form, JSON.parse(raw));
-    return true;
+    try {
+        Object.assign(form, JSON.parse(raw));
+        return true;
+    } catch {
+        localStorage.removeItem(DRAFT_KEY);
+        return false;
+    }
 };
 
 // ── 초기화 ────────────────────────────────────────────
@@ -97,7 +102,26 @@ const submit = async () => {
     }
 };
 
-const onFileChange = (e) => { file.value = e.target.files[0] ?? null; };
+const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+const onFileChange = (e) => {
+    const selected = e.target.files[0] ?? null;
+    if (!selected) { file.value = null; return; }
+    if (!ALLOWED_TYPES.includes(selected.type)) {
+        modal.showAlert('PDF, JPG, PNG 파일만 업로드 가능합니다.', 'warning');
+        fileInput.value.value = '';
+        file.value = null;
+        return;
+    }
+    if (selected.size > MAX_FILE_SIZE) {
+        modal.showAlert('파일 크기는 5MB를 초과할 수 없습니다.', 'warning');
+        fileInput.value.value = '';
+        file.value = null;
+        return;
+    }
+    file.value = selected;
+};
 
 // ── 이탈 경고 ─────────────────────────────────────────
 onBeforeRouteLeave(async (_to, _from, next) => {
@@ -116,15 +140,16 @@ watch(() => ({ ...form }), () => {
 // ── 초기 데이터 ───────────────────────────────────────
 onMounted(async () => {
     try {
+        await fetchPeriodStatus();
         const [majors, types] = await Promise.all([
             MemberService.getMajorList(),
             codeListService.getMajorRequestType(),
-            fetchPeriodStatus(),
         ]);
         majorList.value = majors.data ?? [];
         typeOptions.value = types.data ?? [];
     } catch (err) {
         console.error('옵션 로드 실패:', err);
+        modal.showAlert('데이터를 불러오는데 실패했습니다.', 'error');
     }
 
     await nextTick();
@@ -146,7 +171,7 @@ onMounted(async () => {
             현재 전공 변경 신청 기간이 아닙니다. 신청서 작성은 전공 변경 신청 기간에만 가능합니다.
         </div>
 
-        <div class="form-grid" style="--grid-cols: 1fr 1fr;">
+        <div class="form-grid" style="--grid-cols: 1fr 1fr 1fr;">
             <!-- 이름 / 학번 -->
             <div class="input-wrap">
                 <div class="input-label">이름</div>
@@ -160,8 +185,12 @@ onMounted(async () => {
                     <input type="text" :value="authStore.memberCode" disabled />
                 </div>
             </div>
-
-            <!-- 유형 / 신청일 -->
+            <div class="input-wrap">
+                <div class="input-label">신청일</div>
+                <div class="input-content">
+                    <input type="text" :value="today" disabled />
+                </div>
+            </div>
             <div class="input-wrap">
                 <div class="input-label">유형</div>
                 <div class="input-content radio-group">
@@ -171,14 +200,6 @@ onMounted(async () => {
                 </div>
             </div>
             <div class="input-wrap">
-                <div class="input-label">신청일</div>
-                <div class="input-content">
-                    <input type="text" :value="today" disabled />
-                </div>
-            </div>
-
-            <!-- 희망 학과 -->
-            <div class="input-wrap input-grid-full">
                 <div class="input-label">희망 학과</div>
                 <div class="input-content">
                     <select v-model="form.targetMajorId">
@@ -200,9 +221,9 @@ onMounted(async () => {
             <div class="input-wrap input-grid-full">
                 <div class="input-label">첨부 파일</div>
                 <div class="input-content file-row">
-                    <input type="text" :value="file?.name ?? ''" placeholder="업로드된 파일 없음" disabled />
                     <button type="button" class="btn btn-line" @click="fileInput.click()">서류 선택</button>
-                    <input ref="fileInput" type="file" class="hidden" @change="onFileChange" />
+                    <input type="text" :value="file?.name ?? ''" placeholder="업로드된 파일 없음" disabled />
+                    <input ref="fileInput" type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" @change="onFileChange" />
                 </div>
             </div>
         </div>
