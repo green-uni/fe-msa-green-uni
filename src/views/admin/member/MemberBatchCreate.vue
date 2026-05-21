@@ -146,8 +146,8 @@ async function handleDownloadTemplate() {
     a.download = filename
     a.click()
     URL.revokeObjectURL(url)
-  } catch {
-    errorMessage.value = '템플릿 다운로드에 실패했습니다.'
+  } catch (err) {
+    console.error('템플릿 다운로드 실패:', err)
   }
 }
 
@@ -276,8 +276,8 @@ async function handleSubmit() {
       await modal.showAlert(`${result?.successCount}명 등록 완료되었습니다.`, 'success')
       handleFileReset()
     }
-  } catch (error) {
-    errorMessage.value = error?.message ?? '등록 중 오류가 발생했습니다.'
+  } catch (err) {
+    console.error('일괄 등록 실패:', err)
   } finally {
     isLoading.value = false
   }

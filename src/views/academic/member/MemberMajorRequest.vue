@@ -96,7 +96,6 @@ const submit = async () => {
         router.push('/members/major-request');
     } catch (err) {
         console.error('신청 실패:', err);
-        modal.showAlert('신청에 실패했습니다.', 'error');
     } finally {
         isLoading.value = false;
     }
@@ -139,6 +138,7 @@ watch(() => ({ ...form }), () => {
 
 // ── 초기 데이터 ───────────────────────────────────────
 onMounted(async () => {
+    pageState.setContent(false)
     try {
         await fetchPeriodStatus();
         const [majors, types] = await Promise.all([
@@ -149,7 +149,6 @@ onMounted(async () => {
         typeOptions.value = types.data ?? [];
     } catch (err) {
         console.error('옵션 로드 실패:', err);
-        modal.showAlert('데이터를 불러오는데 실패했습니다.', 'error');
     }
 
     await nextTick();

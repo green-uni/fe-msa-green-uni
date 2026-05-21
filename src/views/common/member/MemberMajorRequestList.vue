@@ -41,7 +41,6 @@ const fetchList = async () => {
         state.list = res.data ?? [];
     } catch (err) {
         console.error('목록 로드 실패:', err);
-        modal.showAlert('목록을 불러오는데 실패했습니다.', 'error');
     } finally {
         state.isLoading = false;
     }
@@ -61,7 +60,6 @@ const selectItem = async (item) => {
         detail.data = res.data;
     } catch (err) {
         console.error('상세 로드 실패:', err);
-        modal.showAlert('상세 정보를 불러오는데 실패했습니다.', 'error');
         selectedId.value = null;
     } finally {
         detail.isLoading = false;
@@ -79,7 +77,6 @@ const cancelRequest = async () => {
         modal.showAlert('신청이 취소되었습니다.', 'success');
     } catch (err) {
         console.error('신청 취소 실패:', err);
-        modal.showAlert('신청 취소에 실패했습니다.', 'error');
     }
 };
 
@@ -90,8 +87,8 @@ const downloadFile = async () => {
     }
     try {
         await MemberService.downloadMajorRequestFile(detail.data.requestId);
-    } catch {
-        modal.showAlert('파일 다운로드에 실패했습니다.', 'error');
+    } catch (err) {
+        console.error('파일 다운로드 실패:', err);
     }
 };
 
