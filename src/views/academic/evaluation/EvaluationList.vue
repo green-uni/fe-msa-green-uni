@@ -1,11 +1,9 @@
 <script setup>
 import { reactive, onMounted, computed, ref } from 'vue';
-import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/authentication';
 import { useModalStore } from '@/stores/modal';
 import evaluationService from '@/services/evaluationService';
 
-const router = useRouter();
 const authStore = useAuthStore();
 const modal = useModalStore();
 const role = computed(() => authStore.role);
