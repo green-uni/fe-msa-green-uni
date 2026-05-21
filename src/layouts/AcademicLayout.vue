@@ -8,16 +8,19 @@ import BaseModal from '@/components/common/BaseModal.vue';
 import PageTitle from '@/layouts/common/PageTitle.vue';
 import NotificationList from '@/views/academic/notification/NotificationList.vue';
 import NotificationService from '@/services/notificationService';
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 
 const authStore = useAuthStore()
 const route = useRoute()
 
-// [유지] 모바일에서 공개 페이지(/login 등) 접근 시 사이드바·헤더 숨김
-// 이전 세션이 남아 isLogin=true인 상태로 /login 접근하면 사이드바가 뜨는 문제 방지
 const publicRoutes = ['/login', '/admin/login', '/auth/password']
 const isMobileDevice = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
 const showLayout = computed(() =>
   authStore.isLogin && !(isMobileDevice && publicRoutes.includes(route.path))
+)
+const isTransitioning = computed(() =>
+  (authStore.isLogin && publicRoutes.includes(route.path)) ||
+  (!authStore.isLogin && !publicRoutes.includes(route.path))
 )
 </script>
 <template>
@@ -37,6 +40,13 @@ const showLayout = computed(() =>
       <RouterView />
     </main>
   </div>
+
+  <!-- 로그인·로그아웃 전환 오버레이 -->
+  <Teleport to="body">
+    <div v-if="isTransitioning" class="transition-overlay">
+      <LoadingSpinner size="lg" message="잠시만 기다려주세요..." />
+    </div>
+  </Teleport>
 
   <!-- 모달 -->
   <BaseModal />
@@ -124,6 +134,17 @@ const showLayout = computed(() =>
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
   }
+}
+
+// ---------- transition overlay ----------
+.transition-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: $default-bg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 // ---------- noti ----------

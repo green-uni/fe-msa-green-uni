@@ -2,7 +2,7 @@
 import logo from '@/assets/logo.png';
 import AuthService from '@/services/authService';
 import MemberService from '@/services/memberService';
-import { reactive, watch } from 'vue';
+import { reactive, ref } from 'vue';
 import { useAuthStore } from '@/stores/authentication';
 import { useRouter } from 'vue-router';
 import { useModalStore } from '@/stores/modal'
@@ -12,6 +12,7 @@ import PublicAnnouncement from '@/components/announcement/PublicAnnouncement.vue
 const authStore = useAuthStore()
 const router = useRouter();
 const modal = useModalStore()
+const isLoading = ref(false)
 
 const state = reactive({
   form: {
@@ -22,6 +23,8 @@ const state = reactive({
 })
 
 const login = async () => {
+  if (isLoading.value) return
+  isLoading.value = true
   try {
     const res = await AuthService.adminLogIn(state.form);
     const profile = await MemberService.findProfile();
@@ -36,6 +39,7 @@ const login = async () => {
     router.push('/admin/members/dashboard')
   } catch (e) {
     console.error(e)
+    isLoading.value = false
   }
 }
 </script>
@@ -53,11 +57,11 @@ const login = async () => {
       </header>
       <!-- 로그인 유형 탭 -->
       <nav class="role-tabs" role="tablist">
-        <button @click="router.push('/login')" class="tab" role="tab" aria-selected="false">교수 · 학생</button>
-        <button @click="router.push('/admin/login')" class="tab is-active" role="tab" aria-selected="true">관리자</button>
+        <button @click="router.push('/login')" class="tab pointer" role="tab" aria-selected="false">교수 · 학생</button>
+        <button @click="router.push('/admin/login')" class="tab is-active pointer" role="tab" aria-selected="true">관리자</button>
       </nav>
     </div>
-    <LoginForm :form="state.form" variant="admin" @login="login" />
+    <LoginForm :form="state.form" variant="admin" :isLoading="isLoading" @login="login" />
     <PublicAnnouncement />
   </div>
 </template>
