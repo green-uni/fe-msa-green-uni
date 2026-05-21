@@ -46,19 +46,27 @@ const handleTempSave = () => {
 const loadDraft = () => {
     const raw = localStorage.getItem(DRAFT_KEY);
     if (!raw) return false;
-    Object.assign(form, JSON.parse(raw));
-    return true;
+    try {
+        Object.assign(form, JSON.parse(raw));
+        return true;
+    } catch {
+        localStorage.removeItem(DRAFT_KEY);
+        return false;
+    }
 };
 
 // ── 초기화 ────────────────────────────────────────────
 const resetForm = async () => {
     const confirmed = await modal.showConfirm('입력한 내용이 모두 초기화됩니다. 계속하시겠습니까?', 'warning');
     if (!confirmed) return;
+    isReady.value = false;
     Object.assign(form, { type: '', targetMajorId: '', reason: '' });
     file.value = null;
     if (fileInput.value) fileInput.value.value = '';
     localStorage.removeItem(DRAFT_KEY);
     pageState.setContent(false);
+    await nextTick();
+    isReady.value = true;
     modal.showAlert('내용이 모두 초기화되었습니다.', 'info');
 };
 
@@ -91,13 +99,31 @@ const submit = async () => {
         router.push('/members/major-request');
     } catch (err) {
         console.error('신청 실패:', err);
-        modal.showAlert('신청에 실패했습니다.', 'error');
     } finally {
         isLoading.value = false;
     }
 };
 
-const onFileChange = (e) => { file.value = e.target.files[0] ?? null; };
+const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+const onFileChange = (e) => {
+    const selected = e.target.files[0] ?? null;
+    if (!selected) { file.value = null; return; }
+    if (!ALLOWED_TYPES.includes(selected.type)) {
+        modal.showAlert('PDF, JPG, PNG 파일만 업로드 가능합니다.', 'warning');
+        fileInput.value.value = '';
+        file.value = null;
+        return;
+    }
+    if (selected.size > MAX_FILE_SIZE) {
+        modal.showAlert('파일 크기는 5MB를 초과할 수 없습니다.', 'warning');
+        fileInput.value.value = '';
+        file.value = null;
+        return;
+    }
+    file.value = selected;
+};
 
 // ── 이탈 경고 ─────────────────────────────────────────
 onBeforeRouteLeave(async (_to, _from, next) => {
@@ -109,17 +135,27 @@ onBeforeRouteLeave(async (_to, _from, next) => {
     }
 });
 
-watch(() => ({ ...form }), () => {
+watch([() => ({ ...form }), file], () => {
     if (isReady.value) pageState.setContent(true);
-}, { deep: true });
+});
+
+const ALLOWED_STATUSES = ['ENROLLED', 'ABSENCE']
 
 // ── 초기 데이터 ───────────────────────────────────────
 onMounted(async () => {
+    pageState.setContent(false)
+
+    if (!ALLOWED_STATUSES.includes(authStore.status)) {
+        await modal.showAlert('현재 학적 상태로는 신청할 수 없습니다.', 'warning');
+        router.push('/members/major-request');
+        return;
+    }
+
     try {
+        await fetchPeriodStatus();
         const [majors, types] = await Promise.all([
             MemberService.getMajorList(),
             codeListService.getMajorRequestType(),
-            fetchPeriodStatus(),
         ]);
         majorList.value = majors.data ?? [];
         typeOptions.value = types.data ?? [];
@@ -142,11 +178,12 @@ onMounted(async () => {
     <div class="form-wrap" style="position: relative;">
         <LoadingSpinner v-if="isLoading" :overlay="true" size="md" />
 
-        <div v-if="!isInPeriod" class="period-notice">
-            현재 전공 변경 신청 기간이 아닙니다. 신청서 작성은 전공 변경 신청 기간에만 가능합니다.
+        <div v-if="isReady && !isInPeriod" class="not-in-period">
+            <p>현재 전공 변경 신청 기간이 아닙니다.</p>
         </div>
 
-        <div class="form-grid" style="--grid-cols: 1fr 1fr;">
+        <template v-else-if="isReady && isInPeriod">
+        <div class="form-grid" style="--grid-cols: 1fr 1fr 1fr;">
             <!-- 이름 / 학번 -->
             <div class="input-wrap">
                 <div class="input-label">이름</div>
@@ -160,8 +197,12 @@ onMounted(async () => {
                     <input type="text" :value="authStore.memberCode" disabled />
                 </div>
             </div>
-
-            <!-- 유형 / 신청일 -->
+            <div class="input-wrap">
+                <div class="input-label">신청일</div>
+                <div class="input-content">
+                    <input type="text" :value="today" disabled />
+                </div>
+            </div>
             <div class="input-wrap">
                 <div class="input-label">유형</div>
                 <div class="input-content radio-group">
@@ -171,14 +212,6 @@ onMounted(async () => {
                 </div>
             </div>
             <div class="input-wrap">
-                <div class="input-label">신청일</div>
-                <div class="input-content">
-                    <input type="text" :value="today" disabled />
-                </div>
-            </div>
-
-            <!-- 희망 학과 -->
-            <div class="input-wrap input-grid-full">
                 <div class="input-label">희망 학과</div>
                 <div class="input-content">
                     <select v-model="form.targetMajorId">
@@ -200,15 +233,15 @@ onMounted(async () => {
             <div class="input-wrap input-grid-full">
                 <div class="input-label">첨부 파일</div>
                 <div class="input-content file-row">
-                    <input type="text" :value="file?.name ?? ''" placeholder="업로드된 파일 없음" disabled />
                     <button type="button" class="btn btn-line" @click="fileInput.click()">서류 선택</button>
-                    <input ref="fileInput" type="file" class="hidden" @change="onFileChange" />
+                    <input type="text" :value="file?.name ?? ''" placeholder="업로드된 파일 없음" disabled />
+                    <input ref="fileInput" type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" @change="onFileChange" />
                 </div>
             </div>
         </div>
 
         <div class="btn-row g10">
-            <button class="btn btn-default" @click="router.go(-1)">
+            <button class="btn btn-default" @click="router.push('/members/major-request')">
                 <font-awesome-icon icon="fa-solid fa-arrow-left" /> 뒤로가기
             </button>
             <button class="btn btn-default" @click="resetForm">
@@ -217,22 +250,22 @@ onMounted(async () => {
             <button class="btn btn-line point" @click="handleTempSave">
                 <font-awesome-icon icon="fa-regular fa-floppy-disk" /> 임시저장
             </button>
-            <button class="btn btn-submit" @click="submit" :disabled="isLoading || !isInPeriod">
+            <button class="btn btn-submit" @click="submit" :disabled="isLoading">
                 <font-awesome-icon icon="fa-solid fa-circle-check" /> {{ isLoading ? '신청 중...' : '신청' }}
             </button>
         </div>
+        </template>
     </div>
 </template>
 
 <style scoped lang="scss">
-.period-notice {
-    background: #fff8e1;
-    border: 1px solid #ffe082;
-    border-radius: 6px;
-    padding: 10px 16px;
-    color: #795548;
-    font-size: 0.9em;
-    margin-bottom: 16px;
+.not-in-period {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    color: #aaa;
+    font-size: 1rem;
 }
 
 .file-row {

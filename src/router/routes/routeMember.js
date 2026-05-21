@@ -15,8 +15,8 @@ export const memberRoutes = [
     path: `${url}/my`,
     component: () => import('@/views/common/member/MemberProfile.vue'),
     meta: {
-      title: '내 정보 조회',
-      groupTitle: '내 정보 관리',
+      title: '나의 정보 조회',
+      groupTitle: '나의 정보 관리',
       auth: ['STUDENT', 'PROFESSOR','ADMIN'],
     },
   },
@@ -24,8 +24,8 @@ export const memberRoutes = [
     path: `${url}/edit`,
     component: () => import('@/views/common/member/MemberEdit.vue'),
     meta: {
-      title: '내 정보 수정',
-      groupTitle: '내 정보 관리',
+      title: '나의 정보 수정',
+      groupTitle: '나의 정보 관리',
       showInNav: false,
       activeMenu: `${url}/my`,
       auth: ['STUDENT', 'PROFESSOR','ADMIN'],
@@ -36,7 +36,7 @@ export const memberRoutes = [
     component: () => import('@/views/common/auth/PasswordChange.vue'),
     meta: {
       title: '비밀번호 변경',
-      groupTitle: '내 정보 관리',
+      groupTitle: '나의 정보 관리',
       showInNav: false,
       activeMenu: 'my',
       auth: ['STUDENT', 'PROFESSOR'],
@@ -48,27 +48,27 @@ export const memberRoutes = [
     component: () => import('@/views/common/BlankPage.vue'),
     meta: {
       title: '휴복학 신청',
-      groupTitle: '내 정보 관리',
+      groupTitle: '나의 정보 관리',
       auth: ['STUDENT'],
     },
   },
   // ------------------ 전공 변경 신청 및 조회 ---------------
   {
     path: `${url}/major-request`,
-    component: () => import('@/views/common/member/MemberMajorRequestList.vue'),
+    component: () => import('@/views/academic/member/StudentMajorRequestList.vue'),
     meta: {
-      title: '내 전공 변경 신청',
-      groupTitle: '내 정보 관리',
+      title: '전공 변경 신청',
+      groupTitle: '나의 정보 관리',
       auth: ['STUDENT'],
     },
   },
   {
     path: `${url}/major-request/new`,
-    component: () => import('@/views/academic/member/MemberMajorRequest.vue'),
+    component: () => import('@/views/academic/member/StudentMajorRequestCreate.vue'),
     meta: {
       title: '전과/복수전공 신청서 제출',
-      groupTitle: '내 정보 관리',
-      subTitle: '내 전공 변경 신청',
+      groupTitle: '나의 정보 관리',
+      subTitle: '전공 변경 신청',
       showInNav: false,
       activeMenu: `${url}/major-request`,
       auth: ['STUDENT'],
@@ -91,8 +91,8 @@ export const adminMemberRoutes = [
     path: `${url}/my`,
     component: () => import('@/views/common/member/MemberProfile.vue'),
     meta: {
-      title: '내 정보 조회',
-      groupTitle: '내 정보 관리',
+      title: '나의 정보 조회',
+      groupTitle: '나의 정보 관리',
       auth: ['ADMIN'],
     },
   },
@@ -100,8 +100,8 @@ export const adminMemberRoutes = [
     path: `${url}/edit`,
     component: () => import('@/views/common/member/MemberEdit.vue'),
     meta: {
-      title: '내 정보 수정',
-      groupTitle: '내 정보 관리',
+      title: '나의 정보 수정',
+      groupTitle: '나의 정보 관리',
       showInNav: false,
       activeMenu: `${url}/my`,
       auth: ['ADMIN'],
@@ -112,7 +112,7 @@ export const adminMemberRoutes = [
     component: () => import('@/views/common/auth/PasswordChange.vue'),
     meta: {
       title: '비밀번호 변경',
-      groupTitle: '내 정보 관리',
+      groupTitle: '나의 정보 관리',
       showInNav: false,
       activeMenu: '/member/my',
       auth: ['ADMIN'],
@@ -216,10 +216,22 @@ export const adminMemberRoutes = [
   // ------------------ 전공 변경 신청 조회 처리 ---------------
   {
     path: `${url}/major-request`,
-    component: () => import('@/views/common/BlankPage.vue'),
+    component: () => import('@/views/admin/member/AdminMajorRequestList.vue'),
     meta: {
       title: '전공 변경 신청 조회',
       groupTitle: '회원 정보 관리',
+      auth: ['ADMIN'],
+    },
+  },
+  {
+    path: `${url}/major-request/:requestId`,
+    component: () => import('@/views/admin/member/AdminMajorRequestDetail.vue'),
+    meta: {
+      title: '전공 변경 신청 상세 조회',
+      subTitle: '전공 변경 신청 조회',
+      groupTitle: '회원 정보 관리',
+      showInNav: false,
+      activeMenu:`${url}/major-request`,
       auth: ['ADMIN'],
     },
   },

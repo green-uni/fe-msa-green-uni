@@ -1,4 +1,5 @@
 import axios from './httpRequester'
+import { downloadBlobFile } from '@/utils/fileDownload'
 
 class MemberService {
   #adminPath = '/member/admin'
@@ -6,11 +7,11 @@ class MemberService {
 
   // 내 정보 조회
   async findProfile(){
-    const res = await axios.get(`/member/my`) 
+    const res = await axios.get(`/member/my`)
     return res.data;
   };
 
-  // 내 정보 수정  
+  // 내 정보 수정
   async modifyMyProfile(formData) {
     const res = await axios.patch(`${this.#path}/my`, formData)
     return res.data;
@@ -19,61 +20,44 @@ class MemberService {
   // 학생 변동 이력 조회
   async findStudentStatus() {
     const res = await axios.get(`${this.#path}/student/history`)
-    return res.data;    
+    return res.data;
   }
   // 교수 변동 이력 조회
   async findProfessorStatus() {
     const res = await axios.get(`${this.#path}/professor/history`)
-    return res.data;    
+    return res.data;
   }
   // 관리자 변동 이력 조회
   async findAdminStatus() {
     const res = await axios.get(`${this.#path}/admin/history`)
-    return res.data;    
+    return res.data;
   }
 
   //////////////////////// 학생 //////////////////////////
-  
+
   // 내 전공변경 신청 조회
   async findAllMyMajorRequest() {
     const res = await axios.get(`${this.#path}/student/requests/major`)
-    return res.data;    
+    return res.data;
   }
   // 내 전공변경 신청 상세 페이지 조회
   async findMyMajorRequest(requestId) {
     const res = await axios.get(`${this.#path}/student/requests/major/${requestId}`)
-    return res.data;    
+    return res.data;
   }
   // 전공 변경 신청서 제출
   async sendMajorRequest(formData) {
     const res = await axios.post(`${this.#path}/student/requests/major`, formData)
-    return res.data;    
+    return res.data;
   }
   // 전공 변경 신청 취소
   async cancelMajorRequest(requestId) {
     const res = await axios.delete(`${this.#path}/student/requests/major/${requestId}`)
     return res.data;
   }
-  async downloadMajorRequestFile(requestId) {
-    const res = await axios.get(
-      `${this.#path}/student/requests/major/${requestId}/file`,
-        { responseType: 'blob' } 
-    );                                                                                                                                                                    
-    const disposition = res.headers['content-disposition'];
-    let fileName = 'download.pdf';
-    if (disposition) {
-        const match = disposition.match(/filename\*=UTF-8''(.+)/i);
-        if (match) fileName = decodeURIComponent(match[1]);
-    }
-    const url = window.URL.createObjectURL(new Blob([res.data]));
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', fileName);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.URL.revokeObjectURL(url);
-}
+  async downloadMyMajorRequestFile(requestId) {
+    await downloadBlobFile(axios, `${this.#path}/student/requests/major/${requestId}/file`);
+  }
 
 
   //////////////////////// 관리자 ////////////////////////
@@ -112,7 +96,7 @@ class MemberService {
   async downloadStudentBatchTemplate() {
     const res = await axios.get(`${this.#adminPath}/students/batch/template`, { responseType: 'blob' })
     return res.data
-  }  
+  }
   // 교수 일괄 등록 템플릿 다운로드
   async downloadProfessorBatchTemplate() {
     const res = await axios.get(`${this.#adminPath}/professors/batch/template`, { responseType: 'blob' })
@@ -150,7 +134,7 @@ class MemberService {
     const res = await axios.get(`${this.#path}/majors/colleges`)
     return res.data;
   }
-  
+
   // 관리자의 회원 프로파일 조회
   async getMemberProfile(memberCode) {
     const res = await axios.get(`${this.#adminPath}/${memberCode}`)
@@ -159,17 +143,17 @@ class MemberService {
   // 관리자의 학생 계정 변동 이력 조회
   async findStudentStatusByAdmin(memberCode) {
     const res = await axios.get(`${this.#adminPath}/students/${memberCode}/history`)
-    return res.data;    
+    return res.data;
   }
   // 관리자의 교수 계정 변동 이력 조회
   async findProfessorStatusByAdmin(memberCode) {
     const res = await axios.get(`${this.#adminPath}/professors/${memberCode}/history`)
-    return res.data;    
+    return res.data;
   }
   // 관리자의 관리자 계정 변동 이력 조회
   async findAdminStatusByAdmin(memberCode) {
     const res = await axios.get(`${this.#adminPath}/admins/${memberCode}/history`)
-    return res.data;    
+    return res.data;
   }
 
   // 관리자 계정 개인정보 수정
@@ -202,6 +186,29 @@ class MemberService {
   async updateStudentStatus(memberCode, formData) {
     const res = await axios.patch(`${this.#adminPath}/students/${memberCode}/status`, formData)
     return res.data;
+  }
+
+  // 전공변경 신청서 전체 조회
+  async findAllMajorRequests() {
+    const res = await axios.get(`${this.#path}/admin/requests/major`)
+    return res.data;
+  }
+
+  // 전공변경 신청서 단건 조회
+  async findMajorRequest(requestId) {
+    const res = await axios.get(`${this.#path}/admin/requests/major/${requestId}`)
+    return res.data;
+  }
+
+  // 전공변경 신청서 승인/반려
+  async processMajorRequest(requestId, formData) {
+    const res = await axios.patch(`${this.#path}/admin/requests/major/${requestId}`, formData)
+    return res.data;
+  }
+
+  // 전공 변경 신청 서류 다운로드
+  async downloadMajorRequestFile(requestId) {
+    await downloadBlobFile(axios, `${this.#path}/admin/requests/major/${requestId}/file`);
   }
 
 }

@@ -50,3 +50,6 @@ export const BUILDING_LABEL = {
 export const APPROVAL_STATUS = {
   PENDING: '대기', APPROVED: '승인', REJECTED: '반려', CANCELLED: '취소'
 }
+export const MAJOR_REQUEST_TYPE = {
+  MINOR: '부전공', TRANSFER : '전과'
+}
