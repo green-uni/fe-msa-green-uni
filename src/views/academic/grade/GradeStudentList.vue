@@ -1,7 +1,10 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import DataTable from '@/components/common/DataTable.vue'
 import GradeService from '@/services/gradeService'
+
+const router = useRouter()
 
 const isLoading  = ref(true)
 const allGrades  = ref([])
@@ -149,6 +152,13 @@ onMounted(async () => {
             </article>
         </DataTable>
 
+        <!-- 성적 상세보기 버튼 -->
+        <div class="detail-btn-wrap">
+            <button class="btn-detail" @click="router.push('/grades/detail')">
+                성적 상세보기 →
+            </button>
+        </div>
+
     </div>
 </template>
 
@@ -242,4 +252,22 @@ onMounted(async () => {
 .grade-f     { background: #eeeeee; color: #757575; }
 
 .no-grade { color: var(--font-color-light); font-size: 12px; }
+
+/* ── 성적 상세보기 버튼 ── */
+.detail-btn-wrap {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+}
+.btn-detail {
+    padding: 8px 18px;
+    background: var(--main-color);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    cursor: pointer;
+    &:hover { opacity: 0.88; }
+}
 </style>

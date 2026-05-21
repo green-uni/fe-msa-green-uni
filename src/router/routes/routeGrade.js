@@ -40,4 +40,17 @@ export const gradeRoutes = [
             auth: ['STUDENT'],
         },
     },
+    {
+        // 학생 전체 성적 상세조회
+        // 브라우저: /grades/detail
+        path: `${url}/detail`,
+        component: () => import('@/views/academic/grade/GradeStudentDetail.vue'),
+        meta: {
+            title: '성적 상세 조회',
+            groupTitle: '성적',
+            auth: ['STUDENT'],
+            showInNav: false,
+            activeMenu: url,
+        },
+    },
 ]

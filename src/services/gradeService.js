@@ -31,6 +31,12 @@ class GradeService {
         const res = await axios.get(`${this.#studentPath}/my`, { params })
         return res.data.data
     }
+
+    // API-GPA-06: 학생 전체 성적 상세조회
+    async getStudentGradeAll() {
+        const res = await axios.get(`${this.#studentPath}/my/detail`)
+        return res.data.data
+    }
 }
 
 export default new GradeService();
