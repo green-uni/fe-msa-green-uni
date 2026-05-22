@@ -15,7 +15,7 @@ const authStore = useAuthStore()
 <TimetableWidget />
 <TodayLectureWidget v-if="authStore.role === 'PROFESSOR'" />
 <MonthlyScheduleWidget />
-<TuitionStatus />
+<TuitionStatus v-if="authStore.role === 'ADMIN'" />
 </template>
 
 <style scoped>
