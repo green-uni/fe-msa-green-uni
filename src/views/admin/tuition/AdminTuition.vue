@@ -176,13 +176,13 @@ onMounted(() => {
 
     <DataTable
       :columns="filter.status === 'PENDING' 
-        ? ['년도', '학기', '학번', '이름', '학과', '학년', '납부금액', '상태', '납부일자', '납부기한', '관리'] 
-        : ['년도', '학기', '학번', '이름', '학과', '학년', '납부금액', '상태', '납부일자', '납부기한']"
+        ? ['년도', '학기', '학번', '이름', '학과', '학년', '납부금액', '상태', '납부일자', '관리'] 
+        : ['년도', '학기', '학번', '이름', '학과', '학년', '납부금액', '상태', '납부일자']"
       :rows="filteredStudents"
       :isLoading="isLoading"
       :gridCols="filter.status === 'PENDING' 
-        ? '70px 60px 110px 110px 1fr 60px 120px 90px 110px 110px 90px' 
-        : '70px 60px 110px 110px 1fr 60px 120px 90px 110px 110px'"
+        ? '70px 60px 110px 110px 1fr 60px 120px 90px 110px 90px' 
+        : '70px 60px 110px 110px 1fr 60px 120px 90px 110px'"
     >
       <template v-if="!isLoading && filteredStudents.length > 0">
         <article class="tbl-row" v-for="s in filteredStudents" :key="s.tuitionId">
@@ -194,7 +194,6 @@ onMounted(() => {
           <div class="price">{{ formatPrice(s.finalAmount) }}</div>
           <div><span class="state-text" :class="s.status.toLowerCase()">{{ getStatusLabel(s.status) }}</span></div>
           <div class="mono">{{ formatDate(s.paidAt) }}</div>
-          <div class="mono">{{ formatDate(s.deadline) }}</div>
           <div v-if="filter.status === 'PENDING'">
             <button class="btn-table-action" @click="handlePayment(s)">납부</button>
           </div>

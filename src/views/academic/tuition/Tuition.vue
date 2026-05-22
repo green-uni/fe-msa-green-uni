@@ -13,25 +13,35 @@ const fetchTuitionDetail = async () => {
     isLoading.value = true;
     console.log('--- 등록금 데이터 로딩 시작 ---');
     
-    // API-TUI-01: 학생 내역 전체 조회 호출
-    const response = await tuitionService.getMyTuitionList();
-    console.log('백엔드 응답 데이터:', response);
+    // 1. API-TUI-01: 학생 내역 전체 목록 조회 호출하여 최신 고지서 찾기
+    const listResponse = await tuitionService.getMyTuitionList();
+    console.log('백엔드 목록 응답 데이터:', listResponse);
     
-    const data = response?.data;
+    const listData = listResponse?.data;
 
-    if (data && data.length > 0) {
-      const targetTuition = data[0]; 
-      console.log('선택된 최신 고지서 정보:', targetTuition);
+    if (listData && listData.length > 0) {
+      // 가장 최근 학기의 고지서 ID를 추출합니다.
+      const targetTuitionId = listData[0].tuitionId; 
+      currentTuitionId.value = targetTuitionId;
+      
+      console.log(`최신 고지서 ID 확인 (${targetTuitionId}) -> 장학금 정산을 위해 상세 조회 API 호출`);
 
-      tuitionDetail.value = targetTuition;
-      currentTuitionId.value = targetTuition.tuitionId;
+      // 2. 🎯 [핵심 수정] 정밀 매싱된 getMyTuitionDetail 호출
+      // 백엔드의 getStudentTuitionDetailByTuitionId 로직을 트리거하여 장학금을 계산합니다.
+      const detailResponse = await tuitionService.getMyTuitionDetail(targetTuitionId);
+      console.log('백엔드 상세 응답 데이터(장학금 반영됨):', detailResponse);
+
+      // 상세 조회 결과를 화면 데이터에 바인딩
+      tuitionDetail.value = detailResponse?.data;
     } else {
       throw new Error('조회된 등록금 고지 내역이 존재하지 않습니다.');
     }
   } catch (error) {
     console.error('등록금 정보 호출 최종 실패:', error);
     alert('현재 조회 가능한 등록금 고지 내역 정보가 없습니다.');
-    router.push('/main'); 
+    
+    // 🎯 프로젝트에 존재하지 않던 '/main' 대신 안전하게 루트 경로('/')로 리다이렉트합니다.
+    router.push('/'); 
   } finally {
     isLoading.value = false;
   }
