@@ -38,6 +38,8 @@ const yearOptions = computed(() =>
 
 const hasSearchFilter = computed(() => !!searchInput.value || !!selectedYear.value);
 
+const hasPending = computed(() => state.list.some(i => i.status === 'PENDING'));
+
 const filteredList = computed(() =>
     state.list.filter(i => {
         if (selectedYear.value && yearOf(i) !== selectedYear.value) return false;
@@ -163,7 +165,7 @@ onMounted(() => Promise.all([fetchPeriodStatus(), fetchList()]));
             </template>
 
             <template #list-footer>
-                <button v-if="isInPeriod" class="btn btn-submit" @click="goToNew">
+                <button v-if="isInPeriod && !hasPending" class="btn btn-submit" @click="goToNew">
                     <font-awesome-icon icon="fa-solid fa-plus" /> 신청서 작성
                 </button>
             </template>
@@ -183,7 +185,7 @@ onMounted(() => Promise.all([fetchPeriodStatus(), fetchList()]));
                             @click="cancelRequest"
                         >신청 취소</button>
                         <button
-                            v-if="detail.data.status === 'REJECTED' && isInPeriod"
+                            v-if="detail.data.status === 'REJECTED' && isInPeriod && !hasPending"
                             class="btn btn-submit"
                             @click="goToNew"
                         >재신청</button>
