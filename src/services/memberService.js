@@ -58,6 +58,11 @@ class MemberService {
   async downloadMyMajorRequestFile(requestId) {
     await downloadBlobFile(axios, `${this.#path}/student/requests/major/${requestId}/file`);
   }
+  // 전공 변동 이력 조회
+  async findMyMajorChange() {
+    const res = await axios.get(`${this.#path}/student/history/major`)
+    return res.data;
+  }
 
 
   //////////////////////// 관리자 ////////////////////////
@@ -190,25 +195,27 @@ class MemberService {
 
   // 전공변경 신청서 전체 조회
   async findAllMajorRequests() {
-    const res = await axios.get(`${this.#path}/admin/requests/major`)
+    const res = await axios.get(`${this.#adminPath}/requests/major`)
     return res.data;
   }
-
   // 전공변경 신청서 단건 조회
   async findMajorRequest(requestId) {
-    const res = await axios.get(`${this.#path}/admin/requests/major/${requestId}`)
+    const res = await axios.get(`${this.#adminPath}/requests/major/${requestId}`)
     return res.data;
   }
-
   // 전공변경 신청서 승인/반려
   async processMajorRequest(requestId, formData) {
-    const res = await axios.patch(`${this.#path}/admin/requests/major/${requestId}`, formData)
+    const res = await axios.patch(`${this.#adminPath}/requests/major/${requestId}`, formData)
     return res.data;
   }
-
   // 전공 변경 신청 서류 다운로드
   async downloadMajorRequestFile(requestId) {
-    await downloadBlobFile(axios, `${this.#path}/admin/requests/major/${requestId}/file`);
+    await downloadBlobFile(axios, `${this.#adminPath}/requests/major/${requestId}/file`);
+  }
+  // 학생의 전공 변동 이력 조회
+  async findMajorChange(memberCode) {
+    const res = await axios.get(`${this.#adminPath}/students/${memberCode}/history/major`)
+    return res.data;
   }
 
 }
