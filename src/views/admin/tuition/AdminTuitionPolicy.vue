@@ -2,8 +2,10 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import tuitionService from '@/services/tuitionService'
 import DataTable from '@/components/common/DataTable.vue'
+import { useModalStore } from '@/stores/modal'
 
-// 상단 검색용 년도/학기 필터 변수
+const modal = useModalStore()
+
 const filter = reactive({
   year: 2026,
   semester: 1
@@ -12,15 +14,11 @@ const filter = reactive({
 const policies = ref([])
 const isLoading = ref(false)
 const searched = ref(false)
-const isPaymentPeriod = ref(false) // 납부 기간 상태값
+const isPaymentPeriod = ref(false)
 
-// 필터 유효성 검사
 const isFilterValid = computed(() => filter.year && filter.semester !== '')
-
-// 전체 개수 계산
 const displayCount = computed(() => policies.value.length)
 
-// 🔒 현재 혹은 미래 학기인지 판별하여 수정 권한을 체크하는 함수
 function isEditablePeriod(targetYear, targetSemester) {
   const now = new Date()
   const currentYear = now.getFullYear()
@@ -32,34 +30,17 @@ function isEditablePeriod(targetYear, targetSemester) {
   return true
 }
 
-// 🔒 납부 기간인지 판별하는 함수 (실제 운영 시에는 서버 API 응답값 활용 권장)
-function checkIsPaymentPeriod() {
-  const now = new Date();
-  now.setHours(0, 0, 0, 0); 
-  
-  // 납부 기간 예시 (5월 20일 ~ 6월 20일)
-  const start = new Date(now.getFullYear(), 4, 20); 
-  const end = new Date(now.getFullYear(), 5, 20);
-  
-  isPaymentPeriod.value = (now >= start && now <= end);
-}
-
-// 수정 버튼 비활성화 상태 계산
-const isEditDisabled = (policy) => {
-  return policy.isHistory || !isEditablePeriod(filter.year, filter.semester) || isPaymentPeriod.value;
-};
-
-// 🔄 정책 데이터 로드
 async function fetchData() {
   isLoading.value = true
   searched.value = true
-  checkIsPaymentPeriod() // 데이터 로드 시점마다 기간 체크
-  
+
   try {
+    const periodRes = await tuitionService.getPaymentPeriod()
+    isPaymentPeriod.value = periodRes.data.isPaymentPeriod
+
     if (isEditablePeriod(filter.year, filter.semester)) {
       const response = await tuitionService.getPolicies()
       const allData = response.data || []
-      
       policies.value = allData.map(p => ({
         ...p,
         isHistory: false,
@@ -69,7 +50,6 @@ async function fetchData() {
     } else {
       const response = await tuitionService.getPolicyHistories(filter.year, filter.semester)
       const historyData = response.data || []
-      
       policies.value = historyData.map(h => ({
         policyId: h.policyId,
         collegeName: h.collegeName,
@@ -81,7 +61,7 @@ async function fetchData() {
       }))
     }
   } catch (error) {
-    console.error('정책 목록 조회 실패:', error)
+    console.error('데이터 조회 실패:', error)
     policies.value = []
   } finally {
     isLoading.value = false
@@ -102,27 +82,44 @@ function cancelEdit(row) {
 }
 
 async function savePolicy(row) {
-  if (!row.editAmount || row.editAmount <= 0) {
-    alert('올바른 금액을 입력해 주세요.')
-    return
+  // 1. 프론트엔드 자체 최소 금액 검증 (1,000,000원 이하 차단)
+  if (!row.editAmount || row.editAmount <= 1000000) {
+    // 🌟 스토어 명세에 맞춰 showAlert(메시지, 타입) 형태로 변경했습니다.
+    await modal.showAlert('등록금 책정액은 1,000,000원보다 커야 합니다.\n금액을 다시 확인해주세요.', 'warning')
+    return 
   }
   
+  const originalAmount = row.baseAmount;
+
   try {
     isLoading.value = true
-    await tuitionService.updatePolicy(row.policyId, row.editAmount)
-    alert('등록금 정책이 성공적으로 수정되었습니다.')
     
+    // 백엔드로 전송 (여기서 백엔드가 100만원 이하 검증 후 예외를 반환함)
+    await tuitionService.updatePolicy(row.policyId, row.editAmount)
+        
     row.baseAmount = row.editAmount
     row.isEditing = false
-    await fetchData()
-  } catch (error) {
-    const serverMessage = error.response?.data?.message;
-    alert(serverMessage || '수정 권한이 없거나, 현재 등록금 납부 기간 중이므로 수정할 수 없습니다.');
-    
-    row.isEditing = false
-    row.editAmount = row.baseAmount
-  } finally {
     isLoading.value = false
+    
+    // 🌟 수정 성공 알림창 호출
+    await modal.showAlert('등록금 정책이 성공적으로 수정되었습니다.', 'success')
+
+    await fetchData()
+
+  } catch (error) {
+    isLoading.value = false 
+    row.isEditing = false
+    row.editAmount = originalAmount
+
+    console.error('서버 에러 디버깅:', error)
+    
+    // 백엔드(Spring)에서 throw한 IllegalStateException 메시지 가로채기
+    const serverMessage = error.response?.data?.message 
+                          || error.response?.data 
+                          || '등록금 정책 수정 중 오류가 발생했습니다.';
+      
+    // 🌟 백엔드가 보내준 경고 메시지를 그대로 팝업에 연동
+    await modal.showAlert(serverMessage, 'error')
   }
 }
 
@@ -211,10 +208,9 @@ onMounted(() => {
               <button 
                 v-else 
                 class="btn-edit" 
-                :disabled="isEditDisabled(policy)"
-                :class="{ 'btn-disabled': isEditDisabled(policy) }"
+                :disabled="policy.isHistory || !isEditablePeriod(filter.year, filter.semester) || isPaymentPeriod"
+                :class="{ 'btn-disabled': policy.isHistory || !isEditablePeriod(filter.year, filter.semester) || isPaymentPeriod }"
                 @click="enableEdit(policy)"
-                :title="policy.isHistory ? '과거 이력은 수정할 수 없습니다.' : (isPaymentPeriod ? '현재 등록금 납부 기간 중입니다.' : (!isEditablePeriod(filter.year, filter.semester) ? '지난 학기의 정책은 수정할 수 없습니다.' : ''))"
               >
                 수정
               </button>

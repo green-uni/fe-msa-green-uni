@@ -84,7 +84,7 @@ const pagedList  = computed(() => {
 
 function onTabChange(tab) { state.activeTab = tab; state.currentPage = 1 }
 function onSearch()       { state.currentPage = 1 }
-function goToEdit(id)     { router.push(`/admin/majors/${id}/edit`) }
+function goToDetail(id) { router.push(`/admin/majors/${id}`) }
 
 function onSelectMajor(item) {
   state.searchKeyword = item.name
@@ -176,7 +176,7 @@ const gridCols = '1.4fr 1fr 1.1fr 1.2fr 0.9fr 0.7fr 0.7fr 0.7fr'
       class="tbl-row"
       :class="{ 'row-disabled': m.active === '폐지' }"
       style="cursor: pointer;"
-      @click="goToEdit(m.majorId)"
+      @click="goToDetail(m.majorId)"
     >
       <div>{{ m.name }}</div>
       <div>{{ getCollegeName(m.collegeId) }}</div>

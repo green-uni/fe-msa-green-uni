@@ -30,8 +30,18 @@ class TuitionService {
    */
   getTuitionList(year, semester, status, page = 0, size = 10) {
     const params = { year, semester, page, size };
-    if (status) params.status = status;
+    // '전체' 탭이거나 status가 공백이 아니라면 대문자로 변환하여 전송
+    if (status && status !== '') {
+      params.status = status;
+    }
     return axios.get(`${adminPath}/tuitions`, { params });
+  }
+
+  /**
+   * 추가: 관리자 - 필터용 전체 학과 목록 조회
+   */
+  getDepartmentList() {
+    return axios.get('core/admin/majors'); // 프로젝트의 실제 학과 조회 URL로 맞추어 사용하세요.
   }
 
   /**
@@ -78,6 +88,13 @@ class TuitionService {
     return axios.get(`${adminPath}/tuition-policies/history`, {
       params: { year, semester }
     });
+  }
+
+  /**
+   * API-TUI-14: 관리자 - 등록금 납부 기간 조회
+   */
+  getPaymentPeriod() {
+    return axios.get(`${adminPath}/tuition-schedule/payment-period`);
   }
 }
 
