@@ -37,6 +37,13 @@ export const adminAuthRoutes = [
 
 export const mobileAuthRoutes = [
   {
+    path: 'login',
+    component: () => import('@/views/attendance/StudentLogIn.vue'),
+    meta: {
+      title: '로그인',
+    },
+  },
+  {
     path: 'my/password',
     component: () => import('@/views/common/auth/PasswordChange.vue'),
     meta: {

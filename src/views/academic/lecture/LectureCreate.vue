@@ -8,8 +8,10 @@ import { useAuthStore } from '@/stores/authentication';
 import SearchInput from '@/components/util/SearchInput.vue';
 import { useModalStore } from '@/stores/modal';
 import CalendarDate from '@/components/util/CalendarDate.vue';
+import ScheduleService from '@/services/scheduleService';
 
 const modal = useModalStore();
+const isPeriod = ref(true);
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
@@ -146,8 +148,12 @@ onMounted(async () => {
     return;
   }
 
+  const activeRes = await ScheduleService.getActiveSchedules();
+  isPeriod.value = !!activeRes.data?.data?.LECTURE_REGISTRATION;
+  if (!isPeriod.value) return;
+
   if (authStore.isLogin) {
-    state.data.loginUserId = authStore.memberCode;
+    //state.data.loginUserId = authStore.memberCode;
     state.data.loginUserCode = authStore.memberCode;
     state.data.loginUserName = authStore.name;
   }
@@ -349,7 +355,8 @@ onBeforeRouteLeave(async (to, from, next) => {
 
 <template>
   <div class="container">
-    <div class="form-wrap">
+    <div v-if="!isPeriod" class="empty-period">강의개설 기간이 아닙니다.</div>
+    <div class="form-wrap" v-else>
 
       <!-- 교수 정보 (개설 모드만 노출) -->
       <div class="content-wrap" v-if="!isEdit">
@@ -599,4 +606,13 @@ onBeforeRouteLeave(async (to, from, next) => {
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.empty-period {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 60vh;
+  font-size: 18px;
+  color: #999;
+}
+</style>

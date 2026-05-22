@@ -14,7 +14,7 @@ onUnmounted(() => document.body.classList.remove('pwa-view'))
 <template>
   <div class="pwa-wrap">
     <!-- [수정] 홈 화면(/home)은 자체 헤더를 가지므로 TopHeader 숨김 -->
-    <TopHeader v-if="!route.path.endsWith('/home')" :mobile="true" />
+    <TopHeader v-if="!route.path.endsWith('/home') && route.path !== '/student/login'" :mobile="true" />
     <main class="container">
       <RouterView />
     </main>
