@@ -136,7 +136,10 @@ const getStudentBadge = (item) => {
   if (status === 'active') return item.isEvaluated
     ? { label: '완료', cls: 'done' }
     : { label: '미작성', cls: 'pending' };
-  return { label: '완료', cls: 'done' };
+  // done
+  return item.isEvaluated
+    ? { label: '완료', cls: 'done' }
+    : { label: '평가기간만료', cls: 'expired' };
 };
 
 const getProfessorBadge = (item) => {
@@ -247,9 +250,16 @@ onMounted(fetchList);
         <template v-else-if="getEvalStatus(selectedItem) === 'before'">
           <p class="empty-text">진행중인 강의입니다.</p>
         </template>
-        <!-- done: 한 줄 메시지 -->
-        <template v-else>
-          <p class="empty-text">강의평가 기간이 아닙니다.</p>
+        <!-- done + 작성완료 -->
+        <template v-else-if="getEvalStatus(selectedItem) === 'done' && selectedItem.isEvaluated">
+          <div class="detail-row"><span class="label">강의 만족도</span><span>{{ starText(selectedDetail.score) }} {{ selectedDetail.score }}.0 / 5.0</span></div>
+          <div class="detail-row"><span class="label">수강평가</span></div>
+          <div class="comment-box">{{ selectedDetail.comment }}</div>
+        </template>
+
+        <!-- done + 미작성 -->
+        <template v-else-if="getEvalStatus(selectedItem) === 'done' && !selectedItem.isEvaluated">
+          <p class="empty-text">작성되지 않은 강의입니다.</p>
         </template>
       </div>
 
@@ -293,9 +303,9 @@ onMounted(fetchList);
 .lecture-name { font-weight: 600; font-size: 15px; }
 .pro-name { font-size: 13px; color: #777; }
 .badge { padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
-.badge.before { background: #fff3e0; color: #ef6c00; }
-.badge.pending { background: #e8f4f0; color: var(--main-color, #3e9e7e); }
-.badge.done { background: #f0f0f0; color: #888; }
+.badge.before { color: #ef6c00; }
+.badge.pending { color: #c62828; }
+.badge.done { color: #888; }
 .star-score { color: #f5a623; font-size: 13px; }
 .detail-row { display: flex; gap: 12px; align-items: center; font-size: 14px; }
 .label { min-width: 90px; font-weight: 600; color: #555; }
