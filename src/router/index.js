@@ -12,18 +12,33 @@ router.beforeEach(async (to, _from, next) => {
   await authStore.$persistedState?.isReady?.()
   const isLogin = authStore.isLogin
   const role = authStore.role
-  const publicPages = ['/login', '/admin/login', '/auth/password']
+  const publicPages = ['/login', '/admin/login', '/auth/password', '/student/login']
   const isAdminRole = role === 'ADMIN'
   const isAdminPath = to.path.startsWith('/admin/')
 
-  if (!isLogin && !publicPages.includes(to.path)) {
+  // 모바일 학생: /student/* 경로와 /student/login만 허용 — PC 레이아웃 접근 차단
+  const isMobileDevice = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+  if (!isMobileDevice && to.path === '/student/login') {
     next('/login')
+    return
+  }
+  if (isMobileDevice && to.path === '/login') {
+    next('/student/login')
+    return
+  }
+  if (isMobileDevice && isLogin && role === 'STUDENT' && !to.path.startsWith('/student/')) {
+    next('/student/attendances/home')
+    return
+  }
+
+  if (!isLogin && !publicPages.includes(to.path)) {
+    next(isMobileDevice ? '/student/login' : '/login')
     return
   }
   if (isLogin) {
     // 로그인 상태에서 루트·로그인 페이지 접근 시 역할에 맞는 홈으로 리다이렉트
-    if (to.path === '/' || to.path === '/login' || to.path === '/admin/login') {
-      next(isAdminRole ? '/admin/members/dashboard' : '/members/dashboard')
+    if (to.path === '/' || to.path === '/login' || to.path === '/admin/login' || to.path === '/student/login') {
+      next(isMobileDevice ? '/student/attendances/home' : isAdminRole ? '/admin/members/dashboard' : '/members/dashboard')
       return
     }
     // ADMIN이 일반 경로 접근 시 관리자 홈으로 리다이렉트 (비밀번호 변경 제외)
@@ -37,19 +52,8 @@ router.beforeEach(async (to, _from, next) => {
       return
     }
 
-    // [추가] meta.auth가 있는 라우트는 해당 Role만 접근 허용
-    // Role 불일치 시 역할 구분 없이 /members/my(내 정보 조회)로 리다이렉트
-    const requiredRoles = to.meta.auth
-    if (isLogin && Array.isArray(requiredRoles) && requiredRoles.length > 0) {
-      if (!requiredRoles.includes(authStore.role)) {
-        next('/members/my')
-        return
-      }
-    }
-
-
-    // meta.auth 기반 접근 제한
-    if (to.meta.auth && !to.meta.auth.map(r => r.toUpperCase()).includes(role)) {
+    // meta.auth가 있는 라우트는 해당 Role만 접근 허용
+    if (Array.isArray(to.meta.auth) && to.meta.auth.length > 0 && !to.meta.auth.includes(role)) {
       next(isAdminRole ? '/admin/members/dashboard' : '/members/dashboard')
       return
     }

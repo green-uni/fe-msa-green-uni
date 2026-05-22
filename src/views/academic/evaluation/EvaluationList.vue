@@ -2,11 +2,13 @@
 import { reactive, onMounted, computed, ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/authentication';
+import { useModalStore } from '@/stores/modal';
 import evaluationService from '@/services/evaluationService';
 
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
+const modal = useModalStore();
 const role = computed(() => authStore.role);
 
 const PAGE_SIZE = 10;
@@ -89,44 +91,32 @@ const selectItem = async (item) => {
   }
 };
 
-const isWriting = ref(false);
-const showPeriodModal = ref(false);
-
 const form = reactive({
   score: 0,
   comment: '',
 });
 
-const moveToWrite = () => {
-  const status = getEvalStatus(selectedItem.value);
-  if (status !== 'pending') {
-    showPeriodModal.value = true;
-    return;
-  }
-  isWriting.value = true;
-};
-
-const cancelWrite = () => {
-  isWriting.value = false;
-};
-
 const submitEval = async () => {
-  if (!form.score) return alert('별점을 선택해주세요.');
-  if (form.comment.length < 50) return alert('10자 이상 작성해주세요.');
+  if (!form.score) { await modal.showAlert('별점을 선택해주세요.', 'warning'); return; }
+  if (form.comment.length < 10) { await modal.showAlert('수강평가를 10자 이상 작성해주세요.', 'warning'); return; }
   
   try {
-    await evaluationService.createEvaluation(selectedItem.value.lectureId, {
-      lectureId: Number(selectedItem.value.lectureId),
+    const lectureId = selectedItem.value.lectureId;
+    await evaluationService.createEvaluation(lectureId, {
+      lectureId,
       score: form.score,
       comment: form.comment,
     });
-    alert('강의평가가 등록되었습니다.');
-    isWriting.value = false;
-    fetchList();
+    await modal.showAlert('강의평가가 등록되었습니다.', 'success');
+    await fetchList();
+    const item = state.list.find(i => i.lectureId === lectureId);
+    if (item) await selectItem(item);
   } catch (e) {
     console.error(e);
   }
 };
+
+const formatDate = (dt) => dt ? dt.slice(0, 10) : '-';
 
 const starText = (score) => {
   if (!score) return '';
@@ -138,23 +128,29 @@ const getEvalStatus = (item) => {
   const start = item.startDate ? new Date(item.startDate) : null;
   const end = item.endDate ? new Date(item.endDate) : null;
 
-  if (!start || !end) return 'pending';
-  if (today < start) return 'before';   // 평가기간 전
-  if (today > end) return 'done';       // 평가기간 후
-  return 'pending';                      // 진행중
+  if (!start || !end || today < start) return 'before';
+  if (today > end) return 'done';
+  return 'active';
 };
 
-const STATUS_LABEL = {
-  before: '대기',
-  pending: '진행중',
-  done: '완료',
+const getStudentBadge = (item) => {
+  const status = getEvalStatus(item);
+  if (status === 'before') return { label: '강의진행중', cls: 'before' };
+  if (status === 'active') return item.isEvaluated
+    ? { label: '완료', cls: 'done' }
+    : { label: '미작성', cls: 'pending' };
+  return { label: '완료', cls: 'done' };
 };
 
-const STATUS_CLASS = {
-  before: 'before',
-  pending: 'pending',
-  done: 'done',
+const getProfessorBadge = (item) => {
+  const status = getEvalStatus(item);
+  if (status === 'before') return { label: '강의진행중', cls: 'before' };
+  if (status === 'active') return { label: '진행중', cls: 'pending' };
+  return { label: '평가완료', cls: 'done' };
 };
+
+const getBadge = (item) =>
+  role.value === 'STUDENT' ? getStudentBadge(item) : getProfessorBadge(item);
 
 onMounted(fetchList);
 </script>
@@ -204,22 +200,7 @@ onMounted(fetchList);
             <span class="pro-name" v-if="role === 'STUDENT'">{{ item.proName }}</span>
           </div>
           <div class="card-right">
-            <template v-if="role === 'STUDENT'">
-              <span
-                v-if="selectedDetail?.score && selectedItem?.lectureId === item.lectureId"
-                class="star-score"
-              >
-                {{ starText(selectedDetail.score) }} {{ selectedDetail.score }}.0 / 5.0
-              </span>
-              <span v-else :class="['badge', STATUS_CLASS[getEvalStatus(item)]]">
-                {{ STATUS_LABEL[getEvalStatus(item)] }}
-              </span>
-            </template>
-            <template v-else>
-                  <span :class="['badge', STATUS_CLASS[getEvalStatus(item)]]">
-                    {{ STATUS_LABEL[getEvalStatus(item)] }}
-                  </span>
-            </template>
+            <span :class="['badge', getBadge(item).cls]">{{ getBadge(item).label }}</span>
           </div>
         </div>
 
@@ -233,102 +214,66 @@ onMounted(fetchList);
         </div>
       </div>
 
-      <!-- 오른쪽: 상세 (선택 + 데이터 있을 때) -->
-      <div class="eval-detail" v-if="selectedItem && selectedDetail">
-
-        <!-- 학생 상세 -->
-        <template v-if="role === 'STUDENT'">
-          <div class="detail-row"><span class="label">강의명</span><span>{{ selectedDetail.lectureName }}</span></div>
-          <div class="detail-row"><span class="label">교수명</span><span>{{ selectedDetail.proName }}</span></div>
-          <div class="detail-row"><span class="label">평가기간</span><b>{{ selectedDetail.startDate }}~{{ selectedDetail.endDate }}</b></div>
-          <div class="detail-row"><span class="label">강의 만족도</span><span>{{ selectedDetail.score }}.0 / 5.0</span></div>
+      <!-- 학생 패널 -->
+      <div class="eval-detail" v-if="role === 'STUDENT' && selectedItem && selectedDetail != null">
+        <!-- active + 성적 미입력 -->
+        <template v-if="getEvalStatus(selectedItem) === 'active' && !selectedItem.hasGrade">
+          <p class="empty-text">교수님이 성적을 입력한 후 강의평가가 가능합니다.</p>
+        </template>
+        <!-- active + 성적 있음 + 미작성: 바로 작성 폼 -->
+        <template v-else-if="getEvalStatus(selectedItem) === 'active' && selectedItem.hasGrade && selectedDetail.score == null">
+          <div class="detail-row"><span class="label">강의명</span><span>{{ selectedItem.lectureName }}</span></div>
+          <div class="detail-row"><span class="label">교수명</span><span>{{ selectedItem.proName }}</span></div>
+          <div class="form-row">
+            <span class="label">강의 만족도</span>
+            <div class="star-wrap">
+              <span v-for="n in 5" :key="n" class="star" :class="{ active: n <= form.score }" @click="form.score = n">★</span>
+              <span class="score-text">{{ form.score }}.0 / 5.0</span>
+            </div>
+          </div>
+          <div class="form-row column">
+            <span class="label">수강평가</span>
+            <textarea v-model="form.comment" class="textarea" placeholder="10자 이상 작성해주세요." rows="5"/>
+            <span class="char-count">{{ form.comment.length }}자</span>
+          </div>
+          <div class="btn-wrap">
+            <button class="btn-primary" @click="submitEval">제출</button>
+          </div>
+        </template>
+        <!-- active + 성적 있음 + 완료: 본인 평가 조회 -->
+        <template v-else-if="getEvalStatus(selectedItem) === 'active' && selectedItem.hasGrade && selectedDetail.score != null">
+          <div class="detail-row"><span class="label">강의 만족도</span><span>{{ starText(selectedDetail.score) }} {{ selectedDetail.score }}.0 / 5.0</span></div>
           <div class="detail-row"><span class="label">수강평가</span></div>
           <div class="comment-box">{{ selectedDetail.comment }}</div>
         </template>
-
-        <!-- 교수 상세 -->
+        <!-- before: 한 줄 메시지 -->
+        <template v-else-if="getEvalStatus(selectedItem) === 'before'">
+          <p class="empty-text">진행중인 강의입니다.</p>
+        </template>
+        <!-- done: 한 줄 메시지 -->
         <template v-else>
-          <div class="detail-row"><span class="label">강의명</span><span>{{ selectedDetail.lectureName }}</span></div>
-          <div class="detail-row"><span class="label">교수명</span><span>{{ selectedDetail.proName }}</span></div>
-          <div class="detail-row"><span class="label">평가기간</span><b>{{ selectedDetail.startDate }}~{{ selectedDetail.endDate }}</b></div>
+          <p class="empty-text">강의평가 기간이 아닙니다.</p>
+        </template>
+      </div>
+
+      <!-- 교수: 상세 -->
+      <div class="eval-detail" v-else-if="role !== 'STUDENT' && selectedItem && selectedDetail">
+        <div class="detail-row"><span class="label">강의명</span><span>{{ selectedDetail.lectureName }}</span></div>
+        <div class="detail-row"><span class="label">교수명</span><span>{{ selectedDetail.proName }}</span></div>
+        <div class="detail-row"><span class="label">평가기간</span><span>{{ formatDate(selectedDetail.startDate) }} ~ {{ formatDate(selectedDetail.endDate) }}</span></div>
+        <!-- active: 결과 숨김 -->
+        <template v-if="getEvalStatus(selectedItem) === 'active'">
+          <p class="empty-text">강의평가가 완료된 후 확인할 수 있습니다.</p>
+        </template>
+        <!-- done: 결과 공개 -->
+        <template v-else>
           <div class="detail-row"><span class="label">강의 만족도</span><span>{{ selectedDetail.score?.toFixed(1) ?? '-' }} / 5.0</span></div>
           <div class="detail-row"><span class="label">평가참여인원</span><span>{{ selectedDetail.responseCount }} / {{ selectedDetail.totalStudents }}</span></div>
           <div class="detail-row"><span class="label">수강평가</span></div>
           <div v-for="(c, i) in selectedDetail.comments" :key="i" class="comment-box">{{ c }}</div>
           <p v-if="!selectedDetail.comments?.length" class="empty-text">작성된 수강평가가 없습니다.</p>
         </template>
-
-        <!-- 아래 나머지 카드 목록 -->
-        <div class="sub-list">
-          <div
-            v-for="item in state.list.filter(i => i.lectureId !== selectedItem?.lectureId)"
-            :key="item.lectureId"
-            class="eval-card"
-            @click="selectItem(item)"
-          >
-            <div class="card-left">
-              <span class="lecture-name">{{ item.lectureName }}</span>
-              <span class="pro-name" v-if="role === 'STUDENT'">{{ item.proName }}</span>
-            </div>
-            <div class="card-right">
-              <span :class="['badge', STATUS_CLASS[getEvalStatus(item)]]">
-                {{ STATUS_LABEL[getEvalStatus(item)] }}
-              </span>
-            </div>
-          </div>
-        </div>
       </div>
-
-      <!-- 선택했는데 상세 없는 경우 (미완료 학생) -->
-      <div class="eval-detail" v-else-if="selectedItem && !selectedDetail">
-        <!-- 작성 모드 -->
-        <template v-if="isWriting">
-          <div class="detail-row"><span class="label">강의명</span><span>{{ selectedItem.lectureName }}</span></div>
-          <div class="detail-row"><span class="label">교수명</span><span>{{ selectedItem.proName }}</span></div>
-          
-          <div class="form-row">
-            <span class="label">강의 만족도</span>
-            <div class="star-wrap">
-              <span
-                v-for="n in 5" :key="n"
-                class="star" :class="{ active: n <= form.score }"
-                @click="form.score = n"
-              >★</span>
-              <span class="score-text">{{ form.score }}.0 / 5.0</span>
-            </div>
-          </div>
-
-          <div class="form-row column">
-            <span class="label">수강평가</span>
-            <textarea
-              v-model="form.comment"
-              class="textarea"
-              placeholder="10자 이상 작성해주세요."
-              rows="5"
-            />
-            <span class="char-count">{{ form.comment.length }}자</span>
-          </div>
-
-          <div class="btn-wrap">
-            <button class="btn-cancel" @click="cancelWrite">취소</button>
-            <button class="btn-primary" @click="submitEval">제출</button>
-          </div>
-        </template>
-
-        <!-- 미작성 안내 -->
-        <template v-else>
-          <p class="empty-text">아직 작성된 평가가 없습니다.</p>
-          <button class="btn-primary" @click="moveToWrite">평가 작성하기</button>
-        </template>
-      </div>
-    </div>
-  </div>
-
-  <!-- 강의평가 기간 아닐 때 모달 -->
-  <div class="modal-overlay" v-if="showPeriodModal" @click.self="showPeriodModal = false">
-    <div class="modal-box">
-      <p class="modal-msg">강의평가 기간이 아닙니다.</p>
-      <button class="btn-primary" @click="showPeriodModal = false">확인</button>
     </div>
   </div>
 </template>
@@ -380,7 +325,4 @@ onMounted(fetchList);
 .char-count { font-size: 12px; color: #999; align-self: flex-end; }
 .btn-wrap { display: flex; justify-content: flex-end; gap: 8px; }
 .btn-cancel { padding: 8px 20px; background: #fff; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 14px; }
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 100; }
-.modal-box { background: #fff; border-radius: 10px; padding: 32px 40px; display: flex; flex-direction: column; align-items: center; gap: 20px; min-width: 280px; }
-.modal-msg { font-size: 15px; color: #333; font-weight: 500; }
 </style>

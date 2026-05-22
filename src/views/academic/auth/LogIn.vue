@@ -1,7 +1,7 @@
   <script setup>
   import logo from '@/assets/logo.png';
-  import { reactive, watch } from 'vue';
-  import { useRouter, useRoute } from 'vue-router';
+  import { reactive, ref, watch } from 'vue';
+  import { useRouter } from 'vue-router';
   import { useAuthStore } from '@/stores/authentication';
   import { useModalStore } from '@/stores/modal'
   import AuthService from '@/services/authService';
@@ -12,6 +12,7 @@
   const authStore = useAuthStore()
   const modal = useModalStore()
   const router = useRouter();
+  const isLoading = ref(false)
 
   const state = reactive({
     form: {
@@ -32,41 +33,27 @@
   })
 
   const login = async () => {
+    if (isLoading.value) return
+    isLoading.value = true
     try {
       const res = await AuthService.logIn(state.form);
       const profile = await MemberService.findProfile();
-      authStore.logIn(res.data);
-      authStore.setProfile(profile.data);
 
       if (res.data.isFirstLogin) {
         await modal.showAlert('최초 로그인 입니다. 비밀번호를 변경해주세요', 'warning')
-        if (res.data.deviceId === 'mobile') {
-          router.push('/attend/my/password')
-        } else {
-          await router.push('/members/my/password')
-        }
+        authStore.logIn(res.data);
+        authStore.setProfile(profile.data);
+        router.push('/members/my/password')
         return
       }
 
-      // [추가] QR URL 직접 접근 후 로그인한 경우 → 원래 경로(token 포함)로 복귀
-      const redirect = sessionStorage.getItem('redirectAfterLogin')
-      if (redirect) {
-        sessionStorage.removeItem('redirectAfterLogin')
-        router.push(redirect)
-        return
-      }
-
-      // [수정] deviceId(서버 판단) 또는 UA(클라이언트 직접 판단) 둘 중 하나라도 mobile이면 PWA 홈으로 이동
-      // deviceId만 쓰면 일부 모바일 브라우저(웹뷰 등)에서 감지 실패하는 경우가 있어 이중 체크
-      const isMobileUA = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
-      if (res.data.role === 'STUDENT' && (res.data.deviceId === 'mobile' || isMobileUA)) {
-        router.push('/student/attendances/home')
-        return
-      }
+      authStore.logIn(res.data);
+      authStore.setProfile(profile.data);
       router.push('/members/dashboard')
 
     } catch (e) {
       console.error(e)
+      isLoading.value = false
     }
   }
 </script>
@@ -84,8 +71,8 @@
       </header>
       <!-- 로그인 유형 탭 -->
       <nav class="role-tabs" role="tablist">
-        <button @click="router.push('/login')" class="tab is-active" role="tab" aria-selected="true">교수 · 학생</button>
-        <button @click="router.push('/admin/login')" class="tab" role="tab" aria-selected="false">관리자</button>
+        <button @click="router.push('/login')" class="tab is-active pointer" role="tab" aria-selected="true">교수 · 학생</button>
+        <button @click="router.push('/admin/login')" class="tab pointer" role="tab" aria-selected="false">관리자</button>
       </nav>
     </div>
 
@@ -101,7 +88,7 @@
         </label>
       </div>
     </div>
-    <LoginForm :form="state.form" variant="academic" @login="login" />
+    <LoginForm :form="state.form" variant="academic" :isLoading="isLoading" @login="login" />
     <PublicAnnouncement />
   </div>
 </template>
@@ -183,7 +170,6 @@
     &.is-active {
       color: $green-600;
       border-color: $green-600;
-      ;
     }
   }
 }

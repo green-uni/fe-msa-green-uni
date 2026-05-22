@@ -30,16 +30,25 @@
 
     <!-- 헤더 -->
     <header class="header">
-      <div class="header-title">
-        <span class="header-logo">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M22 9L12 5 2 9l10 4 10-4v6"/>
-            <path d="M6 10.6V16a6 3 0 0 0 12 0v-5.4"/>
-          </svg>
-        </span>
-        <p class="header-school">그린대학교 전자출결</p>
+      <div class="header-left">
+        <div class="header-title">
+          <span class="header-logo">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 9L12 5 2 9l10 4 10-4v6"/>
+              <path d="M6 10.6V16a6 3 0 0 0 12 0v-5.4"/>
+            </svg>
+          </span>
+          <p class="header-school">그린대학교 전자출결</p>
+        </div>
+        <p class="header-user">{{ majorName }} · {{ userName }}</p>
       </div>
-      <p class="header-user">{{ majorName }} · {{ userName }}</p>
+      <button class="btn-logout" @click="doLogOut" aria-label="로그아웃">로그아웃
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </button>
     </header>
 
     <!-- 메인 영역 -->
@@ -97,9 +106,20 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authentication'
+import AuthService from '@/services/authService'
 
 const router    = useRouter()
 const authStore = useAuthStore()
+
+async function doLogOut() {
+  try {
+    await AuthService.logOut()
+    authStore.logOut()
+    router.push('/login')
+  } catch (e) {
+    console.error(e)
+  }
+}
 
 const majorName = computed(() => authStore.major || '-')
 const userName  = computed(() => authStore.name  || '-')
@@ -204,15 +224,18 @@ function goToQrScan()   { router.push('/student/attendances/scan') }
 /* ── 헤더 ── */
 .header {
   flex-shrink: 0;
-  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   padding-top: 8px;
 }
+
+.header-left { display: flex; flex-direction: column; gap: 4px; }
 
 .header-title {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 6px;
 }
 
 .header-logo {
@@ -235,6 +258,20 @@ function goToQrScan()   { router.push('/student/attendances/scan') }
 .header-user {
   font-size: var(--text-xs);
   color: var(--font-color-light);
+}
+
+.btn-logout {
+  background: none;
+  border: 1px solid var(--line-color);
+  border-radius: 8px;
+  padding: 6px 8px;
+  color: var(--font-color-light);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  &:hover { color: var(--font-color); border-color: var(--font-color-light); }
+  &:active { opacity: 0.7; }
 }
 
 /* ── 메인 영역 ── */

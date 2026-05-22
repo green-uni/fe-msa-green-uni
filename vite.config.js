@@ -33,7 +33,7 @@ export default defineConfig(({ mode }) => {
         // 캐시 문제 발생 시 브라우저에서 Ctrl+Shift+R(강력 새로고침) 사용
         // 팀원 개발 환경에서는 필요 시 false 로 전환 가능
         devOptions: {
-          enabled: false,
+          enabled: false, //develop에 PR시에 false로 수정하여 PR
           type: 'module',           // Vite HMR과 충돌 방지
           navigateFallback: 'index.html', // SPA 딥링크 정상 동작
         },
@@ -145,11 +145,7 @@ export default defineConfig(({ mode }) => {
       allowedHosts: ['bottom-gleaming-lather.ngrok-free.dev'],
       proxy: {
         '/api': {
-          target: proxyTarget,
-          changeOrigin: true,
-        },
-        '/file': {
-          target: proxyTarget,
+          target: 'http://localhost:8000',
           changeOrigin: true,
         }
       }
