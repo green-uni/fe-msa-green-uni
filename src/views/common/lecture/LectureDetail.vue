@@ -1,7 +1,9 @@
 <script setup>
 import { useRoute, useRouter } from 'vue-router';
 import { onMounted, reactive, ref, computed } from 'vue';
+import { onClickOutside } from '@vueuse/core';
 import LectureService from '@/services/lectureService';
+import SearchInput from '@/components/util/SearchInput.vue';
 import { useAuthStore } from '@/stores/authentication';
 import DataTable from '@/components/common/DataTable.vue';
 import { useModalStore } from '@/stores/modal';
@@ -80,6 +82,101 @@ const canReject = computed(() =>
 // 반려사유 입력박스
 const showRejectionBox = ref(false);
 const rejectionInput = ref('');
+
+// 더보기 드롭다운
+const showMoreMenu = ref(false);
+const moreMenuRef = ref(null);
+onClickOutside(moreMenuRef, () => { showMoreMenu.value = false; });
+
+// 수동폐강
+const showCancelBox = ref(false);
+const cancelReason = ref('');
+const canCancel = computed(() =>
+  authStore.role === 'ADMIN' && state.data.status === '승인'
+);
+const openCancelBox = () => {
+  showCancelBox.value = true;
+  showProfessorBox.value = false;
+  showMoreMenu.value = false;
+  cancelReason.value = '';
+};
+const submitCancel = async () => {
+  if (cancelReason.value.trim().length < 30) {
+    modal.showAlert('폐강 사유를 30자 이상 입력해주세요.', 'warning');
+    return;
+  }
+  const isConfirmed = await modal.showConfirm('강의를 폐강하시겠습니까? 이 작업은 되돌릴 수 없습니다.', 'warning');
+  if (!isConfirmed) return;
+  try {
+    await LectureService.cancelLecture(id, { reason: cancelReason.value });
+    modal.showAlert('강의가 폐강 처리되었습니다.', 'success');
+    state.data.status = '취소';
+    showCancelBox.value = false;
+  } catch (e) {
+    modal.showAlert(e.response?.data?.result || '폐강 처리에 실패했습니다.', 'error');
+  }
+};
+
+// 교수 변경
+const showProfessorBox = ref(false);
+const professorChangeReason = ref('');
+const selectedProfessor = ref(null);
+const professorSearchText = ref('');
+const professorList = ref([]);
+
+const professorListWithLabel = computed(() =>
+  professorList.value.map(p => ({
+    ...p,
+    displayName: `${p.name} (${p.majorName})`
+  }))
+);
+
+const selectedProfessorCode = ref('');
+
+const onProfessorSelect = (item) => {
+  selectedProfessor.value = item.memberCode;
+  selectedProfessorCode.value = item.memberCode;
+};
+
+const openProfessorBox = async () => {
+  showProfessorBox.value = true;
+  showCancelBox.value = false;
+  showMoreMenu.value = false;
+  professorChangeReason.value = '';
+  selectedProfessor.value = null;
+  selectedProfessorCode.value = '';
+  professorSearchText.value = '';
+  try {
+    const res = await LectureService.getProfessorList();
+    professorList.value = res.data ?? [];
+  } catch (e) {
+    console.error('교수 목록 조회 실패', e);
+  }
+};
+const submitProfessorChange = async () => {
+  if (!professorChangeReason.value.trim()) {
+    modal.showAlert('변경 사유를 입력해주세요.', 'warning');
+    return;
+  }
+  if (!selectedProfessor.value) {
+    modal.showAlert('대체교수를 선택해주세요.', 'warning');
+    return;
+  }
+  const isConfirmed = await modal.showConfirm('강의담당 교수를 변경하시겠습니까?', 'warning');
+  if (!isConfirmed) return;
+  try {
+    await LectureService.changeLectureProfessor(id, {
+      reason: professorChangeReason.value,
+      newMemberCode: selectedProfessor.value,
+    });
+    modal.showAlert('담당 교수가 변경되었습니다.', 'success');
+    const newProf = professorList.value.find(p => p.memberCode === selectedProfessor.value);
+    if (newProf) state.data.proName = newProf.name;
+    showProfessorBox.value = false;
+  } catch (e) {
+    modal.showAlert(e.response?.data?.result || '교수 변경에 실패했습니다.', 'error');
+  }
+};
 
 // 승인
 const updateStatus = async (newStatus) => {
@@ -195,7 +292,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="container">
+  <div :class="['container', { 'no-color-mode': ['취소', '반려', '대기'].includes(state.data.status) }]">
 
     <!-- 헤더 -->
     <div class="page-header">
@@ -205,8 +302,15 @@ onMounted(async () => {
 
       <!-- 관리자 버튼 -->
       <div class="action-group">
-        <button v-if="canApprove" class="btn btn-success" @click="updateStatus('APPROVED')">승인</button>
-        <button v-if="canReject && !showRejectionBox" class="btn btn-danger" @click="openRejectionBox">반려</button>
+        <button v-if="canApprove" class="btn btn-subtle" @click="updateStatus('APPROVED')">승인</button>
+        <button v-if="canReject && !showRejectionBox" class="btn btn-default" @click="openRejectionBox">반려</button>
+        <div v-if="canCancel" class="more-menu-wrap" ref="moreMenuRef">
+          <button class="more-btn" @click="showMoreMenu = !showMoreMenu">⋯</button>
+          <div v-if="showMoreMenu" class="more-dropdown">
+            <button @click="openProfessorBox">교수 변경</button>
+            <button @click="openCancelBox">강의 폐강</button>
+          </div>
+        </div>
       </div>
 
       <!-- 교수: 수정/삭제 (반려 상태 + 수강생 없을 때) -->
@@ -223,6 +327,54 @@ onMounted(async () => {
       </div>
     </div>
 
+    <!-- 수동폐강 입력박스 -->
+    <div v-if="showCancelBox" class="action-box cancel-box">
+      <p class="action-box-title">수동폐강</p>
+      <textarea v-model="cancelReason" class="action-textarea" placeholder="폐강 사유를 30자 이상 입력해주세요." rows="3" />
+      <div class="action-box-footer">
+        <span class="char-count" :class="{ valid: cancelReason.trim().length >= 30 }">
+          {{ cancelReason.trim().length }} / 30자 이상
+        </span>
+        <div class="action-box-btns">
+          <button class="btn btn-default" @click="showCancelBox = false">취소</button>
+          <button class="btn btn-confirm" :disabled="cancelReason.trim().length < 30" @click="submitCancel">폐강 처리</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 교수 변경 입력박스 -->
+    <div v-if="showProfessorBox" class="action-box">
+      <p class="action-box-title">담당 교수 변경</p>
+      <div class="professor-form">
+        <div class="professor-form-row">
+          <div class="professor-field">
+            <span class="pf-label">교번</span>
+            <input type="text" :value="selectedProfessorCode" disabled placeholder="-" class="pf-input" />
+          </div>
+          <div class="professor-field">
+            <span class="pf-label">교수명</span>
+            <SearchInput
+              v-model="professorSearchText"
+              :list="professorListWithLabel"
+              labelKey="displayName"
+              valueKey="memberCode"
+              placeholder="교수 이름으로 검색"
+              :showOnFocus="true"
+              @select="onProfessorSelect"
+            />
+          </div>
+        </div>
+        <div class="professor-field">
+          <span class="pf-label">변경사유</span>
+          <textarea v-model="professorChangeReason" class="action-textarea" placeholder="변경 사유를 입력해주세요." rows="3" />
+        </div>
+      </div>
+      <div class="action-box-btns">
+        <button class="btn btn-default" @click="showProfessorBox = false">취소</button>
+        <button class="btn btn-confirm" @click="submitProfessorChange">변경 확정</button>
+      </div>
+    </div>
+
     <!-- 반려사유 입력박스 (관리자) -->
     <div v-if="showRejectionBox" class="rejection-box">
       <textarea
@@ -233,7 +385,7 @@ onMounted(async () => {
       />
       <div class="rejection-actions">
         <button class="btn btn-default" @click="showRejectionBox = false; rejectionInput = ''">취소</button>
-        <button class="btn btn-danger" @click="submitRejection">사유 등록</button>
+        <button class="btn btn-subtle" @click="submitRejection">사유 등록</button>
       </div>
     </div>
 
@@ -242,12 +394,11 @@ onMounted(async () => {
       <!-- 좌측 강의정보 카드 -->
       <div class="content-wrap info-wrap info-card g20" style="--flex-width:350px;">
         <div class="info-title">
-          <h2>{{ state.data.lectureName }}</h2>
-          <div v-if="state.data.status === '대기'">
-            <span class="status-badge pending">대기</span>
-          </div>
-          <div v-else-if="state.data.status === '반려'">
-            <span class="status-badge rejected">반려</span>
+          <div class="title-row">
+            <h2>{{ state.data.lectureName }}</h2>
+            <span v-if="state.data.status === '대기'" class="status-badge pending">대기</span>
+            <span v-else-if="state.data.status === '반려'" class="status-badge rejected">반려</span>
+            <span v-else-if="state.data.status === '취소'" class="status-badge cancelled">폐강</span>
           </div>
           <span class="info-detail">{{ state.data.year }}년 {{ state.data.semester }}학기</span>
         </div>
@@ -367,10 +518,28 @@ onMounted(async () => {
           v-if="state.data.status === '반려' && state.data.rejectionReason"
           class="rejection-info-box"
         >
-          <p class="rejection-info-title">반려사유</p>
+          <p class="rejection-info-title">
+            <font-awesome-icon :icon="['fas', 'triangle-exclamation']" />
+            반려사유
+          </p>
           <p class="rejection-info-reason">{{ state.data.rejectionReason }}</p>
           <p class="rejection-info-at" v-if="state.data.rejectionAt">
             {{ new Date(state.data.rejectionAt).toLocaleString() }}
+          </p>
+        </div>
+
+        <!-- 폐강사유 박스 -->
+        <div
+          v-if="state.data.status === '취소' && state.data.cancelReason"
+          class="cancel-info-box"
+        >
+          <p class="cancel-info-title">
+            <font-awesome-icon :icon="['fas', 'triangle-exclamation']" />
+            폐강사유
+          </p>
+          <p class="cancel-info-reason">{{ state.data.cancelReason }}</p>
+          <p class="cancel-info-at" v-if="state.data.cancelAt">
+            {{ new Date(state.data.cancelAt).toLocaleString() }}
           </p>
         </div>  
 
@@ -383,12 +552,75 @@ onMounted(async () => {
 
 <style scoped>
 .page-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.action-group { display: flex; gap: 8px; }
+.action-group { display: flex; gap: 8px; align-items: center; }
+
+/* 더보기 드롭다운 */
+.more-menu-wrap { position: relative; }
+.more-btn { font-size: 18px; font-weight: 700; letter-spacing: 2px; padding: 4px 10px; background: none; border: none; }
+.more-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  min-width: 120px;
+  z-index: 100;
+  overflow: hidden;
+}
+.more-dropdown button {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  text-align: left;
+  background: none;
+  border: none;
+  font-size: var(--text-sm);
+  cursor: pointer;
+  color: #334155;
+}
+.more-dropdown button:hover { background: #f1f5f9; }
+
+/* 수동폐강 / 교수변경 공통 박스 */
+.action-box { display: flex; flex-direction: column; gap: 10px; margin: 12px 0; padding: 16px; border-radius: 8px; background: #f8f8f7; border: 1px solid #e8e8e8; }
+.action-box-title { font-weight: 700; font-size: var(--text-sm); margin: 0; color: #334155; }
+.action-textarea { width: 100%; padding: 10px; border: 1px solid #e0e0e0; border-radius: 6px; resize: vertical; font-size: var(--text-sm); font-family: inherit; line-height: 1.5; }
+.action-select { padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 6px; font-size: var(--text-sm); }
+.action-box-btns { display: flex; gap: 8px; justify-content: flex-end; }
+.btn-subtle { background: #fafafa; color: #334155; }
+.btn-subtle:hover { filter: brightness(0.9); }
+.btn-confirm { background: #334155; color: #fff; border-color: #334155; }
+.btn-confirm:hover { filter: brightness(1.1); }
+.btn-confirm:disabled { background: #94a3b8; border-color: #94a3b8; cursor: not-allowed; filter: none; }
+.action-box-footer { display: flex; justify-content: space-between; align-items: center; }
+.char-count { font-size: var(--text-xs); color: #aaa; }
+.char-count.valid { color: #334155; font-weight: 600; }
+
+/* 교수 변경 폼 */
+.professor-form { display: flex; flex-direction: column; gap: 10px; }
+.professor-form-row { display: flex; gap: 16px; }
+.professor-field { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.pf-label { font-size: var(--text-xs); color: #666; font-weight: 500; }
+.professor-field :deep(input),
+.professor-field .pf-input {
+  border: 1px solid var(--table-border-color);
+  border-radius: 4px;
+  padding: 8px 10px;
+  width: 100%;
+  background: #fcfcfc;
+  color: var(--color-font);
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+  font-size: var(--text-sm);
+  font-family: inherit;
+}
+.professor-field .pf-input:disabled { background: #f5f5f5; color: #ccc; }
 
 /* 반려사유 입력박스 (관리자용) */
-.rejection-box { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; padding: 16px; background: #fff8f8; border: 1px solid #ffcdd2; border-radius: 8px; }
+.rejection-box { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; padding: 16px; background: #f8f8f7; border: 1px solid #e8e8e8; border-radius: 8px; }
 .rejection-textarea { width: 100%; padding: 10px; border: 1px solid #e0e0e0; border-radius: 6px; resize: vertical; font-size: var(--text-sm); font-family: inherit; line-height: 1.5; }
-.rejection-textarea:focus { outline: none; border-color: #c62828; }
 .rejection-actions { display: flex; gap: 8px; justify-content: flex-end; }
 
 /* 좌측 카드 */
@@ -426,12 +658,41 @@ onMounted(async () => {
 .status-badge { padding: 4px 8px; border-radius: 4px; font-size: var(--text-xs); font-weight: 500; }
 .status-badge.pending { background: #fff3e0; color: #ef6c00; }
 .status-badge.rejected { background: #ffebee; color: #c62828; }
+.status-badge.cancelled { background: #f1f5f9; color: #64748b; }
 
 /* 반려사유 박스 (하단 노출용) */
-.rejection-info-box { margin: var(--size-df); border: 1px solid #ffcdd2; border-radius: 8px; padding: 16px; background: #fff8f8; }
-.rejection-info-title { font-weight: 700; color: #c62828; margin: 0 0 8px; }
-.rejection-info-reason { color: #333; margin: 0 0 8px; font-size: var(--text-sm); }
-.rejection-info-at { color: #999; font-size: var(--text-xs); margin: 0; text-align: right; }
+.rejection-info-box { margin: var(--size-df); border: 2px solid #e53e3e; border-radius: 8px; padding: 16px 20px; background: #fff5f5; }
+.rejection-info-title { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: var(--text-df); color: #c53030; margin: 0 0 10px; }
+.rejection-info-reason { color: #333; margin: 0 0 10px; font-size: var(--text-sm); line-height: 1.6; }
+.rejection-info-at { color: #94a3b8; font-size: var(--text-xs); margin: 0; text-align: right; }
+
+/* 폐강사유 박스 */
+.cancel-info-box {
+  margin: var(--size-df);
+  border: 2px solid #e53e3e;
+  border-radius: 8px;
+  padding: 16px 20px;
+  background: #fff5f5;
+}
+.cancel-info-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: var(--text-df);
+  color: #c53030;
+  margin: 0 0 10px;
+}
+.cancel-info-reason { color: #333; margin: 0 0 10px; font-size: var(--text-sm); line-height: 1.6; }
+.cancel-info-at { color: #94a3b8; font-size: var(--text-xs); margin: 0; text-align: right; }
+
+/* 폐강/반려/대기 공통: 초록색 요소 회색으로 */
+.no-color-mode .tab-btn.active { color: #475569; border-bottom-color: #475569; }
+.no-color-mode .tab-btn:hover { color: #475569; }
+.no-color-mode :deep(dt) { color: #475569; }
+
+/* 강의명 + 배지 같은 행 */
+.title-row { display: flex; align-items: center; gap: 8px; }
 
 /* 성적 배지 */
 .grade-badge { display: inline-block; width: 27px; height: 27px; line-height: 27px; border-radius: 50%; font-size: 13px; font-weight: 700; text-align: center; }

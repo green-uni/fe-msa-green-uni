@@ -16,9 +16,9 @@ const searchQuery = ref('');
 const searchInput = ref('');
 
 // ── 탭 ───────────────────────────────────────────
-const TABS = ['전체', '대기', '승인', '반려'];
-const TAB_TO_STATUS = { '대기': 'PENDING', '승인': 'APPROVED', '반려': 'REJECTED' };
-const STATUS_TO_LABEL = { PENDING: '대기', APPROVED: '승인', REJECTED: '반려' };
+const TABS = ['전체', '대기', '승인', '반려', '폐강'];
+const TAB_TO_STATUS = { '대기': 'PENDING', '승인': 'APPROVED', '반려': 'REJECTED', '폐강': 'CANCELLED' };
+const STATUS_TO_LABEL = { PENDING: '대기', APPROVED: '승인', REJECTED: '반려', CANCELLED: '폐강' };
 const activeTab = ref('전체');
 
 const onTabClick = (tab) => {
@@ -234,8 +234,9 @@ watch(
         <div style="white-space: pre-line;">{{ roomText(item.schedules) }}</div>
         <div>{{ item.academicYear }}학년</div>
         <div>
-          <span :class="['status-badge', item.status]">
-            {{ STATUS_TO_LABEL[item.status] || item.status }}   
+          <template v-if="item.status === 'CANCELLED'">폐강</template>
+          <span v-else :class="['status-badge', item.status]">
+            {{ STATUS_TO_LABEL[item.status] || item.status }}
           </span>
         </div>
       </article>

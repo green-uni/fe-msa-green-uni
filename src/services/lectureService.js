@@ -77,6 +77,21 @@ class LectureService {
     return res.data;
   }
 
+  async cancelLecture(lectureId, payload) {
+    const res = await axios.patch(`${this.#adminPath}/${lectureId}/cancel`, payload);
+    return res.data;
+  }
+
+  async getProfessorList() {
+    const res = await axios.get('/member/admin/professors');
+    return res.data;
+  }
+
+  async changeLectureProfessor(lectureId, payload) {
+    const res = await axios.patch(`${this.#adminPath}/${lectureId}/professor`, payload);
+    return res.data;
+  }
+
   // ── 공통 ──────────────────────────────────────
   async getAllLectures(params = {}) {
     const res = await axios.get(`${this.#commonPath}`, { params });
