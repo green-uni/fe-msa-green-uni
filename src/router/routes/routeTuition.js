@@ -1,5 +1,4 @@
 const studentUrl = 'tuitions'
-const adminUrl = 'admin'
 
 export const tuitionRoutes = [
     {
@@ -35,7 +34,7 @@ export const tuitionRoutes = [
 
 export const adminTuitionRoutes = [
   {
-    path: `${adminUrl}/tuition`,
+    path: 'tuition',
     component: () => import('@/views/admin/tuition/AdminTuition.vue'),
     meta: {
       title: '학생 목록 조회',
@@ -44,7 +43,7 @@ export const adminTuitionRoutes = [
     },
   },
   {
-    path: `${adminUrl}/tuition-policy`,
+    path: 'tuition-policy',
     component: () => import('@/views/admin/tuition/AdminTuitionPolicy.vue'),
     meta: {
       title: '등록금 정책 관리',

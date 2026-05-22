@@ -1,5 +1,5 @@
 const studentUrl = 'scholarships';
-const adminUrl = 'admin/scholarships';
+const adminUrl = 'scholarships';
 
 export const scholarshipRoutes = [
   {
