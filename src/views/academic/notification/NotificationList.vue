@@ -27,12 +27,9 @@ const loadNotifications = async () => {
 const sortedNotifications = computed(() => {
   const list = NotificationService.notifications.value
   if (sortByUnread.value) {
-    return [...list].sort((a, b) => {
-      if (a.isRead === b.isRead) return 0
-      return a.isRead ? 1 : -1
-    })
+    return list.filter((n) => !n.isRead) // 미읽음만 필터링
   }
-  return list // 최신순은 서버에서 이미 정렬된 상태
+  return list // 최신순 전체
 })
 
 const handleClick = async (noti) => {

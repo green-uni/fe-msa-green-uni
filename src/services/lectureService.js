@@ -87,6 +87,35 @@ class LectureService {
     const res = await axios.get(`${this.#commonPath}/${lectureId}`);
     return res.data.data;
   }
+
+  // 현재 연도/학기 계산
+  #getCurrentYearSemester() {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = now.getMonth() + 1 // 1~12
+    const semester = month >= 3 && month <= 8 ? 1 : 2
+    return { year, semester }
+  }
+
+  // ── 대시보드 시간표 ────────────────────────────
+  async dashboardProfessorTimetable() {
+    const { year, semester } = this.#getCurrentYearSemester()
+    const res = await axios.get(`${this.#professorPath}/my/timetable`, { params: { year, semester } })
+    return res.data
+  }
+
+  async dashboardStudentTimetable() {
+    const { year, semester } = this.#getCurrentYearSemester()
+    const res = await axios.get(`${this.#studentPath}/my/timetable`, { params: { year, semester } })
+    return res.data
+  }
+
+  // DASH 교수 오늘 강의 목록
+async dashboardTodayLectures() {
+  const res = await axios.get(`${this.#professorPath}/my/today`)
+  return res.data
+}
+  
 }
 
 export default new LectureService();
