@@ -152,6 +152,18 @@ onMounted(async () => {
     }
 
     try {
+        const listRes = await MemberService.findAllMyMajorRequest();
+        const hasPending = (listRes.data ?? []).some(r => r.status === 'PENDING');
+        if (hasPending) {
+            await modal.showAlert('대기 중인 신청서가 있어 새로운 신청이 불가합니다.', 'warning');
+            router.push('/members/major-request');
+            return;
+        }
+    } catch {
+        // 목록 조회 실패 시 백엔드가 처리
+    }
+
+    try {
         await fetchPeriodStatus();
         const [majors, types] = await Promise.all([
             MemberService.getMajorList(),
