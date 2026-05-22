@@ -18,12 +18,4 @@ export const evaluationRoutes = [
       auth: ['STUDENT', 'PROFESSOR'],
     },
   },
-  {
-    path: `${url}/:lectureId/edit`,
-    component: () => import('@/views/academic/evaluation/EvaluationCreateEdit.vue'),
-    meta: {
-      title: '강의평가 작성',
-      auth: ['STUDENT'],
-    },
-  },
 ]

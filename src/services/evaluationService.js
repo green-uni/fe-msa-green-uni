@@ -5,12 +5,6 @@ const studentPath = '/core/student/evaluations';
 const commonPath = '/core/evaluations';
 
 class EvaluationService {
-  // 강의평가 기간 조회 (공통)
-  async getEvalPeriod(params = {}) {
-    const res = await axios.get(`${commonPath}/periods`, { params });
-    return res.data;
-  }
-
   // 교수 - 내 강의평가 목록
   async getProfessorEvalList(params = {}) {
     const res = await axios.get(`${professorPath}`, { params });

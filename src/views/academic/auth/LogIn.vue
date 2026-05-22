@@ -38,15 +38,17 @@
     try {
       const res = await AuthService.logIn(state.form);
       const profile = await MemberService.findProfile();
-      authStore.logIn(res.data);
-      authStore.setProfile(profile.data);
 
       if (res.data.isFirstLogin) {
         await modal.showAlert('최초 로그인 입니다. 비밀번호를 변경해주세요', 'warning')
-        await router.push('/members/my/password')
+        authStore.logIn(res.data);
+        authStore.setProfile(profile.data);
+        router.push('/members/my/password')
         return
       }
 
+      authStore.logIn(res.data);
+      authStore.setProfile(profile.data);
       router.push('/members/dashboard')
 
     } catch (e) {

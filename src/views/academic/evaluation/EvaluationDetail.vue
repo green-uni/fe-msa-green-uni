@@ -28,10 +28,6 @@ const fetchDetail = async () => {
   }
 };
 
-const moveToEdit = () => {
-  router.push(`/evaluations/${lectureId}/edit`);
-};
-
 const goBack = () => {
   router.back();
 };
@@ -67,14 +63,10 @@ onMounted(fetchDetail);
           <span class="value">{{ state.detail.score ?? '-' }} / 5.0</span>
         </div>
         <div class="info-row">
-          <span class="label">수강평가</span>
+          <span class="label">강의평가</span>
           <span class="value">{{ state.detail.comment ?? '작성된 평가가 없습니다.' }}</span>
         </div>
 
-        <!-- 미완료면 작성 버튼 -->
-        <div class="btn-wrap" v-if="!state.detail.score">
-          <button class="btn-primary" @click="moveToEdit">평가 작성하기</button>
-        </div>
       </template>
 
       <!-- 교수 상세 -->
@@ -88,9 +80,9 @@ onMounted(fetchDetail);
           <span class="value">{{ state.detail.responseCount }} / {{ state.detail.totalStudents }}</span>
         </div>
 
-        <!-- 수강평가 목록 -->
+        <!-- 강의평가 목록 -->
         <div class="comment-section">
-          <span class="label">수강평가</span>
+          <span class="label">강의평가</span>
           <div class="comment-list" v-if="state.detail.comments?.length">
             <div
               class="comment-item"
@@ -100,7 +92,7 @@ onMounted(fetchDetail);
               {{ comment }}
             </div>
           </div>
-          <p class="empty-text" v-else>작성된 수강평가가 없습니다.</p>
+          <p class="empty-text" v-else>작성된 강의평가가 없습니다.</p>
         </div>
       </template>
     </div>
