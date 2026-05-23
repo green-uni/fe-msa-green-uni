@@ -208,6 +208,48 @@ position: absolute;
 }
 
 
+/*************************** notice panel **********************/
+.notice-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 4px 0;
+
+  .notice-title {
+    font-weight: 700;
+    color: #222;
+  }
+
+  .notice-desc {
+    color: #666;
+    line-height: 1.7;
+  }
+
+  .notice-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .9em;
+    th, td {
+      padding: 7px 8px;
+      border: 1px solid $line-color;
+      vertical-align: top;
+      line-height: 1.6;
+      color: #444;
+    }
+    th {
+      background: #f7f7f7;
+      font-weight: 600;
+      color: #333;
+      text-align: center;
+      white-space: nowrap;
+    }
+  }
+
+  .notice-caution {
+    color: #888;
+  }
+}
+
 /********************* button design *********************/
 .btn-row {
   display: flex;

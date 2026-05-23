@@ -30,10 +30,12 @@ defineEmits(['select'])
         <slot name="list-footer" />
       </div>
     </div>
-
-    <!-- 오른쪽: 상세 (선택된 항목이 있을 때만) -->
+    <!-- 오른쪽: 상세 또는 안내 패널 -->
     <div v-if="selectedKey != null" class="cdl-detail">
       <slot name="detail" />
+    </div>
+    <div v-else-if="$slots['detail-empty']" class="cdl-detail">
+      <slot name="detail-empty" />
     </div>
   </div>
 </template>

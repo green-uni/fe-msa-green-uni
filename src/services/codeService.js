@@ -54,6 +54,11 @@ class codeListService {
     const res = await axios.get(`${this.#memberPath}majorRequestType`)
     return res.data;
   }
+  // 학적 변동 신청유형 목록 조회
+  async getStatusRequestType() {
+    const res = await axios.get(`${this.#memberPath}statusRequestType`)
+    return res.data;
+  }
 }
 
 export default new codeListService();
