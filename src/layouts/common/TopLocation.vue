@@ -22,7 +22,7 @@ const title = computed(() => route.meta?.title);
 
 <style scoped lang="scss">
 .location{
-  padding:0 20px;display: flex;color:$font-color-light;display: inline-flex;align-items: center;gap: 5px;border-bottom: 1px solid $line-color;
+  padding:0 20px;display: flex;color:$font-color-light;display: inline-flex;align-items: center;gap: 5px;border-bottom: 1px solid $border-color;
     li{
         position: relative;
         &.pageTitle{color:$font-color; font-weight: bold;}

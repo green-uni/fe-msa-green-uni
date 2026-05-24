@@ -56,7 +56,7 @@ defineProps({
 .spinner {
   border-radius: 50%;
   border-style: solid;
-  border-color: $line-color;     
+  border-color: $border-color;     
   border-top-color: $green-600; 
   animation: spin 0.7s linear infinite;
 

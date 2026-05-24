@@ -86,7 +86,7 @@ defineProps({
   font-size: 12px;
 }
 
-:deep(.badge-running) { background: #eafdf6; color: #3e9e7e; }
+:deep(.badge-approved) { background: #eafdf6; color: #3e9e7e; }
 :deep(.badge-closed) { background: #f5f5f5; color: #aaa; }
 :deep(.row-disabled) div { color: #ccc; }
 

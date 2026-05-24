@@ -69,7 +69,7 @@ const pageSize = defineModel('pageSize', { default: 10 })
 
 <style scoped lang="scss">
 .list-header { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
-.filter-header { display: flex; align-items: center; justify-content: space-between; background: #fff; border: 1px solid $line-color; padding: 10px 15px; border-radius: 10px; flex-wrap: wrap; gap: 5px; }
+.filter-header { display: flex; align-items: center; justify-content: space-between; background: #fff; border: 1px solid $border-color; padding: 10px 15px; border-radius: 10px; flex-wrap: wrap; gap: 5px; }
 .filter-group { display: flex; gap: 15px; font-size: .95rem; }
 .search-area {
   display: flex; gap: 5px; align-items: center;

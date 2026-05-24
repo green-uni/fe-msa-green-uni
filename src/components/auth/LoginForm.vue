@@ -102,7 +102,7 @@ const pwView = () => { modeShowPw.value = !modeShowPw.value }
   input {
     height: 40px;
     padding: 0 12px;
-    border: 1px solid $line-color;
+    border: 1px solid $border-color;
     border-radius: 5px;
     background: #fafdfb;
     color: $font-color;
@@ -113,7 +113,7 @@ const pwView = () => { modeShowPw.value = !modeShowPw.value }
     }
 
     &:hover {
-      border-color: $line-color;
+      border-color: $border-color;
     }
 
     &:focus {

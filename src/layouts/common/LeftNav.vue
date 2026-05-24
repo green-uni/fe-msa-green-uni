@@ -168,7 +168,7 @@ watch(() => route.path, () => {
 <style scoped lang="scss">
 .left-nav {
   grid-row: 1 / -1; padding: 20px 15px; position: relative;
-  &.academic { background: #fff; border-right: 1px solid $line-color; }
+  &.academic { background: #fff; border-right: 1px solid $border-color; }
 }
 .uni-title{
   display: flex; align-items:center; cursor: pointer; gap:7px; margin-bottom:20px;
