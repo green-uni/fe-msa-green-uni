@@ -45,10 +45,22 @@ export const memberRoutes = [
   // ------------------ 상태 변경 신청 및 조회 ---------------
   {
     path: `${url}/status-request`,
-    component: () => import('@/views/common/BlankPage.vue'),
+    component: () => import('@/views/academic/member/StudentStatusRequestList.vue'),
     meta: {
-      title: '휴복학 신청',
+      title: '학적 변동 신청',
       groupTitle: '나의 정보 관리',
+      auth: ['STUDENT'],
+    },
+  },
+  {
+    path: `${url}/status-request/new`,
+    component: () => import('@/views/academic/member/StudentStatusRequestCreate.vue'),
+    meta: {
+      title: '학적 변동 신청서 제출',
+      groupTitle: '나의 정보 관리',
+      subTitle: '학적 변동 신청',
+      showInNav: false,
+      activeMenu: `${url}/status-request`,
       auth: ['STUDENT'],
     },
   },
@@ -203,13 +215,25 @@ export const adminMemberRoutes = [
       auth: ['ADMIN'],
     },
   },
-  // ------------------ 상태 변경 신청 조회 처리 ---------------
+  // ------------------ 학적 변경 신청 조회 처리 ---------------
   {
     path: `${url}/status-request`,
-    component: () => import('@/views/common/BlankPage.vue'),
+    component: () => import('@/views/admin/member/AdminStatusRequestList.vue'),
     meta: {
-      title: '상태 변경 신청 조회',
+      title: '학적 변경 신청 조회',
       groupTitle: '회원 정보 관리',
+      auth: ['ADMIN'],
+    },
+  },
+  {
+    path: `${url}/status-request/:requestId`,
+    component: () => import('@/views/admin/member/AdminStatusRequestDetail.vue'),
+    meta: {
+      title: '학적 변경 신청 상세 조회',
+      subTitle: '학적 변경 신청 조회',
+      groupTitle: '회원 정보 관리',
+      showInNav: false,
+      activeMenu: `${url}/status-request`,
       auth: ['ADMIN'],
     },
   },

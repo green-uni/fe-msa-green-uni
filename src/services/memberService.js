@@ -64,6 +64,31 @@ class MemberService {
     return res.data;
   }
 
+  // 내 학적 변동 신청 목록 조회
+  async findAllMyStatusRequests() {
+    const res = await axios.get(`${this.#path}/student/requests/status`)
+    return res.data;
+  }
+  // 내 학적 변동 신청 상세 조회
+  async findMyStatusRequest(requestId) {
+    const res = await axios.get(`${this.#path}/student/requests/status/${requestId}`)
+    return res.data;
+  }
+  // 학적 변동 신청서 제출
+  async sendStatusRequest(formData) {
+    const res = await axios.post(`${this.#path}/student/requests/status`, formData)
+    return res.data;
+  }
+  // 학적 변동 신청 취소
+  async cancelStatusRequest(requestId) {
+    const res = await axios.delete(`${this.#path}/student/requests/status/${requestId}`)
+    return res.data;
+  }
+  // 학적 변동 신청 서류 다운로드
+  async downloadMyStatusRequestFile(requestId) {
+    await downloadBlobFile(axios, `${this.#path}/student/requests/status/${requestId}/file`);
+  }
+
 
   //////////////////////// 관리자 ////////////////////////
 
@@ -216,6 +241,26 @@ class MemberService {
   async findMajorChange(memberCode) {
     const res = await axios.get(`${this.#adminPath}/students/${memberCode}/history/major`)
     return res.data;
+  }
+
+  // 학적 변동 신청서 전체 조회 (관리자)
+  async findAllStatusRequests() {
+    const res = await axios.get(`${this.#adminPath}/requests/status`)
+    return res.data;
+  }
+  // 학적 변동 신청서 단건 조회 (관리자)
+  async findStatusRequest(requestId) {
+    const res = await axios.get(`${this.#adminPath}/requests/status/${requestId}`)
+    return res.data;
+  }
+  // 학적 변동 신청서 승인/반려 (관리자)
+  async processStatusRequest(requestId, data) {
+    const res = await axios.patch(`${this.#adminPath}/requests/status/${requestId}`, data)
+    return res.data;
+  }
+  // 학적 변동 신청 서류 다운로드 (관리자)
+  async downloadStatusRequestFile(requestId) {
+    await downloadBlobFile(axios, `${this.#adminPath}/requests/status/${requestId}/file`);
   }
 
 }
