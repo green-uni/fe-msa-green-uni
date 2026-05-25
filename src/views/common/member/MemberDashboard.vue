@@ -4,6 +4,7 @@ import ActiveScheduleBanner from '@/components/dashboard/ActiveScheduleBanner.vu
 import MonthlyScheduleWidget from '@/components/dashboard/MonthlyScheduleWidget.vue'
 import TodayLectureWidget from '@/components/dashboard/TodayLectureWidget.vue'
 import TuitionStatus from '@/components/dashboard/TuitionStatus.vue'
+import StudentRequestsWidget from '@/components/dashboard/StudentRequestsWidget.vue'
 import PendingLecturesWidget from '@/components/dashboard/PendingLecturesWidget.vue'
 import PendingMajorRequestsWidget from '@/components/dashboard/PendingMajorRequestsWidget.vue'
 import PendingStatusRequestsWidget from '@/components/dashboard/PendingStatusRequestsWidget.vue'
@@ -55,14 +56,14 @@ onMounted(async () => {
         </div>
       </header>
       <div class="student-grid">
-        <div class="content-wrap">
+        <div class="content-wrap student-main">
           <TimetableWidget />
         </div>
-        <div class="dash-col">
-          <div class="content-wrap">
-            <MonthlyScheduleWidget />
-          </div>
-          <div class="content-wrap placeholder-cell"></div>
+        <div class="student-side">
+          <div class="content-wrap placeholder-cell">이번 학기 출석 현황</div>
+          <div class="content-wrap"><StudentRequestsWidget /></div>
+          <div class="content-wrap placeholder-cell">공지사항</div>
+          <div class="content-wrap"><MonthlyScheduleWidget /></div>
         </div>
       </div>
     </template>
@@ -85,17 +86,14 @@ onMounted(async () => {
         </div>
       </header>
       <div class="professor-grid">
-        <div class="content-wrap">
+        <div class="content-wrap professor-main">
           <TimetableWidget />
         </div>
-        <div class="content-wrap">
-          <TodayLectureWidget />
-        </div>
-        <div class="dash-col">
-          <div class="content-wrap">
-            <MonthlyScheduleWidget />
-          </div>
-          <div class="content-wrap placeholder-cell"></div>
+        <div class="professor-side">
+          <div class="content-wrap"><TodayLectureWidget /></div>
+          <div class="content-wrap placeholder-cell">오늘 강의별 출석현황</div>
+          <div class="content-wrap placeholder-cell">공지사항</div>
+          <div class="content-wrap"><MonthlyScheduleWidget /></div>
         </div>
       </div>
     </template>
@@ -111,10 +109,7 @@ onMounted(async () => {
           <ActiveScheduleBanner />
         </div>
       </header>
-
       <div class="admin-outer">
-
-        <!-- 왼쪽: 승인대기 3종 + 인사정보/등록금 -->
         <div class="admin-main">
           <div class="admin-pending">
             <div class="content-wrap"><PendingLecturesWidget /></div>
@@ -126,13 +121,10 @@ onMounted(async () => {
             <div class="content-wrap"><TuitionStatus /></div>
           </div>
         </div>
-
-        <!-- 오른쪽: 학사일정 + 공지사항 -->
         <div class="admin-side">
           <div class="content-wrap"><MonthlyScheduleWidget /></div>
           <div class="content-wrap placeholder-cell"></div>
         </div>
-
       </div>
     </template>
 
@@ -159,10 +151,14 @@ $gap: 16px;
 .dash-col { display: flex;  flex-direction: column;  gap: $gap;  height: 100%;}
 
 // ─── 학생 레이아웃 ────────────────────────────────────────
-.student-grid {  flex: 1;  display: grid;  grid-template-columns: 1fr 260px;  gap: $gap;  min-height: 0;}
+.student-grid {  flex: 1;  display: grid;  grid-template-columns: 1fr 2fr;  gap: $gap;  min-height: 0;}
+.student-main { overflow: auto; }
+.student-side {  display: grid;  grid-template-columns: 1fr 1fr;  grid-template-rows: 1fr 1fr;  gap: $gap;}
 
 // ─── 교수 레이아웃 ────────────────────────────────────────
-.professor-grid {  flex: 1;  display: grid;  grid-template-columns: 1fr 1fr 260px;  gap: $gap;  min-height: 0;}
+.professor-grid {  flex: 1;  display: grid;  grid-template-columns: 1fr 2fr;  gap: $gap;  min-height: 0;}
+.professor-main { overflow: auto; }
+.professor-side {  display: grid;  grid-template-columns: 1fr 1fr;  grid-template-rows: 1fr 1fr;  gap: $gap;}
 
 // ─── 관리자 레이아웃 ──────────────────────────────────────
 .admin-outer {  flex: 1;  display: grid;  grid-template-columns: 2fr 1fr;  gap: $gap;  min-height: 0; }

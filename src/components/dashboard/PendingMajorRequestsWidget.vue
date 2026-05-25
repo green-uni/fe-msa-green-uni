@@ -1,13 +1,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import memberService from '@/services/memberService'
-
-const TYPE_LABEL = { MINOR: '복수전공', TRANSFER: '전과', DOUBLE: '이중전공' }
+import { MAJOR_REQUEST_TYPE } from '@/utils/constants.js'
 
 const items = ref([])
 const totalCount = ref(0)
 
-const typeLabel = (type) => TYPE_LABEL[type] ?? type
+const typeLabel = (type) => MAJOR_REQUEST_TYPE[type] ?? type
 
 onMounted(async () => {
   try {

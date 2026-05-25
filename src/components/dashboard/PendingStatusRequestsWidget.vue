@@ -1,13 +1,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import memberService from '@/services/memberService'
-
-const TYPE_LABEL = { ABSENCE: '휴학', RETURN: '복학', LEAVE: '군휴학' }
+import { STATUS_REQUEST_TYPE } from '@/utils/constants.js'
 
 const items = ref([])
 const totalCount = ref(0)
 
-const typeLabel = (type) => TYPE_LABEL[type] ?? type
+const typeLabel = (type) => STATUS_REQUEST_TYPE[type] ?? type
 
 onMounted(async () => {
   try {

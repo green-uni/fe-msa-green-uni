@@ -36,7 +36,6 @@ const isTransitioning = computed(() =>
     <LeftNav v-if="showLayout" />
     <TopLocation v-if="showLayout" />
     <main :class="showLayout ? 'container' : 'intro-panel'">
-      <PageTitle v-if="showLayout" />
       <RouterView />
     </main>
   </div>

@@ -262,6 +262,14 @@ class MemberService {
     return res.data
   }
 
+  // 대시보드 - 학생 본인 신청서 목록 (전공+학적 통합, 최대 3건)
+  async getDashboardStudentRequests() {
+    const res = await axios.get(`${this.#path}/student/requests/dashboard`, {
+      params: { size: 3 }
+    })
+    return res.data
+  }
+
   // 대시보드 - 학적변경 신청 대기 목록 (최대 3건, 휴학)
   async getDashboardStatusRequests() {
     const res = await axios.get(`${this.#adminPath}/requests/status`, {

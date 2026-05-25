@@ -5,7 +5,7 @@ export const memberRoutes = [
     path: `${url}/dashboard`,
     component: () => import('@/views/common/member/MemberDashboard.vue'),
     meta: {
-      // title: '대시보드',
+      title: '대시보드',
       groupTitle: '그린대학교',
       showInNav: false,
       auth: ['STUDENT', 'PROFESSOR'],
