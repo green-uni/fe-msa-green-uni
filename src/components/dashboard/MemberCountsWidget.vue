@@ -17,57 +17,32 @@ onMounted(async () => {
 <template>
   <div class="counts-grid">
     <div class="count-card content-wrap">
-      <span class="count-label student-accent">학생</span>
-      <span class="count-num">{{ Number(counts.studentCount).toLocaleString() }}<em>명</em></span>
+      <span class="count-card-label">전체 학생</span>
+      <span class="count-card-icon"><font-awesome-icon icon="fa-solid fa-user-group" /></span>
+      <span class="count-card-num">{{ Number(counts.studentCount).toLocaleString() }}<em>명</em></span>
     </div>
     <div class="count-card content-wrap">
-      <span class="count-label professor-accent">교수</span>
-      <span class="count-num">{{ Number(counts.professorCount).toLocaleString() }}<em>명</em></span>
+      <span class="count-card-label">전체 교수</span>
+      <span class="count-card-icon"><font-awesome-icon icon="fa-solid fa-user-tie" /></span>
+      <span class="count-card-num">{{ Number(counts.professorCount).toLocaleString() }}<em>명</em></span>
     </div>
     <div class="count-card content-wrap">
-      <span class="count-label admin-accent">관리자</span>
-      <span class="count-num">{{ Number(counts.adminCount).toLocaleString() }}<em>명</em></span>
+      <span class="count-card-label">전체 직원</span>
+      <span class="count-card-icon"><font-awesome-icon icon="fa-solid fa-users-gear" /></span>
+      <span class="count-card-num">{{ Number(counts.adminCount).toLocaleString() }}<em>명</em></span>
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
-.counts-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-
-.count-card {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 1.25rem 1.5rem;
-}
-
-.count-label {
-  font-size: 0.929em; // 13px / 14px
-  font-weight: 600;
-  padding-left: 10px;
-  border-left: 3px solid currentColor;
-
-  &.student-accent   { color: $green-600; }
-  &.professor-accent { color: $info; }
-  &.admin-accent     { color: #9b59b6; }
-}
-
-.count-num {
-  font-size: 1.714em; // 24px / 14px
-  font-weight: 700;
-  color: $font-color;
-  line-height: 1;
-
-  em {
-    font-size: 0.6em;
-    font-weight: 400;
-    color: $font-color-light;
-    margin-left: 2px;
-    font-style: normal;
+.counts-grid { display: grid; grid-template-columns: repeat(3, 1fr);  gap: 16px;}
+.count-card { display: flex; flex-direction: column; gap: 20px;text-align: center;justify-content: center;padding-top: 10px;
+  &-label { font-weight: 600; font-size: 1.1em; }
+  &-icon {  background: #ddd;padding: 2px;border-radius: 50%; width: 45px;height: 45px;display: flex; justify-content: center; align-items: center; align-self: center;
+    svg{font-size: 1.5em;}
+  }
+  &-num { font-size: 1.9em;  font-weight: 700; color: $font-color; line-height: 1;
+    em { font-size: 0.6em;  font-weight: 400;  color: $font-color-light;  margin-left: 2px;  font-style: normal; }
   }
 }
 </style>

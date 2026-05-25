@@ -123,7 +123,7 @@ onMounted(async () => {
         </div>
         <div class="admin-side">
           <div class="content-wrap"><MonthlyScheduleWidget /></div>
-          <div class="content-wrap placeholder-cell"></div>
+          <div class="content-wrap placeholder-cell">공지사항</div>
         </div>
       </div>
     </template>
@@ -166,7 +166,7 @@ $gap: 16px;
     .admin-pending { display: grid;  grid-template-columns: repeat(3, 1fr); gap: $gap;}
     .admin-info { flex: 1; display: grid; grid-template-columns: 1.2fr 1fr; gap: $gap;  min-height: 0;}
 }
-.admin-side {  display: flex;  flex-direction: column;  gap: $gap;  height: 100%;
+.admin-side {  display: grid; grid-template-rows:  1fr 1fr;  gap: $gap;  height: 100%;
 }
 
 // ─── 플레이스홀더 ────────────────────────────────────────
