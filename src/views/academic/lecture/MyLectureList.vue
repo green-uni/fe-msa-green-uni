@@ -344,15 +344,18 @@ onMounted(() => {
       </div>
     </div>
 
-    <div v-if="isStudent && periodMessage" class="period-notice">
+    <div v-if="isStudent && periodMessage" class="notice-card">
+      <font-awesome-icon icon="fa-solid fa-circle-exclamation" style="color: var(--main-color);" />
       {{ periodMessage }}
     </div>
 
-    <div class="data-header d-flex ai-center jc-space-b">
+    <div v-if="isStudent && modificationNotice" class="notice-card">
+      <font-awesome-icon icon="fa-solid fa-circle-info" style="color: var(--main-color);" />
+      {{ modificationNotice }}
+    </div>
+
+    <div class="data-header">
       전체: {{ state.totalCount }}건
-      <span v-if="isStudent && modificationNotice" class="modification-notice">
-        {{ modificationNotice }}
-      </span>
     </div>
 
     <DataTable
@@ -407,18 +410,17 @@ onMounted(() => {
   text-align: center;
 }
 .filter-header .full { justify-content: space-between; width: 100%; }
-.period-notice {
-  background: #fff8e1;
-  border: 1px solid #ffe082;
+.notice-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: 1px solid #ddd;
   border-radius: 6px;
-  padding: 10px 16px;
-  color: #795548;
+  background: #fff;
+  color: #555;
   font-size: 0.9em;
   margin-bottom: 10px;
-}
-.modification-notice {
-  font-size: 0.85em;
-  color: #e67e22;
 }
 
 .status-badge {
