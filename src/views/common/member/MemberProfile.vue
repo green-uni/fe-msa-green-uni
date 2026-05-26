@@ -4,7 +4,8 @@ import { useAuthStore } from '@/stores/authentication';
 import { onMounted, reactive, computed, ref } from 'vue';
 import ProfileImg from '@/components/common/ProfileImg.vue';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
-import StatusList from '@/components/member/StatusList.vue';
+import StatusHistoryList from '@/components/member/StatusHistoryList.vue';
+import MajorHistoryList from '@/components/member/MajorHistoryList.vue';
 import { useRouter, useRoute } from 'vue-router';
 import { formatTel } from '@/utils/phoneNumber'
 import { STATUS_LABEL, POSITION_LABEL, DEGREE_LABEL, BUILDING_LABEL } from '@/utils/constants.js'
@@ -21,6 +22,7 @@ const isAdminMode = computed(() => !!route.params.memberCode)
 const state = reactive({
     profileInfo: {},
     statusList:[],
+    majorList:[],
     isLoading: false,
 })
 
@@ -54,6 +56,20 @@ const getStatusList = async () => {
         console.error(e)
     }
 }
+// 학생 전공 변동 이력 가져오기
+const getMajorList = async () => {
+    try{
+        let res;
+        if(isAdminMode.value){
+            res = await MemberService.findMajorChange(memberCode)
+        } else{
+            res = await MemberService.findMyMajorChange()
+        }
+        state.majorList = res.data
+    } catch (e){
+        console.error(e)
+    }
+}
 
 // 생년월일 표기
 const birthDate = yearDate =>{
@@ -69,6 +85,7 @@ onMounted(async () => {
         await getUserData()
         role.value = isAdminMode.value ? state.profileInfo.role : authStore.role;
         await getStatusList()
+        if (role.value === 'STUDENT') await getMajorList()
     } finally {
         state.isLoading = false
     }
@@ -203,7 +220,13 @@ onMounted(async () => {
                     </dl>
                 </div>
             </div>
-            <StatusList :role="role" :list="state.statusList" :isLoading="state.isLoading"  />
+            <StatusHistoryList :role="role" :list="state.statusList" :isLoading="state.isLoading"  />
+            <MajorHistoryList
+                v-if="role === 'STUDENT' && state.majorList.length > 0"
+                :adminView="isAdminMode"
+                :list="state.majorList"
+                :isLoading="state.isLoading"
+            />
         </div>
         <div v-if="isAdminMode" class="btn-row g10">
             <button class="btn btn-default" @click="router.push(role === 'PROFESSOR' ? '/admin/members/professors' : role === 'ADMIN' ? '/admin/members/admins' : '/admin/members/students')">

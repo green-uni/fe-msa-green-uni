@@ -7,27 +7,8 @@
 
 
 /************************* content header ( tab / filter / search )  ***********************/
-.filter-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-  background: #fff;
-  border: 1px solid var(--line-color);
-  padding: 10px 15px;
-  border-radius: 10px;
-  flex-wrap: wrap;
-  gap: 5px;
-}
 
 /*************************** filter *************************/
-
-/* 필터 그룹 전체 컨테이너 */
-.filter-group{
-  display: flex;
-  gap: 15px;
-  font-size: .94rem;
-}
 
 /* 개별 필터 아이템 (라벨 + 셀렉트) */
 .filter-item {
@@ -35,19 +16,11 @@
   .input-wrap{ grid-template-columns: min-content 1fr; gap: 8px;}
   .input-content {
     input:not([type='radio']){ padding: 8px 15px; cursor: pointer; outline: none;  min-width: 200px;}
-    select { padding: 7px 10px;  cursor: pointer;  outline: none; }
+    select { padding: 7px 10px; }
   }
-  select:focus {  border-color: var(--main-color); }
 }
 
-/*search area design*/
-.search-area {
-  display: flex; gap: 5px;  align-items: center;
-  input{min-width:180px;}
-}
-.search-btn { display: flex; align-items: center; gap: 4px; transition: 0.2s; background: var(--main-color); color: #fff;  padding: 8px 15px;
-}
-
+/* [나중에 삭제] FilterBar :slotted()로 이동됨 */
 /******************* 필터 탭 버튼 **********************/
  .tab-area {
   display: flex;
@@ -63,9 +36,9 @@
   transition: all 0.2s;
 }
 .tab-area .filter-btn.active {
-  background: var(--main-color);
+  background: $green-600;
   color: #fff;
-  border-color: var(--main-color);
+  border-color: $green-600;
 }
 .tab-area .filter-btn:hover:not(.active) {
   background: #f5f5f5;
@@ -79,31 +52,135 @@
 
 
 /*************************** info design **********************/
-.data-header{display: flex;justify-content: space-between;align-items: end;}
 
+/* 좌우 분할 컨테이너 */
+.info-container { display: flex; align-items: flex-start; }
+.info-card { flex-shrink: 0; width: var(--flex-width); }
 
-/*************************** info design **********************/
-.info-container{display: flex;    align-items: flex-start;}
-/* .info-wrap {flex-wrap: wrap; flex-direction: row;} */
-.info-card{flex-shrink: 0;width: var(--flex-width);}
+/* 흰 카드 공통 */
+.content-wrap {
+  background: #fff;
+  border-radius: $radius-sm;
+  box-shadow: $shadow-1;
+  padding: 1.5rem;
+}
+.content-wrap.info-content { flex-grow: 1; }
 
-.info-title{word-break: keep-all;display: flex;flex-direction: column;gap: 5px;
-  h2{font-size: var(--text-xxl);font-weight: 600;line-height: 1.2;}
-  .info-detail{color: #999;}
+/* 카드 상단 타이틀 블록 */
+.info-title {
+  word-break: keep-all;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
+  h2 { font-size: 1.5em; font-weight: 700; line-height: 1.2; }
+  .info-detail { font-size: 0.85em; color: #999; }
 }
 
-.info-title-wrap{padding: 0;}
-.info-img {width: 100%;}
-
-.content-wrap.info-content{flex-grow:1;padding: 0;}
+.info-img { width: 100%; }
 
 .info-wrap {
-  dl{
-    display: flex;flex-direction: column;gap: 5px;font-size: 1.1em;
-    dt{color: var(--main-color);font-weight: bold;font-size: var(--text-sm);}
+  dl {
+    display: flex; flex-direction: column; gap: 5px; font-size: 1.1em;
+    dt { color: var(--main-color); font-weight: bold; font-size: var(--text-sm); }
   }
-  h3{width: 100%;}
+  h3 { width: 100%; }
 }
+
+/*************************** detail view **********************/
+.panel-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+/* 좌측 카드 가로 행 (info-wrap 안에서만 사용) */
+.info-wrap .info-row {
+  flex-direction: row;
+  align-items: center;
+  gap: 15px;
+  padding: 10px 0;
+  &:not(:first-child) { border-top: 1px solid var(--line-color); }
+  dt { text-align: right; min-width: 5em; white-space: nowrap; }
+  dd { flex: 1; }
+}
+
+.file-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--main-color);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-size: var(--text-sm);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.empty-text { color: #aaa; font-size: var(--text-sm); }
+
+.result-box {
+  padding: 14px 16px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: var(--text-sm);
+  &.rejected { background: #fff8f8; border: 1px solid #ffcdd2; }
+  .result-title { font-weight: 700; color: #c62828; }
+  .result-body { color: #444; line-height: 1.6; }
+}
+
+/* 상세 페이지 헤더 */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.action-group { display: flex; gap: 8px; align-items: center; }
+
+/* 승인/반려 입력 박스 */
+.action-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid $border-color;
+  &.approve {
+    background: #f8fcfa;
+    border-color: $green-600;
+    .action-textarea:focus { outline: none; border-color: $green-600; }
+  }
+  &.reject {
+    background: #fff8f8;
+    border-color: #ffcdd2;
+    .action-textarea:focus { outline: none; border-color: #c62828; }
+  }
+}
+.action-textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid $border-color;
+  border-radius: 6px;
+  resize: vertical;
+  font-size: var(--text-sm);
+  font-family: inherit;
+  line-height: 1.5;
+}
+.action-buttons { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* 신청서 공통 */
+.reason-text { white-space: pre-wrap; line-height: 1.6; }
+.history-btn { width: 100%; margin-top: 4px; font-size: 0.85em; }
+
+/* 신청 목록 카드 */
+.card-left { display: flex; flex-direction: column; gap: 4px; }
+.request-title { font-weight: 600; font-size: 15px; }
+.card-sub { font-size: 13px; color: #777; }
 
 /*************************** table design **********************/
 
@@ -139,9 +216,10 @@
     &:not(.radio-label) {  width: 100%; }
     &.w200 { width: 200px; }
   }
-  select, input:not([type='radio']), textarea { 
-    border: 1px solid var(--table-border-color); border-radius: 4px; padding: 8px 10px; outline: none; transition: border-color 0.2s; width: 100%; background: #fcfcfc;  color: var(--color-font);
+  input:not([type='radio']), textarea {
+    border: 1px solid var(--table-border-color); border-radius: 4px; padding: 8px 10px; outline: none; transition: border-color 0.2s; width: 100%; background: #fcfcfc; color: var(--color-font);
   }
+  select { padding: 8px 10px; width: 100%; }
   input:focus, select.active, textarea:focus {
     border-color: var(--main-color);
     background: #fff;
@@ -184,29 +262,77 @@
 }
 
 
-/****************** status badge ***********************/
-.status-badge {
-  display: inline-block; padding: 4px 12px; border-radius: 4px; font-size: 13px; font-weight: 500;white-space: nowrap;
+/****************** badge ***********************/
+
+/* 상세용 뱃지 — tint 배경 + 텍스트 */
+%badge-base {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
 }
-.badge-running {
-  border: 1px solid var(--main-color);  color:#fff;  background: var(--main-color);
-}
-.badge-closed {
-  border: 1px solid #ddd;  color: #aaa;  background: #fff;
-}
-.badge-rejected {
-  border: 1px solid #e74c3c;  color: #fff;  background: #e74c3c;
-}
-.badge-pending {
-  border: 1px solid #f39c12; color: #fff;  background: #f39c12;
-}
-.tbl-wrap .status-badge{
-position: absolute;
-      top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+.badge-pending  { @extend %badge-base; background: #f0f0f0; color: #888; }
+.badge-approved { @extend %badge-base; background: rgba($green-600, 0.12); color: $green-600; }
+.badge-rejected { @extend %badge-base; background: #fff0f0; color: #d32f2f; }
+.badge-closed   { @extend %badge-base; background: #f0f0f0; color: #aaa; }
+
+/* 목록용 — 텍스트 색상만 */
+.text-pending  { color: #888; }
+.text-approved { color: $green-600; }
+.text-rejected { color: #d32f2f; }
+.text-closed   { color: #aaa; }
+
+.tbl-wrap .badge, .tbl-wrap .status-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
+
+/*************************** notice panel **********************/
+.notice-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 4px 0;
+
+  .notice-title {
+    font-weight: 700;
+    color: #222;
+  }
+
+  .notice-desc {
+    color: #666;
+    line-height: 1.7;
+  }
+
+  .notice-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .9em;
+    th, td {
+      padding: 7px 8px;
+      border: 1px solid $border-color;
+      vertical-align: top;
+      line-height: 1.6;
+      color: #444;
+    }
+    th {
+      background: #f7f7f7;
+      font-weight: 600;
+      color: #333;
+      text-align: center;
+      white-space: nowrap;
+    }
+  }
+
+  .notice-caution {
+    color: #888;
+  }
+}
 
 /********************* button design *********************/
 .btn-row {
@@ -265,6 +391,11 @@ position: absolute;
   background-color: var(--main-color);
   color: #fff;
 }
+
+.btn.btn-success { background: $green-600; color: #fff; border-color: $green-600; }
+.btn.btn-success:hover { filter: brightness(1.1); }
+.btn.btn-danger  { background: #c62828; color: #fff; border-color: #c62828; }
+.btn.btn-danger:hover  { filter: brightness(1.1); }
 
 /* 신청/취소 버튼 공통 스타일 */
 .btn-register,

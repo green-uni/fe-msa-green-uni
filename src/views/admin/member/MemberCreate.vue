@@ -194,6 +194,7 @@ const submit = async () => {
 }
 
 onMounted(async () => {
+  pageState.setContent(false)
   const [
     majors,
     studentStatus,

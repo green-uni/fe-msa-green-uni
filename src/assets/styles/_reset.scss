@@ -2,6 +2,7 @@
    v2.0 | 20110126
    License: none (public domain)
 */
+@use './variables' as *;
 
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
@@ -60,15 +61,24 @@ button, input, select, textarea{
   white-space: nowrap;
   outline: none;
 }
+select {
+  border: 1px solid $input-border-color;
+  border-radius: 4px;
+  background: #fcfcfc;
+  color: $font-color;
+  padding: 7px 10px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
 input:focus,
 textarea:focus,
 select:focus {
-  border-color: var(--main-color);
-  box-shadow: 0 0 0 3px color-mix(in srgb, transparent 85%, var(--main-color) 15%);
+  border-color: $green-600;
+  box-shadow: 0 0 0 3px color-mix(in srgb, transparent 85%, $green-600 15%);
 }
 
 button:focus-visible {
-  outline: 2px solid var(--main-color);
+  outline: 2px solid $green-600;
   outline-offset: 2px;
 }
 dl, dt { white-space: nowrap; }
