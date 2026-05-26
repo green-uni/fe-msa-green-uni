@@ -1,6 +1,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import ScheduleService from '@/services/scheduleService.js'
+import { useAuthStore } from '@/stores/authentication'
+const authStore = useAuthStore()
  
 const schedules = ref([])
 const loading = ref(false)
@@ -53,10 +55,9 @@ onMounted(async () => {
   <div class="schedule-wrap">
     <div class="schedule-header">
       <span class="schedule-title">학사일정</span>
-      <router-link to="/calendar/schedules" class="schedule-more">전체보기</router-link>
+      <router-link :to="authStore.role === 'ADMIN' ? '/admin/schedules' : '/schedules'" class="schedule-more">전체보기</router-link>
     </div>
- 
-    <div v-if="loading" class="schedule-empty">불러오는 중...</div>
+      <div v-if="loading" class="schedule-empty">불러오는 중...</div>
     <div v-else-if="!schedules.length" class="schedule-empty">이번 달 진행중인 일정이 없습니다.</div>
  
     <ul v-else class="schedule-list">
