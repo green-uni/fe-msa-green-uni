@@ -1,5 +1,6 @@
 <script setup>
 import courseService from '@/services/courseService'
+import MemberService from '@/services/memberService' // 🎯 MSA 환경의 전체 학과 조회를 위해 추가
 import { useModalStore } from '@/stores/modal'
 import { useRouter } from 'vue-router'
 import { ref, onMounted, computed, reactive, watch, nextTick } from 'vue'
@@ -31,9 +32,13 @@ const selectedYear = ref('전체')
 
 const tabs = ['전체', '전공', '교양']
 
+// 🎯 DB 전체 학과 목록을 저장할 상태 변수 추가
+const majorOptions = ref([])
+
+// 🎯 받아온 majorOptions 객체 배열에서 이름만 추출하여 필터용 리스트 생성
 const majorList = computed(() => {
-  const majors = courseList.value.map(item => item.majorName)
-  return ['전체', ...new Set(majors)].filter(Boolean)
+  const majors = majorOptions.value.map(item => item.name)
+  return ['전체', ...majors]
 })
 
 const filteredList = computed(() => {
@@ -99,6 +104,16 @@ const fetchMyCourseList = async () => {
   }
 }
 
+// 🎯 전체 DB 학과 목록 가져오기 로직 추가
+const fetchDepartments = async () => {
+  try {
+    const res = await MemberService.getMajorList()
+    majorOptions.value = res.data ?? []
+  } catch (err) {
+    console.error('전공 목록 로드 실패:', err)
+  }
+}
+
 // 필터 변경 시 1페이지로 리셋
 watch([typeTab, selectedMajor, selectedYear, searchKeyword], () => {
   state.coursePage = 1
@@ -146,23 +161,29 @@ onMounted(async () => {
   try {
     const res = await courseService.getCourseStatus()
     const data = res.data.data
+    
+    // 수강신청 또는 정정 기간이 모두 닫혀있는 경우
     if (!data.isOpen) {
       await modal.showAlert('수강 신청 기간이 아닙니다.', 'error')
-      router.push('/member/my')
+      router.push('/members/my') // 🎯 경로 변경
       return
     }
   } catch (e) {
+    console.error('수강 상태 확인 실패', e)
     await nextTick()
-    router.push('/member/my')
+    await modal.showAlert('수강 신청 정보를 불러오지 못했습니다.', 'error')
+    router.push('/members/my') // 🎯 에러 발생 시에도 튕겨내기
     return
   }
+
+  // 정상 기간일 때만 데이터 로드 실행
+  fetchDepartments()
   fetchCourseList()
   fetchMyCourseList()
 })
 </script>
 
 <template>
-  <!-- ── 전체 강의 목록 ── -->
   <div class="container" style="padding-bottom: 30px;">
     <div class="data-header" style="margin-bottom:16px;">
       <h2 class="page-title"><span class="title-icon">&#9658;</span> 수강 신청</h2>
@@ -252,7 +273,6 @@ onMounted(async () => {
     />
   </div>
 
-  <!-- ── 신청 내역 ── -->
   <div class="container" style="padding-bottom: 10px;">
     <div class="my-course-header">
       <h1 style="font-weight: bold;">신청 내역
@@ -260,7 +280,7 @@ onMounted(async () => {
       </h1>
     </div>
 
-<DataTable
+    <DataTable
       :columns="['학과명','강의명','강의실','이수구분','학년','담당교수','수업시간','학점','여석/정원','신청']"
       :rows="pagedMyCourseList"
       :isLoading="false" 

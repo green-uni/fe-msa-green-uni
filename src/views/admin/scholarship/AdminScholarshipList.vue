@@ -1,6 +1,7 @@
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue' // 🎯 onMounted 추가
 import scholarshipService from '@/services/scholarshipService'
+import MemberService from '@/services/memberService' // 🎯 MSA 환경의 전체 학과 조회를 위해 추가
 import DataTable from '@/components/common/DataTable.vue'
 import Pagination from '@/components/common/Pagination.vue'
 
@@ -14,18 +15,18 @@ const pageSize = 10             // 백엔드가 허용하는 안전한 사이즈
 const searchInput = ref('')     // 사용자가 입력 중인 텍스트
 const searchKeyword = ref('')
 
+// 🎯 학생 관리 화면 컨벤션과 맞춰 가져온 전체 전공 목록을 담을 변수
+const majorOptions = ref([])
+
 const filter = reactive({
   year: new Date().getFullYear(),
   semester: '',
   scholarshipType: '',
-  deptName: '',
+  deptName: '', // ScholarshipRes DTO의 deptName 매핑 유지
   academicYear: ''
 })
 
-const uniqueDepartments = computed(() => {
-  const depts = scholarships.value.map(item => item.deptName).filter(Boolean)
-  return [...new Set(depts)].sort()
-})
+// ❌ 기존 목록 데이터 기준의 uniqueDepartments computed 속성은 제거했습니다.
 
 const filteredScholarships = computed(() => {
   return scholarships.value.filter(item => {
@@ -66,15 +67,13 @@ function onSearch() {
   fetchData()
 }
 
-// [수정] 엔터키 입력 시 조회 실행
+// 엔터키 입력 시 조회 실행
 const keydown = (e) => { if (e.key === 'Enter') onSearch() }
 
 async function fetchData() {
   isLoading.value = true
   searched.value = true
   try {
-    // 💡 백엔드에 안전하게 currentPage (0-based)와 10개(pageSize)씩 요청합니다.
-    // 만약 백엔드 API가 '검색어' 파라미터도 지원한다면 세 번째/네 번째 인자 뒤에 searchInput.value를 넘겨야 합니다.
     const { data } = await scholarshipService.getScholarshipList(
       filter.year,
       filter.semester,
@@ -82,7 +81,6 @@ async function fetchData() {
       pageSize
     )
     
-    // 백엔드에서 받아온 현재 페이지 데이터와 전체 개수 바인딩
     scholarships.value = data.content ?? []
     totalElements.value = data.totalElements ?? 0
   } catch (e) {
@@ -94,7 +92,17 @@ async function fetchData() {
   }
 }
 
-// [수정] 페이지 번호 클릭 시 호출할 함수
+// 🎯 2. 전체 DB 학과 목록 가져오기 로직 추가
+async function fetchDepartments() {
+  try {
+    const res = await MemberService.getMajorList()
+    majorOptions.value = res.data ?? []
+  } catch (err) {
+    console.error('전공 목록 로드 실패:', err)
+  }
+}
+
+// 페이지 번호 클릭 시 호출할 함수
 function goPage(page) {
   currentPage.value = page
   fetchData() // 해당 페이지 데이터 요청
@@ -120,17 +128,20 @@ const BADGE_MAP = {
 function badgeClass(type) {
   return BADGE_MAP[type] ?? 'badge--default'
 }
+
+// 🎯 마운트 시점에 DB에 등록된 활성화 학과 리스트를 사전 동기화
+onMounted(() => {
+  fetchDepartments()
+})
 </script>
 
 <template>
   <div class="container">
-    <!-- 헤더 -->
     <div class="data-header">
       <h2 class="page-title"><span class="title-icon">&#9658;</span> 장학 수혜 학생 목록</h2>
       <nav class="breadcrumb">장학금 관리 &gt; 장학 수혜 학생 조회</nav>
     </div>
 
-    <!-- 필터 -->
     <div class="filter-header">
       <div class="filter-group">
         <div class="filter-item">
@@ -172,8 +183,8 @@ function badgeClass(type) {
         <div class="input-content">
             <select v-model="filter.deptName" :disabled="!searched">
             <option value="">전체</option>
-            <option v-for="dept in uniqueDepartments" :key="dept" :value="dept">
-                {{ dept }}
+            <option v-for="m in majorOptions" :key="m.majorId" :value="m.name">
+                {{ m.name }}
             </option>
             </select>
         </div>
@@ -210,7 +221,6 @@ function badgeClass(type) {
       </div>
     </div>
 
-    <!-- 조회 전 안내 -->
     <p v-if="!searched" class="guide-text">연도와 학기를 선택한 후 조회하세요.</p>
 
     <template v-else>
@@ -230,8 +240,7 @@ function badgeClass(type) {
                 >
                 <div class="mono">{{ item.memberCode }}</div>
                 <div>{{ item.studentName }}</div>
-                <div>{{ item.deptName }}</div>
-                <div>{{ item.academicYear }}학년</div>
+                <div>{{ item.deptName }}</div> <div>{{ item.academicYear }}학년</div>
                 <div>
                     <span class="badge" :class="badgeClass(item.scholarshipType)">
                     {{ item.scholarshipType }}

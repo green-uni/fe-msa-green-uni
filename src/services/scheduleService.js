@@ -25,6 +25,22 @@ const ScheduleService = {
   deleteSchedule(scheduleId) {
     return axios.delete(`/academic/admin/schedules/${scheduleId}`)
   },
+
+  // DASH 이번달 학사일정
+getMonthlySchedules() {
+  const targetMonth = new Date().getMonth() + 1
+  return axios.get('/academic/schedules', { params: { targetMonth } })
+  },
+
+  // DASH 배너용 진행중 학사일정
+  getActiveBannerSchedule() {
+    return axios.get('/academic/schedules/active/banner')
+  },
+
+  // DASH 배너 슬라이더용 진행중 학사일정 전체
+  getActiveBannerSchedules() {
+    return axios.get('/academic/schedules/active/banners')
+  },
 }
 
 export default ScheduleService

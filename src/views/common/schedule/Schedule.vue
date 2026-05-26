@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, nextTick } from 'vue'
+import { onClickOutside } from '@vueuse/core'
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridMonth from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
@@ -45,18 +46,20 @@ const scheduleTypes = [
   { code: 'TUITION_PAYMENT', value: '등록금납부', color: '#a84c5a' },
 
   // 기타
-  { code: 'MAJOR_CHANGE', value: '전과변경신청', color: '#3b7dd8' },
+  { code: 'MAJOR_CHANGE', value: '전공변경신청', color: '#3b7dd8' },
   { code: 'SEMESTER_START', value: '학기시작', color: '#2e7d32' },
   { code: 'ETC', value: '기타', color: '#475569' },
 ]
 
-// ===== 현재 월 일정만 필터링 =====
+// ===== 현재 월 일정만 필터링 (시작일 오름차순) =====
 const currentMonthEvents = computed(() => {
-  return events.value.filter(event => {
-    const month = new Date(event.start).getMonth() + 1
-    const year = new Date(event.start).getFullYear()
-    return year === currentYear.value && month === currentMonth.value
-  })
+  return events.value
+    .filter(event => {
+      const month = new Date(event.start).getMonth() + 1
+      const year = new Date(event.start).getFullYear()
+      return year === currentYear.value && month === currentMonth.value
+    })
+    .sort((a, b) => new Date(a.start) - new Date(b.start))
 })
 
 // ===== API: 학사일정 조회 =====
@@ -196,12 +199,33 @@ const clearSelection = () => {
 const groupedEvents = computed(() => {
   const groups = {}
   events.value.forEach(event => {
-    const month = new Date(event.start).getMonth() + 1 + '월'
-    if (!groups[month]) groups[month] = []
-    groups[month].push(event)
+    const month = new Date(event.start).getMonth() + 1
+    const key = `${month}월`
+    if (!groups[key]) groups[key] = []
+    groups[key].push(event)
   })
-  return groups
+
+  const sorted = {}
+  Object.keys(groups)
+    .sort((a, b) => parseInt(a) - parseInt(b))
+    .forEach(month => {
+      sorted[month] = groups[month].sort((a, b) => new Date(a.start) - new Date(b.start))
+    })
+  return sorted
 })
+
+// ===== 연도 선택 팝업 =====
+const showYearPicker = ref(false)
+const yearPickerRef = ref(null)
+const years = computed(() => Array.from({ length: 11 }, (_, i) => 2020 + i))
+
+const selectYear = (year) => {
+  currentYear.value = year
+  showYearPicker.value = false
+  fetchSchedules()
+}
+
+onClickOutside(yearPickerRef, () => { showYearPicker.value = false })
 
 // ===== 초기 데이터 로드 =====
 fetchSchedules()
@@ -213,15 +237,27 @@ fetchSchedules()
     <!-- ===== 헤더: 년/월 표시 + 이전/다음 버튼 + 월간/연간 토글 ===== -->
     <header class="calendar-header">
       <div class="date-selector">
-        <div class="select-box"><span>{{ currentYear }}년</span></div>
+        <div class="year-picker-wrap" ref="yearPickerRef">
+          <div class="select-box year-clickable" @click="showYearPicker = !showYearPicker">
+            <span>{{ currentYear }}년</span>
+            <font-awesome-icon :icon="['fas', showYearPicker ? 'chevron-up' : 'chevron-down']" class="year-arrow" />
+          </div>
+          <div v-if="showYearPicker" class="year-popup">
+            <button
+              v-for="y in years" :key="y"
+              :class="{ active: y === currentYear }"
+              @click="selectYear(y)"
+            >{{ y }}</button>
+          </div>
+        </div>
         <!-- 월간일정일 때만 월 네비게이션 표시 -->
         <template v-if="!isYearView">
           <button class="nav-btn" @click="goPrev">
-            <i class="fa-solid fa-chevron-left"></i>
+            <font-awesome-icon :icon="['fas', 'chevron-left']" />
           </button>
           <div class="select-box"><span>{{ currentMonth }}월</span></div>
           <button class="nav-btn" @click="goNext">
-            <i class="fa-solid fa-chevron-right"></i>
+            <font-awesome-icon :icon="['fas', 'chevron-right']" />
           </button>
         </template>
       </div>
@@ -241,8 +277,12 @@ fetchSchedules()
           <div class="month-badge">{{ month }}</div>
           <div class="month-content">
             <div v-for="event in monthEvents" :key="event.id" class="year-row">
-              <span class="year-date">{{ event.start.slice(5).replace('-', '.') }} ~ {{ new Date(new Date(event.end).setDate(new Date(event.end).getDate() - 1)).toISOString().slice(5, 10).replace('-', '.') }}</span>
-              <span class="year-title">{{ event.title }}</span>
+              <div class="year-date-block">
+                <span class="year-start">{{ event.start.slice(5).replace('-', '.') }}</span>
+                <span class="year-tilde">~</span>
+                <span class="year-end">{{ new Date(new Date(event.end).setDate(new Date(event.end).getDate() - 1)).toISOString().slice(5, 10).replace('-', '.') }}</span>
+              </div>
+<span class="year-title">{{ event.title }}</span>
             </div>
           </div>
         </div>
@@ -323,7 +363,7 @@ fetchSchedules()
             </div>
             <!-- 일정추가 버튼: 관리자만 표시 -->
             <button v-if="isAdmin" class="btn-add-event" @click="showAddForm = true">
-              <i class="fa-solid fa-plus"></i> 일정추가
+              <font-awesome-icon :icon="['fas', 'plus']" /> 일정추가
             </button>
           </template>
 
@@ -344,11 +384,44 @@ fetchSchedules()
 
 /* 이전/다음 달 네비게이션 버튼 */
 .nav-btn { border: 1px solid #e2e8f0; background: #f8fafc; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-.nav-btn:hover { background: #3e9e7e; }
+.nav-btn:hover { cursor: pointer; }
+
+/* ===== 연도 선택 팝업 ===== */
+.year-picker-wrap { position: relative; }
+.year-clickable { cursor: pointer; gap: 6px; user-select: none; }
+.year-arrow { font-size: 11px; color: #94a3b8; }
+.year-popup {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  padding: 8px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  z-index: 100;
+  min-width: 180px;
+}
+.year-popup button {
+  padding: 7px 0;
+  border: none;
+  background: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #334155;
+}
+.year-popup button:hover { background: #f1f5f9; }
+.year-popup button.active { background: #f1f5f9; font-weight: 800; }
 
 /* ===== 월간/연간 토글 ===== */
 .toggle-group button { border: 1px solid #e2e8f0; background: #f8fafc; padding: 8px 16px; border-radius: 20px; cursor: pointer; }
-.toggle-group button.active { background:#3e9e7e; color: white; border-color: #3e9e7e; }
+.toggle-group button.active { background: #f1f5f9; font-weight: 700; }
 
 /* ===== 월간일정 뷰 레이아웃 ===== */
 .view-container { display: flex; gap: 30px; height: 690px; }
@@ -390,13 +463,16 @@ fetchSchedules()
 .btn-delete { background: #b91c1c; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; margin-right: auto; } /* 삭제 버튼은 왼쪽 정렬 */
 
 /* ===== 일정추가 버튼 ===== */
-.btn-add-event { width: 100%; margin-top: 20px; padding: 12px; border: 1px solid #e2e8f0; background: #f8fafc; border-radius: 30px; font-weight: 700; cursor: pointer; }
+.btn-add-event { width: 100%; margin-top: 20px; padding: 12px; border: 1px solid #e2e8f0; background: #f8fafc; border-radius: 8px; font-weight: 700; cursor: pointer; }
 
 /* ===== 연간일정 뷰 ===== */
 .year-list-container { border-top: 2px solid #334155; padding-top: 20px; }
 .month-section { display: flex; padding: 20px 0; border-bottom: 1px solid #f1f5f9; align-items: center; }
-.month-badge { background: #f1f5f9; padding: 8px 20px; border-radius: 20px; font-weight: 800; min-width: 80px; text-align: center; }
-.month-content { flex: 1; margin-left: 40px; }
-.year-row { display: flex; margin-bottom: 10px; }
-.year-date { font-weight: 700; width: 150px; color: #374957; }
+.month-badge { background: #f1f5f9; padding: 8px 20px; border-radius: 20px; font-weight: 800; min-width: 80px; text-align: center; flex-shrink: 0; }
+.month-content { flex: 1; margin-left: 40px; display: flex; flex-direction: column; gap: 10px; }
+.year-row { display: flex; align-items: center; gap: 12px; }
+.year-date-block { display: flex; align-items: center; gap: 4px; width: 130px; flex-shrink: 0; }
+.year-start, .year-end { font-weight: 700; color: #374957; font-size: 14px; }
+.year-tilde { color: #94a3b8; font-size: 13px; }
+.year-title { font-size: 14px; color: #334155; }
 </style>
