@@ -121,10 +121,7 @@ export default defineConfig(({ mode }) => {
     server: {
       // [추가] 모든 네트워크 인터페이스 수신 → 같은 WiFi의 모바일에서 PC IP로 접근 가능
       host: '0.0.0.0',
-      // [추가] ngrok 도메인 허용 (Vite 기본 차단 우회)
-      allowedHosts: ['bottom-gleaming-lather.ngrok-free.dev'],
-      // [주석] ngrok 사용 시 HTTP로 운영 (ngrok이 HTTPS 처리)
-      // https: true,
+      allowedHosts: true,
       // [추가] /api/* 요청을 게이트웨이(8000)로 프록시
       // VITE_API_BASE_URL을 /api(상대경로)로 바꾸면 PC·모바일 모두 이 프록시를 경유
       proxy: {
@@ -139,10 +136,9 @@ export default defineConfig(({ mode }) => {
       }
     },
     // [추가] npm run preview 시에도 ngrok + API 프록시 동작
-    // 빌드 후 시연용: npm run build && npm run preview
+    // npm run preview: 빌드 후 로컬 시연용 (npm run build && npm run preview)
     preview: {
       host: '0.0.0.0',
-      allowedHosts: ['bottom-gleaming-lather.ngrok-free.dev'],
       proxy: {
         '/api': {
           target: 'http://localhost:8000',
