@@ -32,7 +32,7 @@ export const attendanceRoutes = [
     component: () => import('@/views/attendance/AttendanceList.vue'),
     meta: {
       title: '출석 현황',
-      groupTitle: '출석 관리',
+      groupTitle: 'QR 출석 관리',
       auth: ['PROFESSOR'],
     },
   },
