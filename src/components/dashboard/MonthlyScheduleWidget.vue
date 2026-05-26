@@ -53,7 +53,7 @@ onMounted(async () => {
   <div class="schedule-wrap">
     <div class="schedule-header">
       <span class="schedule-title">학사일정</span>
-      <router-link to="calendar/schedules" class="schedule-more">전체보기</router-link>
+      <router-link to="/calendar/schedules" class="schedule-more">전체보기</router-link>
     </div>
  
     <div v-if="loading" class="schedule-empty">불러오는 중...</div>
