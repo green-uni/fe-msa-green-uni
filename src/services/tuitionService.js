@@ -15,7 +15,7 @@ class TuitionService {
    * API-TUI-03: 학생 - 등록금 납부 상세 조회
    */
   getMyTuitionDetail(tuitionId) {
-    return axios.get(`${studentPath}/${tuitionId}`);
+    return axios.get(`${studentPath}/detail/${tuitionId}`);
   }
 
   /**
@@ -23,6 +23,13 @@ class TuitionService {
    */
   requestPayment(tuitionId) {
     return axios.patch(`${studentPath}/${tuitionId}/pending`);
+  }
+
+  /**
+   * 🎯 [새로 추가] API-TUI-14-STU: 학생 - 등록금 납부 기간 동적 조회
+   */
+  getStudentPaymentPeriod() {
+    return axios.get(`${studentPath}/payment-period`);
   }
 
   /**
