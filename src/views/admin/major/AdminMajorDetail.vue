@@ -67,12 +67,6 @@ onMounted(fetchDetail)
 
 <template>
   <div>
-    <div class="data-header" style="margin-bottom:20px;">
-      <h2 class="page-title">
-        <span class="title-icon">&#9658;</span> 학과 상세조회
-      </h2>
-      <nav class="breadcrumb">학과 &gt; 학과 조회 &gt; 학과 상세조회</nav>
-    </div>
 
     <div v-if="state.isLoading" class="loading-area">불러오는 중...</div>
 
@@ -95,7 +89,7 @@ onMounted(fetchDetail)
           </div>
 
           <div class="input-wrap">
-            <label class="input-label">학과 구분</label>
+            <label class="input-label">학과구분</label>
             <div class="input-content">
               <span
                 class="status-badge"
@@ -122,14 +116,19 @@ onMounted(fetchDetail)
             </div>
           </div>
 
-          <div class="input-wrap">
-            <label class="input-label">학과사무실</label>
+          <div class="input-wrap multi-input-wrap">
+            <label class="input-label">사무실</label>
             <div class="input-content">
               <span class="detail-value">
                 {{ state.detail.majorBuilding
                     ? `${getBuildingLabel(state.detail.majorBuilding)} ${state.detail.room ?? ''}`
                     : '-' }}
               </span>
+            </div>
+            
+            <label class="input-label">전화번호</label>
+            <div class="input-content">
+              <span class="detail-value">{{ state.detail.tel ?? '-' }}</span>
             </div>
           </div>
 
@@ -150,9 +149,9 @@ onMounted(fetchDetail)
           </div>
 
           <div class="input-wrap">
-            <label class="input-label">전화번호</label>
+            <label class="input-label">폐지일</label>
             <div class="input-content">
-              <span class="detail-value">{{ state.detail.tel ?? '-' }}</span>
+              <span class="detail-value">{{ state.detail.closedDate ?? '-' }}</span>
             </div>
           </div>
 
@@ -200,8 +199,16 @@ onMounted(fetchDetail)
 .input-grid-full { grid-column: 1 / -1; }
 
 .input-wrap {
-  display: grid; grid-template-columns: 70px 1fr;
-  align-items: center; gap: 12px;
+  display: grid;
+  grid-template-columns: 70px 1fr;
+  align-items: center;
+  gap: 12px;
+
+  /* 한 줄에 라벨-컨텐츠 세트가 2개 들어가는 특수 케이스 */
+  &.multi-input-wrap {
+    grid-template-columns: 70px 1fr 70px 1fr; /* [라벨 70px - 컨텐츠] [라벨 70px - 컨텐츠] */
+    column-gap: 20px; /* 사무실 영역과 전화번호 영역 사이의 간격 */
+  }
 }
 .input-label {
   text-align: right; font-weight: bold; font-size: var(--text-sm);

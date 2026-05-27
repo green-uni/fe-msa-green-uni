@@ -30,6 +30,7 @@ const form = reactive({
   info:               '',
   courseDuration: '',
   foundedDate: '',
+  closedDate:         '',
 })
 
 const professorKeyword = ref('')
@@ -45,7 +46,7 @@ function resetForm() {
     name: '', majorBuilding: '', room: '', tel: '',
     chairProfessorCode: null, capacity: '',
     active: '정상', collegeId: '', info: '',
-    courseDuration: '', foundedDate: ''
+    courseDuration: '', foundedDate: '', closedDate: ''
   })
   professorKeyword.value = ''
 
@@ -78,9 +79,12 @@ function validate() {
     return '입학정원을 30명 이상으로 입력해주세요.'
   }
   if (!form.foundedDate)      return '개설일을 선택해주세요.'
+  if (form.active === '폐지' && !form.closedDate) {
+    return '학과 폐지 시 폐지일을 선택해주세요.'
+  }
   if (!form.tel.trim())       return '전화번호를 입력해주세요.'
   return null
-}
+} 
 
 async function handleSubmit() {
   const err = validate()
@@ -139,6 +143,7 @@ async function fetchDetail() {
       info:               d.info ?? '',
       courseDuration:     d.courseDuration ?? '',
       foundedDate:        d.foundedDate ?? '',
+      closedDate:         d.closedDate ?? '',
     })
 
     const prof = professorList.value.find(p => p.memberCode === d.professorCode)
@@ -169,7 +174,7 @@ watch(
         name: '', majorBuilding: '', room: '', tel: '',
         chairProfessorCode: null, capacity: '',
         active: '정상', collegeId: '', info: '',
-        courseDuration: '', foundedDate: ''
+        courseDuration: '', foundedDate: '', closedDate: ''
       })
       professorKeyword.value = ''
       loadTemp()
@@ -180,14 +185,6 @@ watch(
 
 <template>
   <div>
-    <div class="data-header" style="margin-bottom:20px;">
-      <h2 class="page-title">
-        <span class="title-icon">&#9658;</span> {{ pageTitle }}
-      </h2>
-      <nav class="breadcrumb">
-        학과 &gt; {{ isEdit ? '학과 조회 &gt; 학과 정보수정' : '학과 개설' }}
-      </nav>
-    </div>
 
     <div class="form-card">
       <div class="form-grid">
@@ -213,7 +210,7 @@ watch(
         </div>
 
         <div class="input-wrap">
-          <label class="input-label">학과 구분</label>
+          <label class="input-label">학과구분</label>
           <div class="input-content">
             <div class="radio-group">
               <label class="radio-label">
@@ -226,7 +223,7 @@ watch(
           </div>
         </div>
 
-        <!-- Row 2: 학과장 / (빈칸) / 학과사무실 -->
+        <!-- Row 2: 학과장 / 수업연한 / 사무실 -->
         <div class="input-wrap">
           <label class="input-label">학과장명</label>
           <div class="input-content">
@@ -250,8 +247,8 @@ watch(
           </div>
         </div>
 
-        <div class="input-wrap">
-          <label class="input-label">학과사무실</label>
+        <div class="input-wrap multi-input-wrap">
+          <label class="input-label">사무실</label>
           <div class="input-content two-input">
             <select v-model="form.majorBuilding">
               <option value="" disabled>건물 선택</option>
@@ -260,6 +257,11 @@ watch(
               </option>
             </select>
             <input v-model="form.room" type="text" placeholder="예: 201호" />
+          </div>
+
+          <label class="input-label">전화번호</label>
+          <div class="input-content">
+            <input v-model="form.tel" type="text" placeholder="예: 02-0000-0000" />
           </div>
         </div>
 
@@ -270,7 +272,6 @@ watch(
           </div>
         </div>
 
-        <!-- 개설일: CalendarDate 컴포넌트 사용 -->
         <div class="input-wrap">
           <label class="input-label">개설일</label>
           <div class="input-content">
@@ -279,9 +280,9 @@ watch(
         </div>
 
         <div class="input-wrap">
-          <label class="input-label">전화번호</label>
+          <label class="input-label">폐지일</label>
           <div class="input-content">
-            <input v-model="form.tel" type="text" placeholder="예: 02-0000-0000" />
+            <CalendarDate v-model="form.closedDate" />
           </div>
         </div>
 
@@ -341,8 +342,16 @@ watch(
 .input-grid-full { grid-column: 1 / -1; }
 
 .input-wrap {
-  display: grid; grid-template-columns: 70px 1fr;
-  align-items: center; gap: 12px;
+  display: grid; 
+  grid-template-columns: 70px 1fr;
+  align-items: center; 
+  gap: 12px;
+
+  /* 사무실과 전화번호를 한 줄에 놓기 위한 스타일 추가 */
+  &.multi-input-wrap {
+    grid-template-columns: 50px 1fr 50px 1fr;
+    column-gap: 5px; /* 사무실 입력 영역과 전화번호 라벨 사이의 여백 */
+  }
 }
 .input-label {
   text-align: right; font-weight: bold; font-size: var(--text-sm);

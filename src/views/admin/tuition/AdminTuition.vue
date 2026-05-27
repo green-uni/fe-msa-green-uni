@@ -133,11 +133,7 @@ onMounted(() => {
 
 <template>
   <div class="container">
-    <div class="data-header">
-      <h2 class="page-title"><span class="title-icon">&#9658;</span> 학생 목록 조회</h2>
-      <nav class="breadcrumb">등록금 관리 &gt; 학생 목록 조회</nav>
-    </div>
-
+    
     <div class="filter-header">
       <div class="tab-area">
         <button v-for="tab in tabs" :key="tab.value" class="filter-btn" 

@@ -115,10 +115,6 @@ const gridCols = '1.4fr 1fr 1.1fr 1.2fr 0.9fr 0.7fr 0.7fr 0.7fr'
 
 <template>
   <div>
-    <div class="data-header" style="margin-bottom:16px;">
-      <h2 class="page-title"><span class="title-icon">&#9658;</span> 학과 조회</h2>
-      <nav class="breadcrumb">학과 &gt; 학과 조회</nav>
-    </div>
 
     <div class="filter-header">
       <div class="tab-area">

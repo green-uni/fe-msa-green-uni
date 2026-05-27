@@ -140,10 +140,6 @@ onMounted(() => {
 
 <template>
   <div class="container">
-    <div class="data-header">
-      <h2 class="page-title"><span class="title-icon">&#9658;</span> 등록금 정책 관리</h2>
-      <nav class="breadcrumb">등록금 관리 &gt; 정책 관리</nav>
-    </div>
 
     <div class="filter-header">
       <div class="filter-group">

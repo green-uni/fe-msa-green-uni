@@ -105,11 +105,7 @@ onMounted(() => {
   <div v-if="!isPeriod" class="empty-period">등록금납부 기간이 아닙니다.</div>
 
   <div v-else class="form-wrap">
-    <div class="container">
-      <div class="data-header">
-        <h2 class="page-title"><span class="title-icon">►</span>등록금 상세 조회</h2>
-        <div class="breadcrumb">등록금 &gt; 등록금 상세 조회</div>
-      </div>
+    <div>
 
       <div v-if="isLoading" class="state-message-box">
         <p>불러오는 중...</p>

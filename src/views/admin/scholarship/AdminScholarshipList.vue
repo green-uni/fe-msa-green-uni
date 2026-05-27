@@ -136,11 +136,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="container">
-    <div class="data-header">
-      <h2 class="page-title"><span class="title-icon">&#9658;</span> 장학 수혜 학생 목록</h2>
-      <nav class="breadcrumb">장학금 관리 &gt; 장학 수혜 학생 조회</nav>
-    </div>
+  <div>
 
     <div class="filter-header">
       <div class="filter-group">
@@ -166,7 +162,7 @@ onMounted(() => {
           </div>
         </div>
         <div class="filter-item">
-        <div class="input-label">장학금 유형</div>
+        <div class="input-label">유형</div>
         <div class="input-content">
             <select v-model="filter.scholarshipType" :disabled="!searched">
             <option value="">전체</option>
@@ -227,9 +223,9 @@ onMounted(() => {
       <div><p>전체: {{ displayCount }}명</p></div>
 
         <DataTable
-        :columns="['학번', '이름', '학과', '학년', '장학금 유형', '장학금액', '지급일']"
+        :columns="['학번', '이름', '학과', '학년', '유형', '금액', '지급일']"
         :rows="filteredScholarships"  :isLoading="isLoading"
-        gridCols="120px 80px 1fr 60px 100px 120px 120px"
+        gridCols="120px 1fr 1fr 60px 150px 1fr 120px"
         emptyMessage="해당 학기의 장학 수혜 내역이 없습니다."
         >
             <template v-if="!isLoading && filteredScholarships.length > 0">
