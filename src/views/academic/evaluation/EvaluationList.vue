@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/authentication';
 import { useModalStore } from '@/stores/modal';
 import evaluationService from '@/services/evaluationService';
+import CardListDetail from '@/components/common/CardListDetail.vue';
 
 const route = useRoute();
 const authStore = useAuthStore();
@@ -38,16 +39,13 @@ const CHOICES = [
   { label: 'E', value: 1 },
 ];
 
-// 설문 문항용
 const evalForm = reactive({
   q1: null, q2: null, q3: null, q4: null, q5: null,
   comment: '',
 });
 
-// 전체 강의 만족도용
 const scoreForm = reactive({
   score: 0,
-  comment: '',
 });
 
 const PAGE_SIZE = 10;
@@ -135,18 +133,14 @@ const submitEval = async () => {
   if (!evalForm.q1 || !evalForm.q2 || !evalForm.q3 || !evalForm.q4 || !evalForm.q5) {
     await modal.showAlert('모든 문항에 응답해주세요.', 'warning'); return;
   }
-  if (evalForm.comment.length < 10) { await modal.showAlert('강의평가를 10자 이상 작성해주세요.', 'warning'); return; }
+  if (evalForm.comment.length < 10) { await modal.showAlert('수강평가를 10자 이상 작성해주세요.', 'warning'); return; }
 
   try {
     const lectureId = selectedItem.value.lectureId;
     await evaluationService.createEvaluation(lectureId, {
       lectureId,
       score: scoreForm.score,
-      q1: evalForm.q1,
-      q2: evalForm.q2,
-      q3: evalForm.q3,
-      q4: evalForm.q4,
-      q5: evalForm.q5,
+      q1: evalForm.q1, q2: evalForm.q2, q3: evalForm.q3, q4: evalForm.q4, q5: evalForm.q5,
       comment: evalForm.comment,
     });
     await modal.showAlert('강의평가가 등록되었습니다.', 'success');
@@ -160,19 +154,10 @@ const submitEval = async () => {
 
 const formatDate = (dt) => dt ? dt.slice(0, 10) : '-';
 
-const starText = (score) => {
-  if (!score) return '';
-  const full = Math.floor(score);
-  const half = score % 1 >= 0.5 ? 1 : 0;
-  const empty = 5 - full - half;
-  return '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(empty);
-};
-
 const getEvalStatus = (item) => {
   const today = new Date();
   const start = item.startDate ? new Date(item.startDate) : null;
   const end = item.endDate ? new Date(item.endDate) : null;
-
   if (!start || !end || today < start) return 'before';
   if (today > end) return 'done';
   return 'active';
@@ -229,267 +214,232 @@ onMounted(fetchList);
       </div>
     </div>
 
-    <div class="eval-layout">
-      <!-- 왼쪽: 카드 목록 -->
-      <div class="eval-list">
-        <p v-if="state.isLoading" class="empty-text">불러오는 중...</p>
-        <p v-else-if="!state.list.length" class="empty-text">조회된 강의평가가 없습니다.</p>
-
-        <div
-          v-for="item in state.list"
-          :key="item.lectureId"
-          class="eval-card"
-          :class="{ active: selectedItem?.lectureId === item.lectureId }"
-          @click="selectItem(item)"
-        >
-          <div class="card-left">
-            <span class="lecture-name">{{ item.lectureName }}</span>
-            <span class="pro-name" v-if="role === 'STUDENT'">{{ item.proName }}</span>
-          </div>
-          <div class="card-right">
-            <span :class="['badge', getBadge(item).cls]">{{ getBadge(item).label }}</span>
-          </div>
+    <CardListDetail
+      :items="state.list"
+      :is-loading="state.isLoading"
+      item-key="lectureId"
+      :selected-key="selectedItem?.lectureId"
+      empty-message="조회된 강의평가가 없습니다."
+      @select="selectItem"
+    >
+      <!-- 카드 -->
+      <template #card="{ item }">
+        <div class="card-left">
+          <span class="lecture-name">{{ item.lectureName }}</span>
+          <span class="pro-name" v-if="role === 'STUDENT'">{{ item.proName }}</span>
         </div>
+        <span :class="['badge', getBadge(item).cls]">{{ getBadge(item).label }}</span>
+      </template>
 
-        <div class="pagination" v-if="maxPage > 1">
-          <button
-            v-for="p in maxPage"
-            :key="p"
-            :class="{ active: state.currentPage === p }"
-            @click="state.currentPage = p; fetchList()"
-          >{{ p }}</button>
-        </div>
-      </div>
+      <!-- 상세 -->
+      <template #detail>
+        <!-- 학생 패널 -->
+        <template v-if="role === 'STUDENT' && selectedItem">
+          <!-- active + 성적 미입력 -->
+          <template v-if="getEvalStatus(selectedItem) === 'active' && !selectedItem.hasGrade">
+            <p class="empty-text">교수님이 성적을 입력한 후 강의평가가 가능합니다.</p>
+          </template>
 
-      <!-- 학생 패널 -->
-      <div class="eval-detail" v-if="role === 'STUDENT' && selectedItem && selectedDetail != null">
-        <!-- active + 성적 미입력 -->
-        <template v-if="getEvalStatus(selectedItem) === 'active' && !selectedItem.hasGrade">
-          <p class="empty-text">교수님이 성적을 입력한 후 강의평가가 가능합니다.</p>
-        </template>
-
-        <!-- active + 성적 있음 + 미작성: 작성 폼 -->
-        <template v-else-if="getEvalStatus(selectedItem) === 'active' && selectedItem.hasGrade && selectedDetail.score == null">
-          <div class="detail-row"><span class="label">강의명</span><span>{{ selectedItem.lectureName }}</span></div>
-          <div class="detail-row"><span class="label">교수명</span><span>{{ selectedItem.proName }}</span></div>
-
-          <!-- 전체 강의 만족도 (별점) -->
-          <div class="form-row">
-            <span class="label">강의 만족도</span>
-            <div class="star-wrap">
-              <span
-                v-for="n in 5" :key="n"
-                class="star-container"
-                @mousemove="onStarHover(n, $event)"
-                @mouseleave="hoverScore = 0"
-                @click="onStarClick(n, $event)"
-              >
-                <span class="star-half left" :class="{ active: (hoverScore || scoreForm.score) >= n - 0.5 }">★</span>
-                <span class="star-half right" :class="{ active: (hoverScore || scoreForm.score) >= n }">★</span>
-              </span>
-              <span class="score-text">{{ scoreForm.score }} / 5.0</span>
+          <!-- active + 성적 있음 + 미작성: 작성 폼 -->
+          <template v-else-if="getEvalStatus(selectedItem) === 'active' && selectedItem.hasGrade && selectedDetail?.score == null">
+            <div class="detail-row"><span class="label">강의명</span><span>{{ selectedItem.lectureName }}</span></div>
+            <div class="detail-row"><span class="label">교수명</span><span>{{ selectedItem.proName }}</span></div>
+            <div class="form-row">
+              <span class="label">강의 만족도</span>
+              <div class="star-wrap">
+                <span v-for="n in 5" :key="n" class="star-container"
+                  @mousemove="onStarHover(n, $event)" @mouseleave="hoverScore = 0" @click="onStarClick(n, $event)">
+                  <span class="star-half left" :class="{ active: (hoverScore || scoreForm.score) >= n - 0.5 }">★</span>
+                  <span class="star-half right" :class="{ active: (hoverScore || scoreForm.score) >= n }">★</span>
+                </span>
+                <span class="score-text">{{ scoreForm.score }} / 5.0</span>
+              </div>
             </div>
-          </div>
-
-          <!-- 설문 안내 -->
-          <div class="survey-guide">
-            본 설문은 수업 개선의 기초 및 교육의 질적인 향상을 위해 실시합니다.
-            성실하게 작성하여 주시기 바랍니다.
-          </div>
-
-          <table class="survey-table">
-            <thead>
-              <tr>
-                <th>구분</th>
-                <th>조사 항목</th>
-                <th v-for="c in CHOICES" :key="c.label">
-                  {{ c.label }}<br/>
-                  <span class="choice-score">{{ c.value }}점</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(q, idx) in QUESTIONS" :key="idx">
-                <td>{{ idx + 1 }}</td>
-                <td class="q-text">{{ q }}</td>
-                <td v-for="c in CHOICES" :key="c.label">
-                  <input
-                    type="radio"
-                    :name="`q${idx + 1}`"
-                    :value="c.value"
-                    v-model="evalForm[`q${idx + 1}`]"
-                  />
-                </td>
-              </tr>
-              <!-- 자유 의견 -->
-              <tr>
-                <td>6</td>
-                <td colspan="6">
-                  <div class="free-text-label">그 외 하고 싶은 말을 적어주세요.</div>
-                  <textarea v-model="evalForm.comment" class="textarea" placeholder="10자 이상 작성해주세요." rows="4"/>
-                  <span class="char-count">{{ evalForm.comment.length }}자</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div class="btn-wrap">
-            <button class="btn-primary" @click="submitEval">제출</button>
-          </div>
-        </template>
-
-        <!-- active + 성적 있음 + 완료: 본인 평가 조회 -->
-        <template v-else-if="getEvalStatus(selectedItem) === 'active' && selectedItem.hasGrade && selectedDetail.score != null">
-          <!-- starText 대신 이걸로 교체 -->
-          <div class="star-wrap readonly">
-            <span v-for="n in 5" :key="n" class="star-container">
-              <span class="star-half left" :class="{ active: selectedDetail.score >= n - 0.5 }">★</span>
-              <span class="star-half right" :class="{ active: selectedDetail.score >= n }">★</span>
-            </span>
-            <span class="score-text">{{ selectedDetail.score }} / 5.0</span>
-          </div>
-          <table class="survey-table">
-            <thead>
-              <tr>
-                <th>구분</th>
-                <th>조사 항목</th>
-                <th>응답</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(q, idx) in QUESTIONS" :key="idx">
-                <td>{{ idx + 1 }}</td>
-                <td class="q-text">{{ q }}</td>
-                <td>{{ selectedDetail[`q${idx + 1}`] ?? '-' }}</td>
-              </tr>
-            </tbody>
-          </table>
-          <div class="detail-row"><span class="label">수강평가</span></div>
-          <div class="comment-box">{{ selectedDetail.comment }}</div>
-        </template>
-
-        <!-- before -->
-        <template v-else-if="getEvalStatus(selectedItem) === 'before'">
-          <p class="empty-text">진행중인 강의입니다.</p>
-        </template>
-
-        <!-- done + 작성완료 -->
-        <template v-else-if="getEvalStatus(selectedItem) === 'done' && selectedItem.isEvaluated">
-          <!-- starText 대신 이걸로 교체 -->
-          <div class="star-wrap readonly">
-            <span v-for="n in 5" :key="n" class="star-container">
-              <span class="star-half left" :class="{ active: selectedDetail.score >= n - 0.5 }">★</span>
-              <span class="star-half right" :class="{ active: selectedDetail.score >= n }">★</span>
-            </span>
-            <span class="score-text">{{ selectedDetail.score }} / 5.0</span>
-          </div>
-          <table class="survey-table">
-            <thead>
-              <tr>
-                <th>구분</th>
-                <th>조사 항목</th>
-                <th>응답</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(q, idx) in QUESTIONS" :key="idx">
-                <td>{{ idx + 1 }}</td>
-                <td class="q-text">{{ q }}</td>
-                <td>{{ selectedDetail[`q${idx + 1}`] ?? '-' }}</td>
-              </tr>
-            </tbody>
-          </table>
-          <div class="detail-row"><span class="label">강의평가</span></div>
-          <div class="comment-box">{{ selectedDetail.comment }}</div>
-        </template>
-
-        <!-- done + 미작성 -->
-        <template v-else-if="getEvalStatus(selectedItem) === 'done' && !selectedItem.isEvaluated">
-          <p class="empty-text">작성되지 않은 강의입니다.</p>
-        </template>
-      </div>
-
-      <!-- 교수: 상세 -->
-      <div class="eval-detail" v-else-if="role !== 'STUDENT' && selectedItem && selectedDetail">
-        <div class="detail-row"><span class="label">강의명</span><span>{{ selectedDetail.lectureName }}</span></div>
-        <div class="detail-row"><span class="label">교수명</span><span>{{ selectedDetail.proName }}</span></div>
-        <div class="detail-row"><span class="label">평가기간</span><span>{{ formatDate(selectedDetail.startDate) }} ~ {{ formatDate(selectedDetail.endDate) }}</span></div>
-
-        <!-- active: 결과 숨김 -->
-        <template v-if="getEvalStatus(selectedItem) === 'active'">
-          <p class="empty-text">강의평가가 완료된 후 확인할 수 있습니다.</p>
-        </template>
-
-        <!-- done: 결과 공개 -->
-        <template v-else>
-          <div class="detail-row">
-            <span class="label">강의 만족도</span>
-            <div class="star-wrap readonly">
-              <span v-for="n in 5" :key="n" class="star-container">
-                <span class="star-half left" :class="{ active: selectedDetail.score >= n - 0.5 }">★</span>
-                <span class="star-half right" :class="{ active: selectedDetail.score >= n }">★</span>
-              </span>
-              <span class="score-text">{{ selectedDetail.score?.toFixed(1) ?? '-' }} / 5.0</span>
+            <div class="survey-guide">
+              본 설문은 수업 개선의 기초 및 교육의 질적인 향상을 위해 실시합니다.
+              성실하게 작성하여 주시기 바랍니다.
             </div>
-          </div>
-          <div class="detail-row"><span class="label">평가참여인원</span><span>{{ selectedDetail.responseCount }} / {{ selectedDetail.totalStudents }}</span></div>
+            <table class="survey-table">
+              <thead>
+                <tr>
+                  <th>구분</th>
+                  <th>조사 항목</th>
+                  <th v-for="c in CHOICES" :key="c.label">
+                    {{ c.label }}<br/><span class="choice-score">{{ c.value }}점</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(q, idx) in QUESTIONS" :key="idx">
+                  <td>{{ idx + 1 }}</td>
+                  <td class="q-text">{{ q }}</td>
+                  <td v-for="c in CHOICES" :key="c.label">
+                    <input type="radio" :name="`q${idx + 1}`" :value="c.value" v-model="evalForm[`q${idx + 1}`]"/>
+                  </td>
+                </tr>
+                <tr>
+                  <td>6</td>
+                  <td colspan="6">
+                    <div class="free-text-label">그 외 하고 싶은 말을 적어주세요.</div>
+                    <textarea v-model="evalForm.comment" class="textarea" placeholder="10자 이상 작성해주세요." rows="4"/>
+                    <span class="char-count">{{ evalForm.comment.length }}자</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="btn-wrap">
+              <button class="btn-primary" @click="submitEval">제출</button>
+            </div>
+          </template>
 
-          <!-- 문항별 평균 -->
-          <table class="survey-table">
-            <thead>
-              <tr>
-                <th>구분</th>
-                <th>조사 항목</th>
-                <th>평균</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(q, idx) in QUESTIONS" :key="idx">
-                <td>{{ idx + 1 }}</td>
-                <td class="q-text">{{ q }}</td>
-                <td>{{ selectedDetail[`q${idx + 1}Avg`]?.toFixed(1) ?? '-' }}</td>
-              </tr>
-            </tbody>
-          </table>
+          <!-- active + 성적 있음 + 완료 -->
+          <template v-else-if="getEvalStatus(selectedItem) === 'active' && selectedItem.hasGrade && selectedDetail?.score != null">
+            <div class="detail-row">
+              <span class="label">강의 만족도</span>
+              <div class="star-wrap readonly">
+                <span v-for="n in 5" :key="n" class="star-container">
+                  <span class="star-half left" :class="{ active: selectedDetail.score >= n - 0.5 }">★</span>
+                  <span class="star-half right" :class="{ active: selectedDetail.score >= n }">★</span>
+                </span>
+                <span class="score-text">{{ selectedDetail.score }} / 5.0</span>
+              </div>
+            </div>
+            <table class="survey-table">
+              <thead>
+                <tr><th>구분</th><th>조사 항목</th><th>응답</th></tr>
+              </thead>
+              <tbody>
+                <tr v-for="(q, idx) in QUESTIONS" :key="idx">
+                  <td>{{ idx + 1 }}</td>
+                  <td class="q-text">{{ q }}</td>
+                  <td>{{ selectedDetail[`q${idx + 1}`] ?? '-' }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="detail-row"><span class="label">강의평가</span></div>
+            <div class="comment-box">{{ selectedDetail.comment }}</div>
+          </template>
 
-          <div class="detail-row"><span class="label">강의평가</span></div>
-          <div v-for="(c, i) in selectedDetail.comments" :key="i" class="comment-box">{{ c }}</div>
-          <p v-if="!selectedDetail.comments?.length" class="empty-text">작성된 수강평가가 없습니다.</p>
+          <!-- before -->
+          <template v-else-if="getEvalStatus(selectedItem) === 'before'">
+            <p class="empty-text">진행중인 강의입니다.</p>
+          </template>
+
+          <!-- done + 작성완료 -->
+          <template v-else-if="getEvalStatus(selectedItem) === 'done' && selectedItem.isEvaluated">
+            <div class="detail-row">
+              <span class="label">강의 만족도</span>
+              <div class="star-wrap readonly">
+                <span v-for="n in 5" :key="n" class="star-container">
+                  <span class="star-half left" :class="{ active: selectedDetail.score >= n - 0.5 }">★</span>
+                  <span class="star-half right" :class="{ active: selectedDetail.score >= n }">★</span>
+                </span>
+                <span class="score-text">{{ selectedDetail.score }} / 5.0</span>
+              </div>
+            </div>
+            <table class="survey-table">
+              <thead>
+                <tr><th>구분</th><th>조사 항목</th><th>응답</th></tr>
+              </thead>
+              <tbody>
+                <tr v-for="(q, idx) in QUESTIONS" :key="idx">
+                  <td>{{ idx + 1 }}</td>
+                  <td class="q-text">{{ q }}</td>
+                  <td>{{ selectedDetail[`q${idx + 1}`] ?? '-' }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="detail-row"><span class="label">강의평가</span></div>
+            <div class="comment-box">{{ selectedDetail.comment }}</div>
+          </template>
+
+          <!-- done + 미작성 -->
+          <template v-else-if="getEvalStatus(selectedItem) === 'done' && !selectedItem.isEvaluated">
+            <p class="empty-text">작성되지 않은 강의입니다.</p>
+          </template>
         </template>
-      </div>
-    </div>
+
+        <!-- 교수 패널 -->
+        <template v-else-if="role !== 'STUDENT' && selectedItem && selectedDetail">
+          <div class="detail-row"><span class="label">강의명</span><span>{{ selectedDetail.lectureName }}</span></div>
+          <div class="detail-row"><span class="label">교수명</span><span>{{ selectedDetail.proName }}</span></div>
+          <div class="detail-row"><span class="label">평가기간</span><span>{{ formatDate(selectedDetail.startDate) }} ~ {{ formatDate(selectedDetail.endDate) }}</span></div>
+          <template v-if="getEvalStatus(selectedItem) === 'active'">
+            <p class="empty-text">강의평가가 완료된 후 확인할 수 있습니다.</p>
+          </template>
+          <template v-else>
+            <div class="detail-row">
+              <span class="label">강의 만족도</span>
+              <div class="star-wrap readonly">
+                <span v-for="n in 5" :key="n" class="star-container">
+                  <span class="star-half left" :class="{ active: selectedDetail.score >= n - 0.5 }">★</span>
+                  <span class="star-half right" :class="{ active: selectedDetail.score >= n }">★</span>
+                </span>
+                <span class="score-text">{{ selectedDetail.score?.toFixed(1) ?? '-' }} / 5.0</span>
+              </div>
+            </div>
+            <div class="detail-row"><span class="label">평가참여인원</span><span>{{ selectedDetail.responseCount }} / {{ selectedDetail.totalStudents }}</span></div>
+            <table class="survey-table">
+              <thead>
+                <tr><th>구분</th><th>조사 항목</th><th>평균</th></tr>
+              </thead>
+              <tbody>
+                <tr v-for="(q, idx) in QUESTIONS" :key="idx">
+                  <td>{{ idx + 1 }}</td>
+                  <td class="q-text">{{ q }}</td>
+                  <td>{{ selectedDetail[`q${idx + 1}Avg`]?.toFixed(1) ?? '-' }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="detail-row"><span class="label">수강평가</span></div>
+            <div v-for="(c, i) in selectedDetail.comments" :key="i" class="comment-box">{{ c }}</div>
+            <p v-if="!selectedDetail.comments?.length" class="empty-text">작성된 수강평가가 없습니다.</p>
+          </template>
+        </template>
+      </template>
+
+      <!-- 안내 패널 (선택 전) -->
+      <template #detail-empty>
+        <h3 class="notice-title">나의 강의평가</h3>
+        <p class="notice-desc">
+          좌측 목록에서 강의를 선택하면 상세 내용을 확인할 수 있습니다.
+        </p>
+        <table class="notice-table">
+          <colgroup>
+            <col style="width: 100px"/>
+            <col/>
+          </colgroup>
+          <tbody>
+            <template v-if="role === 'STUDENT'">
+              <tr><th><span class="badge before">강의진행중</span></th><td>강의평가 기간이 시작되지 않은 강의입니다.</td></tr>
+              <tr><th><span class="badge pending">미작성</span></th><td>강의평가 기간이며 아직 평가를 작성하지 않은 강의입니다.</td></tr>
+              <tr><th><span class="badge done">완료</span></th><td>강의평가를 완료한 강의입니다.</td></tr>
+              <tr><th><span class="badge expired">평가기간만료</span></th><td>평가 기간이 종료되어 더 이상 작성할 수 없습니다.</td></tr>
+            </template>
+            <template v-else>
+              <tr><th><span class="badge before">강의진행중</span></th><td>강의평가 기간이 시작되지 않은 강의입니다.</td></tr>
+              <tr><th><span class="badge pending">진행중</span></th><td>현재 강의평가 기간입니다. 결과는 기간 종료 후 확인 가능합니다.</td></tr>
+              <tr><th><span class="badge done">평가완료</span></th><td>강의평가 기간이 종료되어 결과를 확인할 수 있습니다.</td></tr>
+            </template>
+          </tbody>
+        </table>
+      </template>
+    </CardListDetail>
   </div>
 </template>
 
 <style scoped>
-.eval-layout { display: flex; gap: 20px; align-items: flex-start; }
-.eval-list { flex: 0 0 460px; display: flex; flex-direction: column; gap: 8px; }
-.eval-detail {
-  flex: 1; border: 1px solid #ddd; border-radius: 8px;
-  padding: 20px; display: flex; flex-direction: column;
-  gap: 12px; background: #fff;
-}
-.eval-card {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 16px 20px; border: 1px solid #ddd; border-radius: 6px;
-  cursor: pointer; background: #fff;
-}
-.eval-card:hover, .eval-card.active { background: var(--hover-bg-color, #f5f5f5); }
 .card-left { display: flex; flex-direction: column; gap: 4px; }
 .lecture-name { font-weight: 600; font-size: 15px; }
 .pro-name { font-size: 13px; color: #777; }
 .badge { padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
-.badge.before { color: #ef6c00; }
+.badge.before { color: #888; }
 .badge.pending { color: #c62828; }
-.badge.done { color: #888; }
-.badge.expired { color: #c62828; }
-.star-score { color: #f5a623; font-size: 13px; }
+.badge.done { color: #333; }
+.badge.expired { color: #888; }
 .detail-row { display: flex; gap: 12px; align-items: center; font-size: 14px; }
 .label { min-width: 90px; font-weight: 600; color: #555; }
 .comment-box { padding: 10px 14px; background: #f9f9f9; border-radius: 6px; font-size: 14px; color: #333; }
-.sub-list { margin-top: 16px; border-top: 1px dashed #ddd; padding-top: 12px; display: flex; flex-direction: column; gap: 8px; }
-.sub-list-title { font-size: 12px; color: #999; margin-bottom: 4px; }
-.empty-detail { justify-content: center; align-items: center; min-height: 200px; }
 .empty-text { color: #999; font-size: 14px; text-align: center; }
 .btn-primary { padding: 8px 20px; background: var(--main-color, #3e9e7e); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
 .pagination { display: flex; justify-content: center; gap: 4px; margin-top: 12px; }
@@ -507,16 +457,22 @@ onMounted(fetchList);
 .star-half.left { width: 50%; z-index: 2; }
 .star-half.right { width: 100%; z-index: 1; }
 .star-half.active { color: #f5a623; }
+.star-wrap.readonly .star-container { cursor: default; }
 .score-text { margin-left: 8px; font-size: 14px; color: #555; }
-.choice-score { font-size: 11px; font-weight: normal; opacity: 0.8; }
 .textarea { width: 100%; padding: 12px; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 14px; resize: vertical; outline: none; }
 .char-count { font-size: 12px; color: #999; align-self: flex-end; }
 .btn-wrap { display: flex; justify-content: flex-end; gap: 8px; }
-.btn-cancel { padding: 8px 20px; background: #fff; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 14px; }
 .survey-guide { font-size: 13px; color: #555; line-height: 1.6; padding: 12px; background: #f9f9f9; border-radius: 6px; }
 .survey-table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .survey-table th, .survey-table td { border: 1px solid #ddd; padding: 10px; text-align: center; }
 .survey-table th { background: var(--main-color, #3e9e7e); color: #fff; }
 .survey-table td.q-text { text-align: left; }
 .free-text-label { font-size: 13px; color: #555; margin-bottom: 8px; text-align: left; }
+.choice-score { font-size: 11px; font-weight: normal; opacity: 0.8; }
+.notice-title { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+.notice-desc { font-size: 14px; color: #777; margin-bottom: 16px; line-height: 1.6; }
+.notice-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.notice-table th, .notice-table td { padding: 10px 12px; border: 1px solid #eee; vertical-align: middle; }
+.notice-table th { background: #f9f9f9; text-align: center; color: #333; }
+.notice-table .badge { color: #333; background: none; padding: 0; font-size: 13px; }
 </style>
