@@ -6,6 +6,7 @@ import { useRouter, useRoute } from 'vue-router';
 import DataTable from '@/components/common/DataTable.vue';
 import Pagination from '@/components/common/Pagination.vue';
 import SearchInput from '@/components/util/SearchInput.vue';
+import { BUILDING_LABEL } from '@/utils/constants';
 
 const route = useRoute();
 const router = useRouter();
@@ -58,22 +59,22 @@ const scheduleText = (schedules) => {
 };
 const roomText = (schedules) => {
   if (!schedules?.length) return '-';
-  const rooms = [...new Set(schedules.map(s => `${s.building ?? ''} ${s.room ?? ''}`.trim()))];
+  const rooms = [...new Set(schedules.map(s => `${BUILDING_LABEL[s.building] ?? s.building ?? ''} ${s.room ?? ''}`.trim()))];
   return rooms.join(',\n');
 };
 
 // ── 최대 페이지 ───────────────────────────────────
 const maxPage = computed(() => Math.ceil(state.totalCount / PAGE_SIZE) || 1);
 
-// ── 클라이언트 측 강의명 검색 필터 (서버 params에 없으므로 프론트에서 처리) ──
-const filteredList = computed(() => {
-  if (!searchInput.value) return state.list;
-  const kw = searchInput.value.toLowerCase();
-  return state.list.filter(i =>
-    i.lectureName?.toLowerCase().includes(kw) ||
-    i.proName?.toLowerCase().includes(kw)
-  );
-});
+// // ── 클라이언트 측 강의명 검색 필터 (서버 params에 없으므로 프론트에서 처리) ──
+// const filteredList = computed(() => {
+//   if (!searchInput.value) return state.list;
+//   const kw = searchInput.value.toLowerCase();
+//   return state.list.filter(i =>
+//     i.lectureName?.toLowerCase().includes(kw) ||
+//     i.proName?.toLowerCase().includes(kw)
+//   );
+// });
 
 // ── API 호출 ─────────────────────────────────────
 const fetchList = async () => {
@@ -81,6 +82,8 @@ const fetchList = async () => {
   try {
     const params = {
       status: filter.status || undefined,
+      lectureName: searchInput.value || undefined,
+      proName: searchInput.value || undefined,
       page: state.currentPage,
       size: PAGE_SIZE,
       startIdx: (state.currentPage - 1) * PAGE_SIZE,
@@ -126,6 +129,7 @@ const pushQuery = () => {
 const onSearch = () => {
   searchInput.value = searchQuery.value;
   state.currentPage = 1;
+  pushQuery();
 };
 
 // ── 페이지 이동 ───────────────────────────────────
@@ -270,7 +274,4 @@ watch(
   font-size: 13px;
   font-weight: 700;
 }
-.status-badge.PENDING  { background: #fff3e0; color: #ef6c00; }
-.status-badge.REJECTED { background: #ffebee; color: #c62828; }
-.status-badge.APPROVED { background: #eafdf6; color: #3e9e7e; }
 </style>

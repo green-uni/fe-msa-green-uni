@@ -6,6 +6,9 @@ class LectureService {
   #studentPath = '/core/student/lectures';
   #commonPath = '/core/lectures';
 
+
+  
+
   // 건물 목록 조회
   async getBuildings() {
     const res = await axios.get('/auth/code?code_type=building');
@@ -102,6 +105,26 @@ class LectureService {
     const res = await axios.get(`${this.#commonPath}/${lectureId}`);
     return res.data.data;
   }
+
+  async getLectureYears() {
+  const res = await axios.get(`${this.#commonPath}/years`);
+  return res.data;
+}
+
+async getProfessorLectureYears() {
+  const res = await axios.get(`${this.#professorPath}/years`);
+  return res.data;
+}
+
+async getStudentLectureYears() {
+  const res = await axios.get(`${this.#studentPath}/years`);
+  return res.data;
+}
+
+async getAdminLectureYears() {
+  const res = await axios.get(`${this.#adminPath}/years`);
+  return res.data;
+}
 
   // 현재 연도/학기 계산
   #getCurrentYearSemester() {

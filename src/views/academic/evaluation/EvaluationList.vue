@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/authentication';
 import { useModalStore } from '@/stores/modal';
 import evaluationService from '@/services/evaluationService';
+import Pagination from '@/components/common/Pagination.vue';
 
 const route = useRoute();
 const authStore = useAuthStore();
@@ -198,6 +199,11 @@ const getProfessorBadge = (item) => {
 
 const getBadge = (item) =>
   role.value === 'STUDENT' ? getStudentBadge(item) : getProfessorBadge(item);
+
+const goToPage = (page) => {
+  state.currentPage = page;
+  fetchList();
+};
 
 onMounted(fetchList);
 </script>
@@ -458,6 +464,12 @@ onMounted(fetchList);
         </template>
       </div>
     </div>
+    <Pagination
+      :currentPage="state.currentPage"
+      :maxPage="maxPage"
+      :pageGroupSize="10"
+      @goToPage="goToPage"
+    />
   </div>
 </template>
 
@@ -492,9 +504,6 @@ onMounted(fetchList);
 .empty-detail { justify-content: center; align-items: center; min-height: 200px; }
 .empty-text { color: #999; font-size: 14px; text-align: center; }
 .btn-primary { padding: 8px 20px; background: var(--main-color, #3e9e7e); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
-.pagination { display: flex; justify-content: center; gap: 4px; margin-top: 12px; }
-.pagination button { padding: 4px 10px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; background: #fff; }
-.pagination button.active { background: var(--main-color, #3e9e7e); color: #fff; border-color: var(--main-color, #3e9e7e); }
 .filter-header { margin-bottom: 16px; }
 .filter-group { display: flex; gap: 12px; }
 .filter-item { display: flex; align-items: center; gap: 8px; }
