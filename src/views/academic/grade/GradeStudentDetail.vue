@@ -147,7 +147,7 @@ onMounted(async () => {
                                         <!-- 성적 미입력: 버튼 없음 -->
                                         <span v-if="!g.lectureGrade" class="no-data">-</span>
                                         <!-- 승인됨: 비활성 -->
-                                        <span v-else-if="g.appealStatus === 'APPROVED'" class="appeal-badge approved">승인</span>
+                                        <span v-else-if="g.appealStatus === 'APPROVED'">승인</span>
                                         <!-- 검토 중: 클릭 시 안내 모달 -->
                                         <button v-else-if="g.appealStatus === 'PENDING'"
                                                 class="appeal-badge pending btn-pending"
@@ -311,7 +311,6 @@ onMounted(async () => {
 
 
 /* 하단 요약 */
-.summary-card { }
 .summary-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -363,7 +362,6 @@ onMounted(async () => {
     font-weight: 600;
 }
 .appeal-badge.pending  { background: #fff9c4; color: #e65100; }
-.appeal-badge.approved { background: #c8e6c9; color: #1b5e20; }
 .btn-pending {
     border: none;
     cursor: pointer;
