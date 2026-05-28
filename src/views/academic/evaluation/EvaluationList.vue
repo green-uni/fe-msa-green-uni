@@ -7,6 +7,7 @@ import evaluationService from '@/services/evaluationService';
 import CardListDetail from '@/components/common/CardListDetail.vue';
 import Pagination from '@/components/common/Pagination.vue';
 
+const yearOptions = ref([]);
 const route = useRoute();
 const authStore = useAuthStore();
 const modal = useModalStore();
@@ -76,6 +77,29 @@ const selectedDetail = ref({ score: 0 })
 
 const maxPage = computed(() => Math.ceil(state.totalCount / PAGE_SIZE) || 1);
 
+const fetchYearOptions = async () => {
+  const curYear = getCurrentTerm().year;
+  try {
+    let res;
+    if (role.value === 'STUDENT') {
+      res = await evaluationService.getStudentEvalYears();
+    } else {
+      res = await evaluationService.getProfessorEvalYears();
+    }
+    const years = res.data ?? [];
+    if (!years.includes(curYear)) years.unshift(curYear);
+    yearOptions.value = years;
+  } catch (err) {
+    console.error('연도 옵션 로드 실패:', err);
+    yearOptions.value = [curYear];
+  }
+};
+
+onMounted(() => {
+  fetchYearOptions();
+  fetchList();
+});
+
 const fetchList = async () => {
   state.isLoading = true;
   selectedItem.value = null;
@@ -86,6 +110,7 @@ const fetchList = async () => {
       semester: filter.semester || undefined,
       page: state.currentPage,
       size: PAGE_SIZE,
+      startIdx: (state.currentPage - 1) * PAGE_SIZE,
     };
     let res;
     if (role.value === 'STUDENT') {
@@ -93,7 +118,6 @@ const fetchList = async () => {
     } else {
       res = await evaluationService.getProfessorEvalList(params);
     }
-    state.list = res.data ?? [];
     state.totalCount = state.list.length;
   } catch (e) {
     console.error(e);
@@ -190,7 +214,6 @@ const goToPage = (page) => {
   fetchList();
 };
 
-onMounted(fetchList);
 </script>
 
 <template>
@@ -198,21 +221,21 @@ onMounted(fetchList);
     <div class="filter-header">
       <div class="filter-group">
         <div class="filter-item">
+          <div class="input-label">연도</div>
+          <div class="input-content">
+            <select v-model="filter.year" @change="onFilterChange">
+              <option value="">전체</option>
+              <option v-for="y in yearOptions" :key="y" :value="y">{{ y }}년</option>
+            </select>
+          </div>
+        </div>
+                <div class="filter-item">
           <div class="input-label">학기</div>
           <div class="input-content">
             <select v-model="filter.semester" @change="onFilterChange">
               <option value="">전체</option>
               <option value="1">1학기</option>
               <option value="2">2학기</option>
-            </select>
-          </div>
-        </div>
-        <div class="filter-item">
-          <div class="input-label">연도</div>
-          <div class="input-content">
-            <select v-model="filter.year" @change="onFilterChange">
-              <option value="">전체</option>
-              <option v-for="y in [2026, 2025, 2024]" :key="y" :value="y">{{ y }}년</option>
             </select>
           </div>
         </div>

@@ -34,6 +34,17 @@ class EvaluationService {
     const res = await axios.post(`${studentPath}/${lectureId}`, payload);
     return res.data;
   }
+
+  async getStudentEvalYears() {
+  const res = await axios.get(`${studentPath}/years`);
+  return res.data;
+}
+
+async getProfessorEvalYears() {
+  const res = await axios.get(`${professorPath}/years`);
+  return res.data;
+}
+
 }
 
 export default new EvaluationService();

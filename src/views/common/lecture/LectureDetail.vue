@@ -375,20 +375,20 @@ onMounted(async () => {
         </div>
       </section>
 
-      <!-- 수동폐강 입력박스 -->
-      <div v-if="showCancelBox" class="action-box">
-        <p class="action-box-title">수동폐강</p>
-        <textarea v-model="cancelReason" class="action-textarea" placeholder="폐강 사유를 30자 이상 입력해주세요." rows="3" />
-        <div class="action-box-footer">
-          <span class="char-count" :class="{ valid: cancelReason.trim().length >= 30 }">
-            {{ cancelReason.trim().length }} / 30자 이상
-          </span>
-          <div class="action-buttons">
-            <button class="btn btn-default" @click="showCancelBox = false">취소</button>
-            <button class="btn btn-neutral" :disabled="cancelReason.trim().length < 30" @click="submitCancel">폐강 처리</button>
-          </div>
+    <!-- 수동폐강 입력박스 -->
+    <div v-if="showCancelBox" class="action-box cancel-box">
+      <p class="action-box-title">폐강 사유</p>
+      <textarea v-model="cancelReason" class="action-textarea" rows="3" />
+      <div class="action-box-footer">
+        <span class="char-count" :class="{ valid: cancelReason.trim().length >= 30 }">
+          {{ cancelReason.trim().length }} / 255자 (30자 이상 작성필수)
+        </span>
+        <div class="action-box-btns">
+          <button class="btn btn-default" @click="showCancelBox = false">취소</button>
+          <button class="btn btn-confirm" :disabled="cancelReason.trim().length < 30" @click="submitCancel">폐강 처리</button>
         </div>
       </div>
+    </div>
 
       <!-- 교수 변경 입력박스 -->
       <div v-if="showProfessorBox" class="action-box">
@@ -467,7 +467,52 @@ onMounted(async () => {
   </div>
 </template>
 
-<style scoped lang="scss">
+<style scoped>
+.page-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.action-group { display: flex; gap: 8px; align-items: center;}
+
+/* 더보기 드롭다운 */
+.more-menu-wrap { position: relative; }
+.more-btn { font-size: 18px; font-weight: 700; letter-spacing: 2px; padding: 4px 10px; background: none; border: none; cursor: pointer; }
+.more-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  min-width: 120px;
+  z-index: 100;
+  overflow: hidden;
+}
+.more-dropdown button {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  text-align: left;
+  background: none;
+  border: none;
+  font-size: var(--text-sm);
+  cursor: pointer;
+  color: #334155;
+}
+.more-dropdown button:hover { background: #f1f5f9; }
+
+/* 수동폐강 / 교수변경 공통 박스 */
+.action-box { display: flex; flex-direction: column; gap: 10px; margin: 12px 0; padding: 16px; border-radius: 8px; background: #f8f8f7; border: 1px solid #e8e8e8; }
+.action-box-title { font-weight: 700; font-size: var(--text-sm); margin: 0; color: #334155; }
+.action-textarea { width: 100%; padding: 10px; border: 1px solid #e0e0e0; border-radius: 6px; resize: vertical; font-size: var(--text-sm); font-family: inherit; line-height: 1.5; }
+.action-select { padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 6px; font-size: var(--text-sm); }
+.action-box-btns { display: flex; gap: 8px; justify-content: flex-end; }
+.btn-subtle { background: #fafafa; color: #334155; }
+.btn-subtle:hover { filter: brightness(0.9); }
+.btn-confirm { background: #334155; color: #fff; border-color: #334155; }
+.btn-confirm:hover { filter: brightness(1.1); }
+.btn-confirm:disabled { background: #94a3b8; border-color: #94a3b8; cursor: not-allowed; filter: none; }
+.action-box-footer { display: flex; justify-content: space-between; align-items: center; }
+.char-count { font-size: var(--text-xs); color: #aaa; }
+.char-count.valid { color: #334155; font-weight: 600; }
 
 /* 교수 변경 폼 */
 .professor-form { display: flex; flex-direction: column; gap: 10px; }
