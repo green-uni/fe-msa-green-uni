@@ -6,10 +6,11 @@ import { useModalStore } from '@/stores/modal'
 
 const router      = useRouter()
 const modal       = useModalStore()
-const isLoading   = ref(true)
-const studentInfo = ref(null)
-const gradeList   = ref([])
-const summary     = ref(null)
+const isLoading    = ref(true)
+const studentInfo  = ref(null)
+const gradeList    = ref([])
+const summary      = ref(null)
+const appealPeriod = ref(false)
 
 // 학년도·학기별 그룹핑 (최신순)
 const groupedGrades = computed(() => {
@@ -36,9 +37,10 @@ const gradeClass = (letter) => {
 onMounted(async () => {
     try {
         const res       = await GradeService.getStudentGradeAll()
-        studentInfo.value = res.studentInfo
-        gradeList.value   = res.gradeList ?? []
-        summary.value     = res.summary
+        studentInfo.value  = res.studentInfo
+        gradeList.value    = res.gradeList ?? []
+        summary.value      = res.summary
+        appealPeriod.value = res.appealPeriod ?? false
     } catch {
         // 에러 모달은 httpRequester 인터셉터가 처리
     } finally {
@@ -111,7 +113,7 @@ onMounted(async () => {
                                     <th>등급</th>
                                     <th>평점</th>
                                     <th>강의 석차</th>
-                                    <th>이의신청</th>
+                                    <th v-if="appealPeriod">이의신청</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -143,7 +145,7 @@ onMounted(async () => {
                                         </span>
                                         <span v-else class="no-data">-</span>
                                     </td>
-                                    <td>
+                                    <td v-if="appealPeriod">
                                         <!-- 성적 미입력: 버튼 없음 -->
                                         <span v-if="!g.lectureGrade" class="no-data">-</span>
                                         <!-- 승인됨: 비활성 -->
