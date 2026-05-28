@@ -283,7 +283,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="detail-wrap" :class="['container', { 'no-color-mode': ['취소', '반려', '대기'].includes(state.data.status) }]">
+  <div class="detail-wrap" :class="[{ 'no-color-mode': ['취소', '반려', '대기'].includes(state.data.status) }]">
     <LoadingSpinner v-if="isLoading" />
 
     <template v-if="!isLoading && state.data.lectureName">
