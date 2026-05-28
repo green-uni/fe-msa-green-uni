@@ -11,13 +11,13 @@ const title = computed(() => route.meta?.title);
 </script>
 
 <template>
-    <ul class="location">
-      <li>{{ groupTitle }}</li>
-      <li v-if="subTitle"><font-awesome-icon icon="fa-solid fa-angle-right" /></li>
-      <li v-if="subTitle">{{ subTitle }}</li>
-      <li><font-awesome-icon icon="fa-solid fa-angle-right" /></li>
-      <li class="pageTitle">{{ title }}</li>
-    </ul>
+  <ul class="location">
+    <li>{{ groupTitle }}</li>
+    <li v-if="subTitle"><font-awesome-icon icon="fa-solid fa-angle-right" /></li>
+    <li v-if="subTitle">{{ subTitle }}</li>
+    <li><font-awesome-icon icon="fa-solid fa-angle-right" /></li>
+    <li class="pageTitle">{{ title }}</li>
+  </ul>
 </template>
 
 <style scoped lang="scss">
