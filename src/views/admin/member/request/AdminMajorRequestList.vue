@@ -58,10 +58,8 @@ const fetchList = async () => {
 };
 const fetchOptions = async () => {
   try {
-    const [approvalStatusRes] = await Promise.all([
-      codeListService.getApprovalStatus(),
-    ]);
-    statusOptions.value = approvalStatusRes.data ?? [];
+    const res = await codeListService.getApprovalStatus();
+    statusOptions.value = res.data ?? [];
   } catch (err) {
     console.error('옵션 로드 실패:', err);
   }
@@ -116,8 +114,7 @@ onMounted(() => {
       :isLoading="state.isLoading"
       emptyMessage="조회된 신청서가 없습니다."
     >
-      <article class="tbl-row" v-for="item in pagedList" :key="item.memberCode"
-               @click="moveToDetail(item.requestId)">
+      <article class="tbl-row pointer" v-for="item in pagedList" :key="item.memberCode" @click="moveToDetail(item.requestId)">
         <div>{{ item.memberCode }}</div>
         <div>{{ item.studentName }}</div>
         <div>{{ item.currentMajorName }} <template v-if="item.currentMinorName">/ {{ item.currentMinorName }}</template></div>
@@ -134,6 +131,3 @@ onMounted(() => {
   </div>
 </template>
 
-<style scoped lang="scss">
-.tbl-row { cursor: pointer; }
-</style>

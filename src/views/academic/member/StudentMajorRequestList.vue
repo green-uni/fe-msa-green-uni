@@ -108,49 +108,47 @@ const downloadFile = async () => {
 };
 
 const GRID_COLS = '120px 1fr 1fr 80px';
-
+const TABLE_COLS = ['일자', '유형', '학과', '상태'];
 onMounted(() => Promise.all([fetchPeriodStatus(), fetchList()]));
 </script>
 
 <template>
-  <div class="split-layout">
-    <!-- 좌측: 목록 패널 -->
-    <div class="split-list">
-      <LoadingSpinner v-if="state.isLoading" :overlay="true" size="md" />
+  <div>
+    <LoadingSpinner v-if="state.isLoading" :overlay="true" size="md" />
 
-      <FilterBar v-model:searchQuery="searchQuery" :hasFilter="hasFilter"
-                 placeholder="신청 학과 검색" @search="onSearch" @reset="resetFilter"
-                 :showCount="true" :count="filteredList.length"
-                 :showPageSize="true" v-model:pageSize="pageSize" :pageSizeOptions="pageSizeOptions"
-                 @pageSizeChange="onPageSizeChange">
-        <div class="filter-item">
-          <div class="input-label">신청 연도</div>
-          <div class="input-content">
-            <select v-model="filter.selectedYear" @change="onFilterChange">
-              <option value="">전체</option>
-              <option v-for="y in yearOptions" :key="y" :value="y">{{ y }}년</option>
-            </select>
-          </div>
+    <FilterBar v-model:searchQuery="searchQuery" :hasFilter="hasFilter"
+               placeholder="신청 학과 검색" @search="onSearch" @reset="resetFilter"
+               :showCount="true" :count="filteredList.length"
+               :showPageSize="true" v-model:pageSize="pageSize" :pageSizeOptions="pageSizeOptions"
+               @pageSizeChange="onPageSizeChange">
+      <div class="filter-item">
+        <div class="input-label">신청 연도</div>
+        <div class="input-content">
+          <select v-model="filter.selectedYear" @change="onFilterChange">
+            <option value="">전체</option>
+            <option v-for="y in yearOptions" :key="y" :value="y">{{ y }}년</option>
+          </select>
         </div>
-        <button v-if="isPeriod && !hasPending" class="btn btn-submit"
-                @click="router.push('/members/major-request/new')">
-          <font-awesome-icon icon="fa-solid fa-plus" /> 신청서 작성
-        </button>
-      </FilterBar>
-
-      <DataTable
-        :columns="['신청 유형', '신청 학과', '신청일자', '상태']"
+      </div>
+      <button v-if="isPeriod && !hasPending" class="btn btn-submit"
+              @click="router.push('/members/major-request/new')">
+        <font-awesome-icon icon="fa-solid fa-plus" /> 신청서 작성
+      </button>
+    </FilterBar>
+    <div class="split-layout">
+      <div class="split-list">
+        <DataTable
+        :columns="TABLE_COLS"
         :rows="pagedList"
         :gridCols="GRID_COLS"
         :isLoading="state.isLoading"
         emptyMessage="신청 내역이 없습니다."
       >
-        <article class="tbl-row" v-for="item in pagedList" :key="item.requestId"
-                 :class="{ active: selectedId === item.requestId }"
+        <article class="tbl-row pointer" v-for="item in pagedList" :key="item.requestId"
                  @click="selectItem(item.requestId)">
+                 <div>{{ formatDateTime(item.createdAt) }}</div>
           <div>{{ MAJOR_REQUEST_TYPE[item.type] ?? item.type }}</div>
           <div>{{ item.targetMajorName }}</div>
-          <div>{{ formatDateTime(item.createdAt) }}</div>
           <div>{{ APPROVAL_STATUS[item.status] ?? item.status }}</div>
         </article>
       </DataTable>
@@ -158,13 +156,11 @@ onMounted(() => Promise.all([fetchPeriodStatus(), fetchList()]));
       <Pagination :currentPage="currentPage" :maxPage="maxPage" :pageGroupSize="10"
                   @goToPage="goToPage" />
     </div>
-
-    <!-- 우측: 상세/안내 패널 -->
     <div class="split-detail">
       <LoadingSpinner v-if="detail.isLoading" :overlay="true" size="md" />
 
       <template v-if="!detail.isLoading && detail.data">
-        <MajorRequestDetail :request="detail.data" :onDownload="downloadFile" :adminView="false" />
+        <MajorRequestDetail :request="detail.data" @downloadFile="downloadFile" />
         <div class="page-footer">
           <div></div>
           <div class="action-group">
@@ -178,8 +174,6 @@ onMounted(() => Promise.all([fetchPeriodStatus(), fetchList()]));
           </div>
         </div>
       </template>
-
-      <!-- 안내 패널 (선택 전) -->
       <div v-else-if="!detail.isLoading" class="notice-panel card">
         <h3 class="notice-title">전공 변경 신청 안내</h3>
         <p class="notice-desc">
@@ -206,8 +200,5 @@ onMounted(() => Promise.all([fetchPeriodStatus(), fetchList()]));
       </div>
     </div>
   </div>
+</div>
 </template>
-
-<style scoped lang="scss">
-.tbl-row { cursor: pointer; &.active { background: rgba($green-600, 0.07); } }
-</style>

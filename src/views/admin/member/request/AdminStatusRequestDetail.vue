@@ -6,6 +6,7 @@ import { useModalStore } from '@/stores/modal';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import StatusRequestDetail from '@/components/member/request/StatusRequestDetail.vue';
 import { STATUS_LABEL } from '@/utils/constants';
+import { formatTel } from '@/utils/phoneNumber';
 
 const route = useRoute();
 const router = useRouter();
@@ -137,7 +138,7 @@ onMounted(fetchRequest);
           </div>
           <div class="info-item">
             <span class="info-key">연락처</span>
-            <span class="info-val">{{ request.phone ?? '-' }}</span>
+            <span class="info-val">{{ formatTel(request.phone) ?? '-' }}</span>
           </div>
           <div class="info-item">
             <span class="info-key">이메일</span>
