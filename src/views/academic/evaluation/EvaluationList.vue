@@ -71,7 +71,7 @@ const state = reactive({
 });
 
 const selectedItem = ref(null);
-const selectedDetail = ref(null);
+const selectedDetail = ref({ score: 0 })
 
 const maxPage = computed(() => Math.ceil(state.totalCount / PAGE_SIZE) || 1);
 
@@ -110,11 +110,11 @@ const onFilterChange = () => {
 const selectItem = async (item) => {
   if (selectedItem.value?.lectureId === item.lectureId) {
     selectedItem.value = null;
-    selectedDetail.value = null;
+    selectedDetail.value = { score: 0 };
     return;
   }
   selectedItem.value = item;
-  selectedDetail.value = null;
+  selectedDetail.value = { score: 0 };
   try {
     let res;
     if (role.value === 'STUDENT') {
@@ -122,9 +122,9 @@ const selectItem = async (item) => {
     } else {
       res = await evaluationService.getProfessorEvalDetail(item.lectureId);
     }
-    selectedDetail.value = res.data;
+    selectedDetail.value = res.data ?? { score: 0 };
   } catch (e) {
-    selectedDetail.value = null;
+    selectedDetail.value = { score: 0 };
   }
 };
 
@@ -331,8 +331,8 @@ onMounted(fetchList);
               <span class="label">강의 만족도</span>
               <div class="star-wrap readonly">
                 <span v-for="n in 5" :key="n" class="star-container">
-                  <span class="star-half left" :class="{ active: selectedDetail.score >= n - 0.5 }">★</span>
-                  <span class="star-half right" :class="{ active: selectedDetail.score >= n }">★</span>
+                  <span class="star-half left" :class="{ active: selectedDetail?.score >= n - 0.5 }">★</span>
+                  <span class="star-half right" :class="{ active: selectedDetail?.score >= n }">★</span>
                 </span>
                 <span class="score-text">{{ selectedDetail.score }} / 5.0</span>
               </div>
