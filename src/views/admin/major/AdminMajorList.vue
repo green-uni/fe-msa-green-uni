@@ -109,7 +109,7 @@ async function fetchData() {
 
 onMounted(fetchData)
 
-const columns  = ['학과명', '소속대학', '사무실', '전화번호', '학과장코드', '입학정원', '교수 수', '상태']
+const columns  = ['학과명', '소속대학', '사무실', '전화번호', '학과장코드', '입학정원', '전체 교수', '상태']
 const gridCols = '1.4fr 1fr 1.1fr 1.2fr 0.9fr 0.7fr 0.7fr 0.7fr'
 </script>
 
@@ -179,8 +179,8 @@ const gridCols = '1.4fr 1fr 1.1fr 1.2fr 0.9fr 0.7fr 0.7fr 0.7fr'
       <div>{{ m.majorBuilding ? `${getBuildingLabel(m.majorBuilding)} ${m.room}` : '-' }}</div>
       <div>{{ m.tel ?? '-' }}</div>
       <div>{{ m.professorCode ?? '-' }}</div>
-      <div>{{ m.capacity ?? '-' }}</div>
-      <div>{{ m.professorCount ?? '-' }}</div>
+      <div>{{ m.capacity ?? '-' }}명</div>
+      <div>{{ m.professorCount ?? '-' }}명</div>
       <div>
         <span class="status-badge" :class="getStatusBadge(m.active).cls">
           {{ getStatusBadge(m.active).label }}

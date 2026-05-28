@@ -1,69 +1,65 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router' // 🎯 라우터 이동을 위해 추가
 import tuitionService from '@/services/tuitionService'
 import DataTable from '@/components/common/DataTable.vue'
 import Pagination from '@/components/common/Pagination.vue'
 import FilterBar from '@/components/common/FilterBar.vue' 
 
+const router = useRouter() // 🎯 라우터 인스턴스 생성
 const tuitions = ref([])
 const isLoading = ref(false)
-const currentPage = ref(1)   // Pagination 컴포넌트용 (1-based)
+const currentPage = ref(1)   
 const totalElements = ref(0)
-const pageSize = ref(10)     // FilterBar v-model 연동
+const pageSize = ref(10)     
 
-// 💡 선택된 필터 상태값 (참고 코딩 스타일 반영)
 const selectedYear = ref('')
 const selectedSemester = ref('')
 
-// 💡 데이터에서 연도 추출 함수 (item.year가 문자열이든 숫자든 처리)
 const yearOf = (item) => item.year ? String(item.year) : ''
 
-// 💡 1. 실제 데이터(tuitions)에 존재하는 연도만 중복 제거 및 내림차순 정렬하여 추출
 const yearOptions = computed(() =>
   [...new Set(tuitions.value.map(yearOf).filter(Boolean))].sort().reverse()
 )
 
-// 💡 2. 연도나 학기가 하나라도 선택되어 있으면 초기화 버튼 활성화
 const hasSearchFilter = computed(() => !!selectedYear.value || !!selectedSemester.value)
 
-// 💡 3. [실시간 필터링 및 납부 상태 조건] 드롭다운 변경 시 즉시 반영
+// 💡 1. [수정] 미납, 처리중 상태도 목록에 보이도록 기존 완납 필터 제거 및 통합
 const filteredTuitions = computed(() => {
   return tuitions.value.filter(item => {
-    // 0. 납부 상태 기본 필터링 ("완납", "납부완료", "PAID")
-    const isPaid = item.status === '완납' || item.status === '납부완료' || item.status === 'PAID'
-    if (!isPaid) return false
+    // ❌ 기존의 완납 데이터만 남기던 if(!isPaid) return false 조건을 제거했습니다.
+    // 이제 모든 상태('미납', '처리중', '완납')가 필터 대상이 됩니다.
 
-    // 1. 연도 필터링 (선택되었을 때만)
+    // 1. 연도 필터링
     if (selectedYear.value && yearOf(item) !== selectedYear.value) return false
     
-    // 2. 학기 필터링 (선택되었을 때만, 타입을 문자열로 통일하여 비교)
+    // 2. 학기 필터링
     if (selectedSemester.value && String(item.semester) !== selectedSemester.value) return false
     
     return true
   })
 })
 
-// 납부 완료된 금액 합계 계산 (실시간 필터링된 결과 기준)
+// 납부 완료된 금액 합계 계산 (실시간 필터링된 결과 중 '완납/PAID'인 것만 취합하도록 변경)
 const totalAmountFormatted = computed(() => {
   const totalRawSum = filteredTuitions.value.reduce((sum, t) => {
-    const amount = Number(t.finalAmount) || 0
+    const isPaid = t.status === '완납' || t.status === '납부완료' || t.status === 'PAID'
+    // 완납 상태일 때만 금액을 더해줍니다.
+    const amount = isPaid ? (Number(t.finalAmount) || 0) : 0
     return sum + amount
   }, 0)
   
   return Number(totalRawSum).toLocaleString('ko-KR')
 })
 
-// 맥스 페이지 계산
 const maxPage = computed(() => Math.ceil(totalElements.value / pageSize.value) || 1)
 
-// 💡 4. 필터 초기화 함수
 const resetFilter = () => { 
   selectedYear.value = ''
   selectedSemester.value = ''
   currentPage.value = 1
 }
 
-// 백엔드 데이터 요청 함수
 async function fetchData() {
   isLoading.value = true
   try {
@@ -85,7 +81,6 @@ async function fetchData() {
   }
 }
 
-// 페이지 사이즈 변경 시 데이터를 새로 받아옴
 function onPageSizeChange() {
   currentPage.value = 1
   fetchData()
@@ -101,10 +96,18 @@ function formatAmount(amount) {
 }
 
 function formatDate(dateStr) {
-  if (!dateStr) return '-'
+  if (!dateStr || dateStr === '-') return '-'
   return new Date(dateStr).toLocaleDateString('ko-KR', {
     year: 'numeric', month: '2-digit', day: '2-digit',
   })
+}
+
+// 🎯 2. [추가] 미납 상태일 때만 라우트 이동을 수행하는 핸들러 함수
+const handleRowClick = (item) => {
+  if (item.status === '미납' || item.status === 'UNPAID') {
+    router.push(`/tuitions/${item.tuitionId}`)
+  }
+  // '완납', '처리중' 등 그 외의 상태는 클릭해도 아무 동작을 하지 않습니다.
 }
 
 onMounted(() => {
@@ -159,20 +162,24 @@ onMounted(() => {
       :rows="filteredTuitions"
       :isLoading="isLoading"
       gridCols="120px 120px 1.5fr 1.5fr 1.2fr"
-      emptyMessage="납부 완료된 등록금 내역이 존재하지 않습니다."
+      emptyMessage="등록금 내역이 존재하지 않습니다."
     >
       <template v-if="!isLoading && filteredTuitions.length > 0">
         <article
-          class="tbl-row no-hover"
+          class="tbl-row"
           v-for="(item, idx) in filteredTuitions"
           :key="idx"
+          :class="{ 'clickable-row': item.status === '미납' || item.status === 'UNPAID' }"
+          @click="handleRowClick(item)"
         >
-          <div class="mono">{{ item.year ? `${item.year}년` : '-' }}</div>
+          <div>{{ item.year ? `${item.year}년` : '-' }}</div>
           <div>{{ item.semester ? `${item.semester}학기` : '-' }}</div>
-          <div class="amount">{{ formatAmount(item.finalAmount) }}원</div>
-          <div class="mono">{{ formatDate(item.paidAt) }}</div>
+          <div>{{ formatAmount(item.finalAmount) }}원</div>
+          <div>{{ item.paidAt ? formatDate(item.paidAt) : '-' }}</div>
           <div>
-            <span class="badge badge--paid">완납</span>
+            <span v-if="item.status === '완납' || item.status === '납부완료' || item.status === 'PAID'" class="badge badge--paid">완납</span>
+            <span v-else-if="item.status === '처리중' || item.status === 'PENDING'" class="badge badge--pending">처리중</span>
+            <span v-else class="badge badge--unpaid">미납</span>
           </div>
         </article>
       </template>
@@ -203,12 +210,6 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   
-  .input-label {
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: #333;
-  }
-  
   select {
     padding: 6px 10px;
     border: 1px solid #ddd;
@@ -218,8 +219,14 @@ onMounted(() => {
   }
 }
 
-:deep(.tbl-row) .mono   { font-family: monospace; color: var(--font-color-light); }
-:deep(.tbl-row) .amount { font-weight: 600; }
+// 🎯 5. [추가] 미납 row에 마우스를 올렸을 때 포인터 및 효과 주기
+.clickable-row {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  &:hover {
+    background-color: #f8fafc; /* 연한 회색으로 피드백 제공 */
+  }
+}
 
 .badge {
   display: inline-block;
@@ -229,4 +236,7 @@ onMounted(() => {
   font-weight: 600;
 }
 .badge--paid { background: #dcfce7; color: #15803d; }
+/* 🎯 6. [추가] 미납 및 처리중 배지 스타일 */
+.badge--pending { background: #fef3c7; color: #d97706; }
+.badge--unpaid { background: #ffe4e6; color: #e11d48; }
 </style>

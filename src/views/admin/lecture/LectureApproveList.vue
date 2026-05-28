@@ -218,14 +218,14 @@ watch(
 
     <DataTable
       :columns="['이수구분', '강의명', '교수명', '전공명', '학점', '강의시간', '강의실', '대상학년', '승인상태']"
-      :rows="filteredList"
+      :rows="state.list"
       gridCols="90px 3fr 90px 130px 60px 180px 130px 70px 80px"
       :isLoading="state.isLoading"
       emptyMessage="조회된 강의가 없습니다."
     >
       <article
         class="tbl-row"
-        v-for="item in filteredList"
+        v-for="item in state.list"
         :key="item.lectureId"
         @click="moveToDetail(item.lectureId)"
       >

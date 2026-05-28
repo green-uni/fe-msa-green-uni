@@ -183,8 +183,8 @@ onMounted(() => {
       >
         <template v-if="!isLoading && policies.length > 0">
           <article class="tbl-row no-hover" v-for="policy in policies" :key="policy.policyId">
-            <div class="mono font-bold">{{ policy.policyId }}</div>
-            <div class="college-code">{{ policy.collegeName }}</div>
+            <div>{{ policy.policyId }}</div>
+            <div>{{ policy.collegeName }}</div>
             <div>
               <div v-if="policy.isEditing" class="edit-form">
                 <input type="number" v-model.number="policy.editAmount" class="edit-input" />
@@ -194,8 +194,8 @@ onMounted(() => {
                 {{ formatPrice(policy.baseAmount) }}원
               </div>
             </div>
-            <div class="mono date-text">{{ formatDateTime(policy.updatedAt) }}</div>
-            <div class="mono updator-text">{{ policy.updatedBy || '-' }}</div>
+            <div>{{ formatDateTime(policy.updatedAt) }}</div>
+            <div>{{ policy.updatedBy || '-' }}</div>
             <div>
               <div v-if="policy.isEditing" class="btn-actions">
                 <button class="btn-save-sm" @click="savePolicy(policy)">저장</button>
@@ -223,15 +223,10 @@ onMounted(() => {
 .breadcrumb { font-size: var(--text-sm); color: var(--font-color-light); }
 .guide-text { text-align: center; padding: 60px 0; color: var(--font-color-light); font-size: var(--text-sm); }
 .count-summary { margin-bottom: 12px; font-size: var(--text-sm); color: #334155; font-weight: 500; }
-:deep(.tbl-row) .mono { font-family: monospace; color: var(--font-color-light); }
-.font-bold { font-weight: 600; color: #1e293b; }
-.college-code { font-weight: 500; color: #334155; }
 .price-display { font-weight: 600; color: #1e293b; text-align: right; padding-right: 24px; }
 .edit-form { display: flex; align-items: center; justify-content: flex-end; padding-right: 24px; gap: 4px; }
 .edit-input { width: 120px; padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: right; font-weight: 600; font-size: 13px; }
 .unit { font-size: 13px; color: #475569; }
-.date-text { color: var(--font-color-light); font-size: 13px; }
-.updator-text { color: #475569; }
 .btn-edit { padding: 4px 14px; border: 1px solid #cbd5e1; background: #fff; border-radius: 4px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
 .btn-edit:hover:not(:disabled) { background: #f1f5f9; }
 .btn-disabled { background: #f1f5f9 !important; color: #94a3b8 !important; border-color: #e2e8f0 !important; cursor: not-allowed !important; }

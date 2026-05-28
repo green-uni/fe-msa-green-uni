@@ -206,15 +206,15 @@ onMounted(fetchData)
           v-for="(item, idx) in filteredScholarships"
           :key="idx"
         >
-          <div class="mono">{{ item.parsedYear ? `${item.parsedYear}년` : '-' }}</div>
+          <div>{{ item.parsedYear ? `${item.parsedYear}년` : '-' }}</div>
           <div>{{ item.parsedSemester ? `${item.parsedSemester}학기` : '-' }}</div>
           <div>
             <span class="badge" :class="badgeClass(item.scholarshipType)">
               {{ item.scholarshipType }}
             </span>
           </div>
-          <div class="amount">{{ formatAmount(item.scholarshipAmount) }}원</div>
-          <div class="date">{{ formatDate(item.createdAt) }}</div>
+          <div>{{ formatAmount(item.scholarshipAmount) }}원</div>
+          <div>{{ formatDate(item.createdAt) }}</div>
         </article>
       </template>
     </DataTable>
@@ -258,10 +258,6 @@ onMounted(fetchData)
     font-size: 0.9rem;
   }
 }
-
-:deep(.tbl-row) .mono   { font-family: monospace; color: var(--font-color-light); }
-:deep(.tbl-row) .amount { font-weight: 600; }
-:deep(.tbl-row) .date   { color: var(--font-color-light); }
 
 .badge {
   display: inline-block;
