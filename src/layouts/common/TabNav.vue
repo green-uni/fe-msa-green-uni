@@ -44,28 +44,11 @@ const tabs = computed(() => {
 </template>
 
 <style scoped lang="scss">
-.tab-nav {
-  display: flex;
-  border-bottom: 2px solid var(--color-border);
-  background: #fff;
-}
-
-.tab {
-  flex: 1;
-  height: 48px;
-  font-size: 15px;
-  font-weight: 600;
-  background: none;
-  border: none;
-  border-bottom: 3px solid transparent;
-  margin-bottom: -2px;
-  cursor: pointer;
-  color: var(--color-text-muted);
-  transition: color 0.2s, border-color 0.2s;
-
-  &.active {
-    color: var(--color-primary);
-    border-bottom-color: var(--color-primary);
-  }
+.tab-nav { display: inline-flex; border: 1px solid $border-color;  border-radius: 7px; overflow: hidden;  margin-bottom: 12px;}
+.tab { 
+  padding: 10px 18px; font-weight: 500;background: #fff; border: none;  border-left: 1px solid $border-color;  cursor: pointer;  color: $font-color-light;  transition: color 0.15s, background 0.15s;  white-space: nowrap;
+  &:first-child { border-left: none; }
+  &:hover:not(.active) { background: $default-hover-bg-color; color: $font-color; }
+  &.active { background: $green-600; color: #fff; font-weight: 600; }
 }
 </style>

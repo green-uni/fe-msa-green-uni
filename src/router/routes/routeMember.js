@@ -45,13 +45,13 @@ export const memberRoutes = [
       auth: ['STUDENT', 'PROFESSOR'],
     },
   },
-  // ------------------ 상태 변경 신청 및 조회 ---------------
+  // ------------------ 학적 변경 신청 및 조회 ---------------
   {
     path: `${url}/status-request`,
     component: () => import('@/views/academic/member/StudentStatusRequestList.vue'),
     meta: {
       title: '학적 변동 신청',
-      groupTitle: '나의 정보 관리',
+      groupTitle: '정보 변동 신청',
       navSection: '나의 정보',
       auth: ['STUDENT'],
     },
@@ -61,7 +61,7 @@ export const memberRoutes = [
     component: () => import('@/views/academic/member/StudentStatusRequestCreate.vue'),
     meta: {
       title: '학적 변동 신청서 제출',
-      groupTitle: '나의 정보 관리',
+      groupTitle: '정보 변동 신청',
       navSection: '나의 정보',
       subTitle: '학적 변동 신청',
       showInNav: false,
@@ -75,7 +75,7 @@ export const memberRoutes = [
     component: () => import('@/views/academic/member/StudentMajorRequestList.vue'),
     meta: {
       title: '전공 변경 신청',
-      groupTitle: '나의 정보 관리',
+      groupTitle: '정보 변동 신청',
       navSection: '나의 정보',
       auth: ['STUDENT'],
     },
@@ -85,7 +85,7 @@ export const memberRoutes = [
     component: () => import('@/views/academic/member/StudentMajorRequestCreate.vue'),
     meta: {
       title: '전과/복수전공 신청서 제출',
-      groupTitle: '나의 정보 관리',
+      groupTitle: '정보 변동 신청',
       navSection: '나의 정보',
       subTitle: '전공 변경 신청',
       showInNav: false,
@@ -144,7 +144,7 @@ export const adminMemberRoutes = [
   // ------------------ 회원 조회 --------------------
   {
     path: `${url}/students`,
-    component: () => import('@/views/admin/member/AdminStudentList.vue'),
+    component: () => import('@/views/admin/member/list/AdminStudentList.vue'),
     meta: {
       title: '학생 목록 조회',
       navTitle: '회원 조회',
@@ -156,7 +156,7 @@ export const adminMemberRoutes = [
   },
   {
     path: `${url}/professors`,
-    component: () => import('@/views/admin/member/AdminProfessorList.vue'),
+    component: () => import('@/views/admin/member/list/AdminProfessorList.vue'),
     meta: {
       title: '교수 목록 조회',
       navTitle: '회원 조회',
@@ -170,7 +170,7 @@ export const adminMemberRoutes = [
   },
   {
     path: `${url}/admins`,
-    component: () => import('@/views/admin/member/AdminAdminList.vue'),
+    component: () => import('@/views/admin/member/list/AdminAdminList.vue'),
     meta: {
       title: '관리자 목록 조회',
       navTitle: '회원 조회',
@@ -236,21 +236,21 @@ export const adminMemberRoutes = [
   // ------------------ 학적 변경 신청 조회 처리 ---------------
   {
     path: `${url}/status-request`,
-    component: () => import('@/views/admin/member/AdminStatusRequestList.vue'),
+    component: () => import('@/views/admin/member/request/AdminStatusRequestList.vue'),
     meta: {
       title: '학적 변경 신청 조회',
-      groupTitle: '회원 정보 관리',
+      groupTitle: '정보 변경 처리',
       navSection: '회원 관리',
       auth: ['ADMIN'],
     },
   },
   {
     path: `${url}/status-request/:requestId`,
-    component: () => import('@/views/admin/member/AdminStatusRequestDetail.vue'),
+    component: () => import('@/views/admin/member/request/AdminStatusRequestDetail.vue'),
     meta: {
       title: '학적 변경 신청 상세 조회',
       subTitle: '학적 변경 신청 조회',
-      groupTitle: '회원 정보 관리',
+      groupTitle: '정보 변경 처리',
       navSection: '회원 관리',
       showInNav: false,
       activeMenu: `${url}/status-request`,
@@ -260,21 +260,21 @@ export const adminMemberRoutes = [
   // ------------------ 전공 변경 신청 조회 처리 ---------------
   {
     path: `${url}/major-request`,
-    component: () => import('@/views/admin/member/AdminMajorRequestList.vue'),
+    component: () => import('@/views/admin/member/request/AdminMajorRequestList.vue'),
     meta: {
       title: '전공 변경 신청 조회',
-      groupTitle: '회원 정보 관리',
+      groupTitle: '정보 변경 처리',
       navSection: '회원 관리',
       auth: ['ADMIN'],
     },
   },
   {
     path: `${url}/major-request/:requestId`,
-    component: () => import('@/views/admin/member/AdminMajorRequestDetail.vue'),
+    component: () => import('@/views/admin/member/request/AdminMajorRequestDetail.vue'),
     meta: {
       title: '전공 변경 신청 상세 조회',
       subTitle: '전공 변경 신청 조회',
-      groupTitle: '회원 정보 관리',
+      groupTitle: '정보 변경 처리',
       navSection: '회원 관리',
       showInNav: false,
       activeMenu:`${url}/major-request`,

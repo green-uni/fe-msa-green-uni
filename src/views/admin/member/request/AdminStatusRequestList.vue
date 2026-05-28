@@ -16,7 +16,7 @@ const router = useRouter();
 
 const {
   filter, searchQuery, searchInput, currentPage, pageSize, pageSizeOptions,
-  onFilterChange, onSearch, resetFilter, goToPage, onPageSizeChange, paginate,
+  hasFilter, onFilterChange, onSearch, resetFilter, goToPage, onPageSizeChange, paginate,
 } = useListFilter({ status: '' });
 
 const state = reactive({ list: [], isLoading: false });
@@ -60,8 +60,6 @@ const fetchOptions = async () => {
   }
 };
 
-const hasSearchFilter = computed(() => !!searchInput.value);
-
 const GRID_COLS = 'minmax(90px, 1fr) minmax(70px, 1fr) minmax(90px, 1fr) minmax(80px, 1fr) minmax(120px, 1fr) minmax(70px, 1fr) minmax(70px, 1fr)';
 
 const moveToDetail = (id) => router.push(`/admin/members/status-request/${id}`);
@@ -86,7 +84,7 @@ onMounted(() => {
     <LoadingSpinner v-if="state.isLoading" :overlay="true" size="md" />
     <TabNav />
 
-    <FilterBar v-model:searchQuery="searchQuery" :hasFilter="hasSearchFilter"
+    <FilterBar v-model:searchQuery="searchQuery" :hasFilter="hasFilter"
               @search="onSearch" @reset="resetFilter"
               :showCount="true" :count="filteredList.length"
               :showPageSize="true" v-model:pageSize="pageSize" :pageSizeOptions="pageSizeOptions"
@@ -111,7 +109,7 @@ onMounted(() => {
       emptyMessage="조회된 신청서가 없습니다."
     >
       <article class="tbl-row" v-for="item in pagedList" :key="item.requestId"
-               @click="moveToDetail(item.requestId)">
+              @click="moveToDetail(item.requestId)">
         <div>{{ item.memberCode }}</div>
         <div>{{ item.studentName }}</div>
         <div>{{ item.academicYear }}학년 {{ item.semester }}학기</div>
@@ -127,6 +125,6 @@ onMounted(() => {
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .tbl-row { cursor: pointer; }
 </style>

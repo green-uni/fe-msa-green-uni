@@ -1,7 +1,7 @@
 @use './variables' as *;
 
 .all-wrap {
-  display: grid; grid-template-columns: 220px 1fr; grid-template-rows: 40px 1fr; height: 100vh; width: 100vw; color: var(--font-color);
+  display: grid; grid-template-columns: 220px 1fr; grid-template-rows: 40px 1fr; height: 100vh; width: 100vw; color: $font-color; 
   .container{padding:50px 60px 120px; overflow-y: auto; min-width:960px; background: $default-bg;}
 }
 
@@ -14,15 +14,11 @@
 .filter-item {
   display: flex; gap: 10px;  align-items: center;
   .input-wrap{ grid-template-columns: min-content 1fr; gap: 8px;}
-  .input-content {
-    input:not([type='radio']){ padding: 8px 15px; cursor: pointer; outline: none;  min-width: 200px;}
-    select { padding: 7px 10px; }
-  }
 }
 
 /* [나중에 삭제] FilterBar :slotted()로 이동됨 */
 /******************* 필터 탭 버튼 **********************/
- .tab-area {
+.tab-area {
   display: flex;
   gap: 4px;
 }
@@ -43,13 +39,6 @@
 .tab-area .filter-btn:hover:not(.active) {
   background: #f5f5f5;
 }
-
-/************************* footer section ******************/
-
-.footer-section{display: flex;justify-content: space-between;align-items: center;margin-top: 15px;
-  .btn-group{display: flex;justify-content: space-between;align-items: center;gap:5px;}
-}
-
 
 /*************************** info design **********************/
 
@@ -80,8 +69,8 @@
 
 .info-wrap {
   dl {
-    display: flex; flex-direction: column; gap: 5px; font-size: 1.1em;
-    dt { color: var(--main-color); font-weight: bold; font-size: var(--text-sm); }
+    display: flex; flex-direction: column; gap: 5px;
+    dt { color:$font-color-bold; font-weight: bold; font-size: 0.85em; }
   }
   h3 { width: 100%; }
 }
@@ -100,7 +89,7 @@
   align-items: center;
   gap: 15px;
   padding: 10px 0;
-  &:not(:first-child) { border-top: 1px solid var(--line-color); }
+  &:not(:first-child) { border-top: 1px solid $border-color; }
   dt { text-align: right; min-width: 5em; white-space: nowrap; }
   dd { flex: 1; }
 }
@@ -109,16 +98,16 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  color: var(--main-color);
+  color: $green-600;
   text-decoration: underline;
   text-underline-offset: 3px;
-  font-size: var(--text-sm);
+  font-size: 0.85em;
   background: none;
   border: none;
   cursor: pointer;
   padding: 0;
 }
-.empty-text { color: #aaa; font-size: var(--text-sm); }
+.empty-text { color: #aaa; font-size: 0.85em; }
 
 .result-box {
   padding: 14px 16px;
@@ -126,7 +115,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: var(--text-sm);
+  font-size: 0.85em;
   &.rejected { background: #fff8f8; border: 1px solid #ffcdd2; }
   .result-title { font-weight: 700; color: #c62828; }
   .result-body { color: #444; line-height: 1.6; }
@@ -167,7 +156,7 @@
   border: 1px solid $border-color;
   border-radius: 6px;
   resize: vertical;
-  font-size: var(--text-sm);
+  font-size: 0.85em;
   font-family: inherit;
   line-height: 1.5;
 }
@@ -176,13 +165,6 @@
 /* 신청서 공통 */
 .reason-text { white-space: pre-wrap; line-height: 1.6; }
 .history-btn { width: 100%; margin-top: 4px; font-size: 0.85em; }
-
-/* 신청 목록 카드 */
-.card-left { display: flex; flex-direction: column; gap: 4px; }
-.request-title { font-weight: 600; font-size: 15px; }
-.card-sub { font-size: 13px; color: #777; }
-
-/*************************** table design **********************/
 
 
 /********************* form design *********************/
@@ -212,18 +194,12 @@
   position: relative;width: fit-content;
   &.two-input { display: grid; grid-template-columns: 1fr 1fr; gap: 5px;}
   &.three-input {  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
-  label {  display: inline-block;position: relative;display: flex;gap:10px; 
+  label { display: inline-block;position: relative;display: flex;gap:10px; 
     &:not(.radio-label) {  width: 100%; }
     &.w200 { width: 200px; }
   }
-  input:not([type='radio']), textarea {
-    border: 1px solid var(--table-border-color); border-radius: 4px; padding: 8px 10px; outline: none; transition: border-color 0.2s; width: 100%; background: #fcfcfc; color: var(--color-font);
-  }
-  select { padding: 8px 10px; width: 100%; }
-  input:focus, select.active, textarea:focus {
-    border-color: var(--main-color);
-    background: #fff;
-  }
+  input:not([type='radio']), textarea, select {width: 100% }
+
   textarea{min-height: 200px;}
   input:disabled {  background: #f5f5f5;  color: #ccc;}
 }
@@ -233,7 +209,7 @@
 .input-grid-full {  grid-column:1/-1;}
 
 .btn.in-input{
-  background-color: var(--main-color);color: #fff;width: 30px;height: 30px;position: absolute;top: 50%;transform: translateY(-50%);right: 3px;z-index: 1;padding: 0;
+  background-color: $green-600;color: #fff;width: 30px;height: 30px;position: absolute;top: 50%;transform: translateY(-50%);right: 3px;z-index: 1;padding: 0;
   &:hover{filter: brightness(1.1);}
 }
 
@@ -247,15 +223,15 @@
   &:before{content: '';   position: absolute;   left: 0;width: 12px;height: 12px;   border: 1px solid #999;   border-radius: 50%;  }
   &:after{content: ''; position: absolute; left: 2px;width: 8px;height:8px; border-radius: 50%; display: none;  }
   input[type='radio'] { display: none;}
-  &:has(input[type='radio']:checked):before{  border-color: var(--main-color); }
-  &:has(input[type='radio']:checked):after{  display: block;  background: var(--main-color); }
+  &:has(input[type='radio']:checked):before{  border-color: $green-600; }
+  &:has(input[type='radio']:checked):after{  display: block;  background: $green-600; }
 }
 
 .radio-tab { 
   justify-content: center;gap: 5px;
   .radio-label { 
-    background: #fafafa; color: #999; border: 1px solid var(--line-color); max-width: 200px;width: 100%; background: #fff;  border-radius: 50px; justify-content: center; gap: 5px; padding:8px 5px;
-    &:has(input[type='radio']:checked) { background: var(--main-color);  color: #fff;  border-color: var(--main-color);}
+    background: #fafafa; color: #999; border: 1px solid $border-color; max-width: 200px;width: 100%; background: #fff;  border-radius: 50px; justify-content: center; gap: 5px; padding:8px 5px;
+    &:has(input[type='radio']:checked) { background: $green-600;  color: #fff;  border-color: $green-600;}
     input[type='radio'] { display: none;}
     &:before, &:after {display: none;}
   }
@@ -279,10 +255,10 @@
 .badge-closed   { @extend %badge-base; background: #f0f0f0; color: #aaa; }
 
 /* 목록용 — 텍스트 색상만 */
-.text-pending  { color: #888; }
-.text-approved { color: $green-600; }
-.text-rejected { color: #d32f2f; }
-.text-closed   { color: #aaa; }
+.text-pending  { }
+.text-approved { color: $green-600!important;font-weight: bold; }
+.text-rejected { }
+.text-closed   { }
 
 .tbl-wrap .badge, .tbl-wrap .status-badge {
   position: absolute;
@@ -293,45 +269,17 @@
 
 
 /*************************** notice panel **********************/
-.notice-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding: 4px 0;
-
-  .notice-title {
-    font-weight: 700;
-    color: #222;
-  }
-
-  .notice-desc {
-    color: #666;
-    line-height: 1.7;
-  }
-
-  .notice-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: .9em;
-    th, td {
-      padding: 7px 8px;
-      border: 1px solid $border-color;
-      vertical-align: top;
-      line-height: 1.6;
-      color: #444;
+.notice-panel { 
+  display: flex; flex-direction: column; gap: 20px;
+  .notice-title { font-weight: 700; color:$font-color-bold;font-size: 1.1em; }
+  .notice-desc { line-height: 1.7; }
+  .notice-table {   width: 100%; border-collapse: collapse; font-size: 0.95em;
+    th, td {padding: 7px 8px;  border: 1px solid $border-color;   vertical-align: top;      line-height: 1.6;
     }
-    th {
-      background: #f7f7f7;
-      font-weight: 600;
-      color: #333;
-      text-align: center;
-      white-space: nowrap;
+    th { background: #f7f7f7; font-weight: 600; text-align: center;   white-space: nowrap;
     }
   }
-
-  .notice-caution {
-    color: #888;
-  }
+  .notice-caution { color: #888;}
 }
 
 /********************* button design *********************/
@@ -341,54 +289,30 @@
   gap: 12px;
 }
 .btn {
-  font-size: var(--text-sm);
-  padding: 8px 30px;
-  border-radius: 5px;
-  cursor: pointer;
-  border: 1px solid var(--line-color);
-  font-weight: 500;
-  transition: opacity 0.2s;
-  font-size: 1em;
+  font-size: 0.85em; padding: 8px 30px; border-radius: 5px; cursor: pointer; border: 1px solid $border-color; font-weight: 500; transition: opacity 0.2s; font-size: 1em;
+  &-submit { 
+    background: $green-600; color: #fff;
+    &:hover { box-shadow: 0 0 10px $green-600; border-color: $green-600;filter: brightness(1.1);}
+  &-default { background: #fafafa; color: #999;
+    &:hover { filter: brightness(0.9);  }
+  }
+  }
 }
-.btn.btn-submit {
-  background: var(--main-color);
-  color: #fff;
-}
-.btn.btn-submit:hover,
-.search-btn:hover {
-  box-shadow: 0 0 10px var(--main-color);
-  border-color: var(--main-color);
-  filter: brightness(1.1);
-}
-
-.btn.btn-default {
-  background: #fafafa;
-  color: #999;
-}
-
-.btn.btn-default:hover {
-  filter: brightness(0.9);
-}
-
-.btn.btn-line {
-  border: 1px solid var(--line-color);
-  background: #fff;
-  color: var(--font-color-light);
-}
+.btn.btn-line { border: 1px solid $border-color; background: #fff;  color: $font-color-light;}
 
 .btn.btn-line:hover {
-  border-color: var(--main-color);
-  color: var(--main-color);
+  border-color: $green-600;
+  color: $green-600;
 }
 
 .btn.btn-line.point {
-  border-color: var(--main-color);
+  border-color: $green-600;
   background: #fff;
-  color: var(--main-color);
+  color: $green-600;
 }
 
 .btn.btn-line.point:hover {
-  background-color: var(--main-color);
+  background-color: $green-600;
   color: #fff;
 }
 
@@ -406,7 +330,7 @@
   justify-content: center;
   padding: 5px;
   border-radius: 4px;
-  font-size: var(--text-sm);
+  font-size: 0.85em;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -417,13 +341,13 @@
 
 /* 신청 버튼 (초록색 계열) */
 .btn-register {
-  background-color: var(--main-color);
+  background-color: $green-600;
   color: #fff;
 }
 .btn-register:hover {
   background-color: var(--hover-bg-color);
-  color: var(--main-color);
-  border: 1px solid var(--main-color);
+  color: $green-600;
+  border: 1px solid $green-600;
 }
 .btn-register:active {
   transform: translateY(1px); /*클릭을 하면 버튼이 아래로 조금 내려가서 눌리는 것처럼 보이게*/

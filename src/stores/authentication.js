@@ -12,6 +12,8 @@ export const useAuthStore = defineStore(
     const name = ref('')
     const major = ref('')
     const status = ref('')
+    const academicYear = ref(0)
+    const semester = ref(0)
 
     // 로그인
     const logIn = (data) => {
@@ -27,6 +29,8 @@ export const useAuthStore = defineStore(
       status.value = data.status;
       if (data.role === 'STUDENT') {
         major.value = data.mainMajorName
+        academicYear.value = data.academicYear
+        semester.value = data.semester
       } else if (data.role === 'PROFESSOR') {
         major.value = data.majorName
       }
@@ -47,7 +51,7 @@ export const useAuthStore = defineStore(
       status.value = '';
     }
 
-    return { memberCode, role, name, major, deviceId, isFirstLogin, status, setProfile, setFirstLogin, isLogin, logIn, logOut }
+    return { memberCode, role, name, major, deviceId, isFirstLogin, status, academicYear, semester, setProfile, setFirstLogin, isLogin, logIn, logOut }
   },
   { persist: true },
 )

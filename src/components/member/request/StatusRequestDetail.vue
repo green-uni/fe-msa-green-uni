@@ -27,10 +27,13 @@ const isAbsence = computed(() => props.request.type === 'ABSENCE');
       <!-- 좌측: 신청자 정보 (관리자만) -->
       <div v-if="adminView" class="content-wrap info-wrap info-card d-flex direct-col g20" style="--flex-width: 260px;">
         <div class="info-title">
-          <h2>{{ request.studentName }}</h2>
-          <span class="info-detail">{{ request.memberCode }}</span>
+          <h2>{{ request.studentName }} : {{ STATUS_REQUEST_TYPE[request.type] ?? request.type }} 신청</h2>
         </div>
         <div>
+          <dl class="info-row">
+            <dt>이름</dt>
+            <dd>{{ request.studentName }} ({{ request.memberCode }})</dd>
+          </dl>
           <dl class="info-row">
             <dt>학과</dt>
             <dd>{{ request.currentMajorName ?? '-' }}<template v-if="request.currentMinorName"> / 부전공: {{ request.currentMinorName }}</template></dd>

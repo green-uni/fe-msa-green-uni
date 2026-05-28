@@ -16,7 +16,7 @@ const router = useRouter();
 
 const {
   filter, searchQuery, searchInput, currentPage, pageSize, pageSizeOptions,
-  onFilterChange, onSearch, resetFilter, goToPage, onPageSizeChange, paginate,
+  hasFilter, onFilterChange, onSearch, resetFilter, goToPage, onPageSizeChange, paginate,
 } = useListFilter({ status: '' })
 
 // ── 반응형 상태 ──────────────────────────────────
@@ -67,9 +67,6 @@ const fetchOptions = async () => {
   }
 };
 
-// status는 탭으로 관리되므로 검색어가 있을 때만 초기화 버튼 표시
-const hasSearchFilter = computed(() => !!searchInput.value)
-
 // ── 이벤트 핸들러 ─────────────────────────────────
 const GRID_COLS = '100px 90px 150px 90px 1fr 110px 110px 80px'
 
@@ -95,8 +92,11 @@ onMounted(() => {
     <LoadingSpinner v-if="state.isLoading" :overlay="true" size="md" />
     <TabNav />
 
-    <FilterBar v-model:searchQuery="searchQuery" :hasFilter="hasSearchFilter"
-              @search="onSearch" @reset="resetFilter">
+    <FilterBar v-model:searchQuery="searchQuery" :hasFilter="hasFilter"
+              @search="onSearch" @reset="resetFilter"
+              :showCount="true" :count="filteredList.length"
+              :showPageSize="true" v-model:pageSize="pageSize" :pageSizeOptions="pageSizeOptions"
+              @pageSizeChange="onPageSizeChange">
       <div class="tab-area">
         <button
           v-for="tab in statusTabs"
@@ -108,13 +108,6 @@ onMounted(() => {
         </button>
       </div>
     </FilterBar>
-
-    <div class="data-header">
-      전체: {{ filteredList.length }}건
-      <select v-model="pageSize" @change="onPageSizeChange">
-        <option v-for="n in pageSizeOptions" :key="n" :value="n">{{ n }}개</option>
-      </select>
-    </div>
 
     <DataTable
       :columns="['학번', '이름', '현재 학과', '신청 유형', '신청 학과', '신청일자', '처리자', '상태']"
@@ -141,6 +134,6 @@ onMounted(() => {
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .tbl-row { cursor: pointer; }
 </style>

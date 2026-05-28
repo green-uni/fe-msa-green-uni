@@ -31,72 +31,18 @@ defineProps({
 
 <style scoped lang="scss">
 .tbl-wrap { width: 100%; display: grid; }
-
-/* 헤더는 DataTable 소속이므로 그대로 둠 */
 .tbl-head {
-  display: grid; 
-  grid-template-columns: var(--grid-cols);
-  align-items: center; 
-  text-align: center;
-  font-size: var(--text-sm); 
-  font-weight: bold; 
-  background: #f5f5f5;
-  border-radius: 5px; 
-  margin-bottom: 5px; 
-  border: 1px solid var(--table-border-color);
-  div { padding: 10px; }
+  display: grid; grid-template-columns: var(--grid-cols); align-items: center; text-align: center; font-size: .9em;  font-weight: bold; background: #f5f5f5; border-radius: 5px;  margin-bottom: 5px; border: 1px solid $bold-border-color;
+  div { padding:7px; }
 }
-
-/* 슬롯으로 들어오는 .tbl-row에 스타일 강제 적용 */
 :deep(.tbl-row) {
-  display: grid; 
-  grid-template-columns: var(--grid-cols);
-  align-items: center; 
-  text-align: center;
-  background: #fff; 
-  border: 1px solid var(--table-border-color); 
-  border-top-width: 0;
-
+  display: grid; grid-template-columns: var(--grid-cols); align-items: center; text-align: center;
+  background: #fff; border: 1px solid $border-color; border-top-width: 0;
   &:nth-of-type(2) { border-radius: 5px 5px 0 0; border-top-width: 1px; }
   &:last-of-type { border-radius: 0 0 5px 5px; }
-  &:not(.no-hover):hover { background: var(--hover-bg-color); }
-
-  div { 
-    padding: 12px 10px; 
-    line-height: 1.2; 
-    position: relative; 
-  }
+  &:not(.no-hover):hover { background: $hover-bg-color; }
+  div { padding: 10px; line-height: 1.2; position: relative; }
 }
-
-/* 수강신청 페이지 버튼 등이 잘 보일 수 있도록 flex 중앙 정렬 옵션 추가 가능 */
-:deep(.tbl-row div) {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* 상태 배지 및 기타 공통 스타일도 포함 */
-:deep(.status-badge) {
-  position: absolute; 
-  top: 50%; 
-  left: 50%; 
-  transform: translate(-50%, -50%);
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-}
-
-:deep(.badge-approved) { background: #eafdf6; color: #3e9e7e; }
-:deep(.badge-closed) { background: #f5f5f5; color: #aaa; }
-:deep(.row-disabled) div { color: #ccc; }
-
-.no-data {
-  grid-column: 1 / -1; 
-  text-align: center; 
-  color: #aaa; 
-  padding: 40px 0;
-  background: #fff; 
-  border: 1px solid var(--table-border-color); 
-  border-radius: 5px;
-}
+:deep(.tbl-row div) { display: flex; align-items: center; justify-content: center;}
+.no-data { grid-column: 1 / -1;  text-align: center; color: #aaa; padding: 40px 0; background: #fff; border: 1px solid $border-color; border-radius: 5px;}
 </style>

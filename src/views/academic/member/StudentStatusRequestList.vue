@@ -3,7 +3,7 @@ import { reactive, ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import MemberService from '@/services/memberService';
 import CardListDetail from '@/components/common/CardListDetail.vue';
-import StatusRequestDetail from '@/components/member/StatusRequestDetail.vue';
+import StatusRequestDetail from '@/components/member/request/StatusRequestDetail.vue';
 import FilterBar from '@/components/common/FilterBar.vue';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import { useModalStore } from '@/stores/modal';
@@ -116,23 +116,17 @@ onMounted(fetchList);
             </div>
         </FilterBar>
 
-        <CardListDetail
-            :items="filteredList"
-            :is-loading="state.isLoading"
-            item-key="requestId"
-            :selected-key="selectedId"
-            empty-message="신청 내역이 없습니다."
-            @select="selectItem"
-        >
+        <CardListDetail :items="filteredList" :is-loading="state.isLoading" item-key="requestId"
+            :selected-key="selectedId" empty-message="신청 내역이 없습니다." @select="selectItem">
             <template #card="{ item }">
                 <div class="card-left">
-                    <span class="card-sub">{{ formatDateTime(item.createdAt) }}</span>
-                    <span class="request-title">
-                        <small>[{{ STATUS_REQUEST_TYPE[item.type] ?? item.type }}]</small>
-                        {{ item.academicYear }}학년 {{ item.semester }}학기
-                    </span>
+                    <p class="card-title">{{ STATUS_REQUEST_TYPE[item.type] ?? item.type }} 신청 </p>
+                    <p class="card-detail">
+                        <span class="card-date">신청일자: {{ formatDateTime(item.createdAt) }}</span>
+                        <span class="card-academic">학년/학기: {{ item.academicYear }}학년 {{ item.semester }}학기</span>
+                    </p>
                 </div>
-                <span :class="TEXT_CLASS[item.status]">
+                <span class="badge" :class="TEXT_CLASS[item.status]">
                     {{ APPROVAL_STATUS[item.status] ?? item.status }}
                 </span>
             </template>
@@ -145,23 +139,13 @@ onMounted(fetchList);
 
             <template #detail>
                 <LoadingSpinner v-if="detail.isLoading" :overlay="true" size="sm" />
-                <StatusRequestDetail
-                    v-if="detail.data && !detail.isLoading"
-                    :request="detail.data"
-                    :onDownload="downloadFile"
-                    :adminView="false"
-                >
+                <StatusRequestDetail v-if="detail.data && !detail.isLoading" :request="detail.data"
+                    :onDownload="downloadFile" :adminView="false">
                     <template #actions>
-                        <button
-                            v-if="detail.data.status === 'PENDING'"
-                            class="btn btn-register-del"
-                            @click="cancelRequest"
-                        >신청 취소</button>
-                        <button
-                            v-if="detail.data.status === 'REJECTED' && !hasPending"
-                            class="btn btn-submit"
-                            @click="goToNew"
-                        >재신청</button>
+                        <button v-if="detail.data.status === 'PENDING'" class="btn btn-register-del"
+                            @click="cancelRequest">신청 취소</button>
+                        <button v-if="detail.data.status === 'REJECTED' && !hasPending" class="btn btn-submit"
+                            @click="goToNew">재신청</button>
                     </template>
                 </StatusRequestDetail>
             </template>
@@ -202,4 +186,3 @@ onMounted(fetchList);
         </CardListDetail>
     </div>
 </template>
-

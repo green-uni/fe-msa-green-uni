@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router';
 import MemberService from '@/services/memberService';
 import ScheduleService from '@/services/scheduleService';
 import CardListDetail from '@/components/common/CardListDetail.vue';
-import MajorRequestDetail from '@/components/member/MajorRequestDetail.vue';
+import MajorRequestDetail from '@/components/member/request/MajorRequestDetail.vue';
 import FilterBar from '@/components/common/FilterBar.vue';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import { useModalStore } from '@/stores/modal';
@@ -123,8 +123,8 @@ onMounted(() => Promise.all([fetchPeriodStatus(), fetchList()]));
     <div style="position: relative;">
         <LoadingSpinner v-if="state.isLoading" :overlay="true" size="md" />
 
-        <FilterBar v-model:searchQuery="searchQuery" :hasFilter="hasSearchFilter"
-            placeholder="신청 학과 검색" @search="onSearch" @reset="resetFilter">
+        <FilterBar v-model:searchQuery="searchQuery" :hasFilter="hasSearchFilter" placeholder="신청 학과 검색"
+            @search="onSearch" @reset="resetFilter">
             <div class="filter-item">
                 <div class="input-label">신청 연도</div>
                 <div class="input-content">
@@ -136,14 +136,8 @@ onMounted(() => Promise.all([fetchPeriodStatus(), fetchList()]));
             </div>
         </FilterBar>
 
-        <CardListDetail
-            :items="filteredList"
-            :is-loading="state.isLoading"
-            item-key="requestId"
-            :selected-key="selectedId"
-            empty-message="신청 내역이 없습니다."
-            @select="selectItem"
-        >
+        <CardListDetail :items="filteredList" :is-loading="state.isLoading" item-key="requestId"
+            :selected-key="selectedId" empty-message="신청 내역이 없습니다." @select="selectItem">
             <template #card="{ item }">
                 <div class="card-left">
                     <span class="card-sub">{{ formatDateTime(item.createdAt) }}</span>
@@ -165,23 +159,13 @@ onMounted(() => Promise.all([fetchPeriodStatus(), fetchList()]));
 
             <template #detail>
                 <LoadingSpinner v-if="detail.isLoading" :overlay="true" size="sm" />
-                <MajorRequestDetail
-                    v-if="detail.data && !detail.isLoading"
-                    :request="detail.data"
-                    :onDownload="downloadFile"
-                    :adminView="false"
-                >
+                <MajorRequestDetail v-if="detail.data && !detail.isLoading" :request="detail.data"
+                    :onDownload="downloadFile" :adminView="false">
                     <template #actions>
-                        <button
-                            v-if="detail.data.status === 'PENDING'"
-                            class="btn btn-register-del"
-                            @click="cancelRequest"
-                        >신청 취소</button>
-                        <button
-                            v-if="detail.data.status === 'REJECTED' && isPeriod && !hasPending"
-                            class="btn btn-submit"
-                            @click="goToNew"
-                        >재신청</button>
+                        <button v-if="detail.data.status === 'PENDING'" class="btn btn-register-del"
+                            @click="cancelRequest">신청 취소</button>
+                        <button v-if="detail.data.status === 'REJECTED' && isPeriod && !hasPending"
+                            class="btn btn-submit" @click="goToNew">재신청</button>
                     </template>
                 </MajorRequestDetail>
             </template>
@@ -218,4 +202,3 @@ onMounted(() => Promise.all([fetchPeriodStatus(), fetchList()]));
         </CardListDetail>
     </div>
 </template>
-
