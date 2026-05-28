@@ -219,8 +219,8 @@ class MemberService {
   }
 
   // 전공변경 신청서 전체 조회
-  async findAllMajorRequests() {
-    const res = await axios.get(`${this.#adminPath}/requests/major`)
+  async findAllMajorRequests(params = {}) {
+    const res = await axios.get(`${this.#adminPath}/requests/major`, { params })
     return res.data;
   }
   // 전공변경 신청서 단건 조회
@@ -257,9 +257,9 @@ class MemberService {
   // 대시보드 - 전공변경 신청 대기 목록 (최대 3건)
   async getDashboardMajorRequests() {
     const res = await axios.get(`${this.#adminPath}/requests/major`, {
-      params: { status: 'PENDING', size: 3 }
+      params: { status: 'PENDING', size: 3, page: 1 }
     })
-    return res.data
+    return { data: res.data.content ?? [] }
   }
 
   // 대시보드 - 학생 본인 신청서 목록 (전공+학적 통합, 최대 3건)
