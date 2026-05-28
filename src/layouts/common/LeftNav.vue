@@ -133,6 +133,7 @@ watch(() => route.path, () => {
 
 <template>
   <div class="left-nav" :class="isAdmin ? 'admin' : 'academic'">
+    <section class="nav">
 
     <div v-if="!isMobile" class="uni-title" @click="router.push(isAdmin? '/admin/members/dashboard' : '/members/dashboard')">
       <img :src="logo" />
@@ -150,7 +151,10 @@ watch(() => route.path, () => {
       <div class="login-info-detail">
         <p class="member-code">{{ authStore.memberCode }}</p>
         <p class="major" v-if="authStore.major">{{ authStore.major }}</p>
-        <p class="status">{{ STATUS_LABEL[role][authStore.status] }}</p>
+        <p class="student-info" v-if="authStore.role == 'STUDENT'">{{ authStore.academicYear }}학년 {{ authStore.semester }}학기</p>
+        <p class="status">
+          {{ STATUS_LABEL[role][authStore.status] }}
+        </p>
       </div>
 
       <div v-if="!isMobile" class="bell-wrap">
@@ -164,31 +168,30 @@ watch(() => route.path, () => {
       </div>
     </div>
 
-    <section class="logout">
-      <a @click.prevent="doLogOut" class="pointer"><font-awesome-icon icon="fa-solid fa-right-from-bracket" /> 로그아웃</a>
-    </section>
-
     <nav v-if="!isMobile">
       <div v-for="section in menus" :key="section.sectionTitle" class="nav-section">
         <p class="section-label">{{ section.sectionTitle }}</p>
 
         <div v-for="group in section.groups" :key="group.title" class="group">
 
-          <!-- 단일 메뉴: accordion 없이 router-link 직접 렌더 -->
+          <!-- 단일 메뉴 -->
           <router-link
             v-if="group.isSingle"
             :to="group.path"
             class="group-title single"
             :class="{ active: group.path === activePath }">
-            <span>{{ group.title }}</span>
+            <span><i></i>{{ group.title }}</span>
           </router-link>
 
-          <!-- 복수 메뉴: accordion -->
+          <!-- 복수 메뉴 -->
           <template v-else>
             <div class="group-title d-flex jc-space-b ai-center"
               @click="toggleMenu(group)"
-              :class="{ active: group.isOpen }">
-              <span>{{ group.title }}</span>
+              :class="{
+                'is-open': group.isOpen,
+                'has-active': group.subMenus.some(s => s.path === activePath)
+              }">
+              <span><i></i>{{ group.title }}</span>
               <span class="arrow">
                 <font-awesome-icon :icon="group.isOpen ? ['fas', 'angle-up'] : ['fas', 'angle-down']" />
               </span>
@@ -211,92 +214,147 @@ watch(() => route.path, () => {
         </div>
       </div>
     </nav>
+  </section>
+
+  <section class="logout">
+    <a @click.prevent="doLogOut" class="pointer"><font-awesome-icon icon="fa-solid fa-right-from-bracket" /> 로그아웃</a>
+  </section>
   </div>
 </template>
 
 <style scoped lang="scss">
+// ── 공통 레이아웃 ────────────────────────────────────────────
 .left-nav {
-  grid-row: 1 / -1; padding: 20px 15px; position: relative;
+  grid-row: 1 / -1; padding: 20px 15px; position: relative; display: flex; flex-direction: column; justify-content: space-between;
   &.academic { background: #fff; border-right: 1px solid $border-color; }
 }
-.uni-title{
-  display: flex; align-items:center; cursor: pointer; gap:7px; margin-bottom:20px;
-  img{height: 45px;}
-  &-name{line-height: 1.2;
-    h1{font-size: 1.5em;font-weight: bold;}
-    span{opacity: 0.8;font-size: 0.95em;margin-left: 2px;}
+.nav{display: flex; flex-direction: column; gap: 12px;}
+
+// ── 로고 영역 ──────────────────────────────────────────────
+.uni-title {
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  img { height: 42px; }
+  &-name { line-height: 1.25;
+    h1 { font-size: 1.4em; font-weight: 700; }
+    span { font-size: 0.85em; opacity: 0.6; }
   }
 }
+
+// ── 로그인 정보 카드 ────────────────────────────────────────
 .login-info {
-  padding: 15px; border-radius: 10px; background: linear-gradient(140deg, $green-600 0%, $green-700 100%); color: #fff; position: relative;
-  .name { font-weight: 700;font-size: 1.4em;
-    .role{font-size:.8em;opacity: .8;font-weight: normal; }
+  padding: 14px 15px; border-radius: 8px; background: linear-gradient(140deg, $green-600 0%, $green-700 100%); color: #fff; position: relative;
+
+  .name { font-size: 1.3em; font-weight: 700; line-height: 1.3;
+    .role { font-size: 0.78em; opacity: 0.75; font-weight: 400; margin-left: 4px; }
   }
-  &-detail { display: flex; font-size: 0.9em; gap: 4px; flex-wrap: wrap;
-    .member-code { width: 100%;   font-size: .9em; opacity: 0.85; margin-top: 2px;  font-variant-numeric: tabular-nums;    }
-    .major {opacity: 0.8;}
-    .status {opacity: 1;font-weight: 500;}
+  &-detail {
+    display: flex; flex-wrap: wrap; gap: 3px 6px; margin-top: 5px; font-size: 0.9em;
+    .member-code { width: 100%; opacity: 0.75; font-variant-numeric: tabular-nums; }
+    .major { opacity: 0.75; }
+    .student-info{opacity: 0.9;}
+    .status { font-weight: 600; opacity: 0.95; }
   }
 }
-.bell-wrap { position: absolute;top: 12px;right: 12px;
-  .bell-btn { position: relative;  background: none; border: none; font-size: 1.1rem; cursor: pointer; opacity: .6;  padding: 4px;color: #fff; border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 5px;
+.bell-wrap {
+  position: absolute; top: 12px; right: 12px;
+  .bell-btn {
+    position: relative; background: none; border: 1px solid rgba(#fff, 0.4); border-radius: 6px; padding: 4px; color: #fff; font-size: 1rem; cursor: pointer; opacity: 0.8; transition: opacity 0.15s;
     &:hover { opacity: 1; }
   }
-  .badge { position: absolute; top: -4px; right: -6px; background: #e74c3c; color: #fff; font-size: .65rem;  font-weight: 700; border-radius: 10px; padding: 1px 5px;  line-height: 1.4;  pointer-events: none
+  .badge {
+    position: absolute; top: -5px; right: -7px; background: #e74c3c; color: #fff; font-size: 0.6rem; font-weight: 700;  border-radius: 10px; padding: 1px 5px; line-height: 1.5; pointer-events: none;
   }
 }
+
+// ── 로그아웃 ──────────────────────────────────────────────
+.logout {
+  text-align: center; font-size: 0.9em; opacity: 0.7; font-weight: 500; transition: opacity 0.15s;
+  a { display: block; padding: 6px; border: 1px solid #ddd; border-radius: 6px; text-decoration: none; color: inherit; }
+  &:hover { opacity: 1; background: rgba(#000, 0.04);}
+}
+
+// ── 네비게이션 ────────────────────────────────────────────
 nav {
-  display: flex; flex-direction: column; gap: 2px;
+  display: flex; flex-direction: column; gap: 14px;padding: 0 3px;
 
-  .nav-section {
-    display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px;
-  }
+  .nav-section { display: flex; flex-direction: column; gap: 1px; }
   .section-label {
-    font-size: 0.75em; font-weight: 600; opacity: 0.45; text-transform: uppercase;
-    letter-spacing: 0.05em; padding: 4px 10px 2px; margin: 0;
+    margin: 0; padding: 2px 10px 5px; font-size: 0.8em; font-weight: 700; letter-spacing: 0.05em;    text-transform: uppercase; opacity: 0.28; color: inherit;
   }
-  .group { display: flex; flex-direction: column; gap: 2px; }
+
+  .group { display: flex; flex-direction: column; }
   .group-title {
-    padding: 5px 7px 5px 10px; cursor: pointer; height: 40px; font-weight: 500; border-radius: 5px;
-    text-decoration: none; color: inherit; display: flex; align-items: center;
-    &:hover { background: $green-50; }
-    &.active {
-      background-color: $green-500; font-weight: 500;
-      span { color: #fff; opacity: 1; }
+    display: flex; align-items: center; height: 38px; padding: 0 10px; font-weight: 500; line-height: 1; text-decoration: none; color: inherit; border-radius: 5px; cursor: pointer; transition: background 0.12s, color 0.12s;
+
+    > span:first-child { display: inline-flex; align-items: center; flex: 1; }
+    i {
+      display: inline-block; flex-shrink: 0; width: 4px; height: 4px; border-radius: 50%; background: $green-600; opacity: 0; margin-right: 0;   transition: opacity 0.15s, margin-right 0.15s;
     }
-    // 단일 메뉴 active (router-link)
-    &.single.active { background-color: $green-500;
-      span { color: #fff; }
+    svg { font-size: 0.75em; opacity: 0.3; }
+
+    &:hover { background: rgba(#000, 0.04); }
+
+    &.single.active {
+      background: rgba(#000, 0.04);
+      color: $green-600; font-weight: 600;
+      i { opacity: 1; margin-right: 8px; }
     }
-    svg { font-size: .8em; }
+
+    &.is-open {
+      background: rgba(#000, 0.04);
+      border-radius: 8px 8px 0 0;
+      svg { opacity: 0.55; }
+    }
+
+    &.has-active {
+      color: $green-600; font-weight: 600;
+      i { opacity: 1; margin-right: 8px; }
+    }
+
+    &.is-open.has-active {
+      background: rgba(#000, 0.04);
+      border-radius: 8px 8px 0 0;
+    }
   }
-  .sub-menu { border-radius: 5px; overflow: hidden; background: $default-bg;
-    a { text-decoration: none; display: flex; justify-content: space-between; padding: 10px; color: $font-color-light;
-      &:hover { color: $font-color }
-      &.active { background-color: var(--hover-bg-color); color: var(--main-color); font-weight: bold; }
-      &.plan { opacity: .6; }
+
+  // 서브메뉴
+  .sub-menu {
+    background: rgba(#000, 0.03); border-radius: 0 0 8px 8px; overflow: hidden; margin-bottom: 2px;
+    a {
+      display: flex; justify-content: space-between; align-items: center; padding: 8px 12px 8px 20px;   font-size: 0.95em; text-decoration: none; color: $font-color-light; transition: color 0.12s, background 0.12s, border-color 0.12s;
+      &:hover { color: $font-color; background: rgba(#000, 0.03); }
+      &.active {
+        color: $green-600; font-weight: 600; background: rgba(#000, 0.03);
+      }
+      &.plan { opacity: 0.4; }
     }
   }
-}
-.logout{ margin:10px 0; text-align: center;font-size: .9em;opacity: .5;font-weight: 500;
-  a{ border: 1px solid #ccc;display: block;padding: 5px;border-radius: 5px;}
-  &:hover{opacity: 1;}
 }
 
-// ---------- 관리자 페이지 디자인  ----------
-.left-nav.admin {background: $admin-default-bg;color: $admin-font-color;
-  .uni-title{color: #fff;}
-  .login-info{border: 1px solid $green-700;background: linear-gradient(140deg, $admin-default-bg 0%, $admin-default-bg2 100%);color: $admin-font-color;
-    .name{color: #fff;}
+// ── 관리자 다크 테마 ──────────────────────────────────────
+.left-nav.admin {
+  background: $admin-default-bg; color: $admin-font-color;
+  .uni-title { color: #fff; }
+  .login-info {
+    background: linear-gradient(140deg, $admin-default-bg 0%, $admin-default-bg2 100%); border: 1px solid $green-700; color: $admin-font-color;
+    .name { color: #fff; }
   }
-  .group-title{
-    &.active{background:$green-700;}
-  }
-  .sub-menu{
-    background:none;
-    a{ opacity: 0.5;
-      &:hover { color:#fff ;opacity: 1;}
-      &.active{background: rgba(0,0,0,0.2);opacity: 1;}
+  nav {
+    .group-title {
+      i { background: $green-400; }
+      &:hover { background: rgba(#fff, 0.07); }
+      &.single.active { color: $green-400; font-weight: 600; }
+      &.is-open { background: rgba(#fff, 0.07); border-radius: 8px 8px 0 0; }
+      &.has-active { color: $green-400; font-weight: 600; }
+      &.is-open.has-active { background: rgba(#fff, 0.07); }
+    }
+    .sub-menu {
+      background: rgba(#000, 0.2);
+      a {
+        color: rgba(#fff, 0.45);
+        &:hover { color: rgba(#fff, 0.85); background: rgba(#fff, 0.05); }
+        &.active { color: $green-400; border-left-color: $green-400; font-weight: 600; }
+      }
     }
   }
 }
