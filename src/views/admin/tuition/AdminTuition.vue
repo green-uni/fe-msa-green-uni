@@ -209,7 +209,8 @@ onMounted(() => {
         <main class="modal-body">
           <section class="summary-section">
             <h4>발송 대상 요약</h4>
-            <table class="summary-table">
+          <table class="summary-table">
+            <tbody> 
               <tr>
                 <th>미납 학생 수</th>
                 <td class="count-highlight">{{ totalElements }}명</td>
@@ -218,10 +219,7 @@ onMounted(() => {
                 <th>대상 학기</th>
                 <td>{{ filter.year }}년 {{ filter.semester }}학기</td>
               </tr>
-              <tr>
-                <th>납부기한</th>
-                <td>{{ filteredStudents[0] ? formatDate(filteredStudents[0].deadline) : '지정됨' }}</td>
-              </tr>
+            </tbody>
             </table>
           </section>
 

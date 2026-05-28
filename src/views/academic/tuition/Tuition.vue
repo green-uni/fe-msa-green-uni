@@ -1,9 +1,10 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import tuitionService from '@/services/tuitionService';
 import axios from '@/services/httpRequester'; // 서비스 레이어 공통 인스턴스 사용
 
+const route = useRoute();
 const router = useRouter();
 const isLoading = ref(true);
 const tuitionDetail = ref(null);
@@ -19,7 +20,6 @@ const fetchTuitionDetail = async () => {
 
     // 🎯 1. [순서 보정 및 방어] 백엔드 경로 충돌을 피하기 위해 axios 공통 인스턴스로 
     // 패스파라미터가 아닌 쿼리스트링 혹은 고유 주소 형태로 안전하게 호출 시도
-    // Tuition.vue 약 24번째 줄 주변
     let deadlineDate = '-';
     try {
       const periodResponse = await tuitionService.getStudentPaymentPeriod(); 
@@ -38,11 +38,15 @@ const fetchTuitionDetail = async () => {
 
     // 데이터가 존재한다면 납부 상태 화면 활성화
     if (listData && listData.length > 0) {
-      isPeriod.value = true; // 화면 차단 해제
+      isPeriod.value = true;
 
-      // 가장 최신 등록금 고지서 ID 추출
-      const targetTuition = listData[0]; 
+      const targetTuition = listData[0];
       currentTuitionId.value = targetTuition.tuitionId;
+
+      // ✅ URL에 실제 tuitionId가 없으면 교체 (`:tuitionId` 문자열 그대로인 경우 방지)
+      if (route.params.tuitionId !== String(currentTuitionId.value)) {
+        router.replace(`/tuitions/${currentTuitionId.value}`);
+      }
       
       // 🎯 3. 확실하게 걸러진 '숫자형 고지서 ID'만 패스 파라미터로 상세 API 호출 (payment-period 문자열 유입 차단)
       const detailResponse = await tuitionService.getMyTuitionDetail(currentTuitionId.value);

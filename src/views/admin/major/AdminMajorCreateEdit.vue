@@ -67,9 +67,10 @@ function loadTemp() {
   if (saved._profKeyword) professorKeyword.value = saved._profKeyword
 }
 
-function validate() {
-  if (!form.name.trim())      return '학과명을 입력해주세요.'
-  if (!form.collegeId)        return '소속대학을 선택해주세요.'
+// 1. validate 함수를 async로 변경하고 학생 존재 여부 체크 추가
+async function validate() {
+  if (!form.name.trim())       return '학과명을 입력해주세요.'
+  if (!form.collegeId)         return '소속대학을 선택해주세요.'
   if (!form.courseDuration || form.courseDuration < 4) {
     return '수업연한을 4년 이상으로 입력해주세요.'
   }
@@ -79,15 +80,34 @@ function validate() {
     return '입학정원을 30명 이상으로 입력해주세요.'
   }
   if (!form.foundedDate)      return '개설일을 선택해주세요.'
-  if (form.active === '폐지' && !form.closedDate) {
-    return '학과 폐지 시 폐지일을 선택해주세요.'
+  
+  // [추가 및 변경] 학과 폐지 선택 시 검증 로직
+  if (form.active === '폐지') {
+    if (!form.closedDate) {
+      return '학과 폐지 시 폐지일을 선택해주세요.'
+    }
+    // 수정 모드일 때만 재학생 유무 판단 API 호출
+    if (isEdit.value) {
+      try {
+        // 백엔드에 학생 존재 여부를 확인하는 API 요청 (상황에 맞는 endpoint 호출 필요)
+        const res = await majorService.checkStudentsInMajor(majorId.value)
+        if (res.data?.data?.hasStudents || res.data?.data === true) {
+          return '학과 내에 재학 중인 학생(주전공/부전공)이 있어 학과를 폐지할 수 없습니다.'
+        }
+      } catch (e) {
+        console.error(e)
+        return '학생 정보 조회 중 오류가 발생했습니다.'
+      }
+    }
   }
-  if (!form.tel.trim())       return '전화번호를 입력해주세요.'
+  
+  if (!form.tel.trim())        return '전화번호를 입력해주세요.'
   return null
-} 
+}
 
+// 2. handleSubmit 내 validate() 호출부 await 추가
 async function handleSubmit() {
-  const err = validate()
+  const err = await validate() // ← async 함수가 되었으므로 await 추가
   if (err) { await modal.showAlert(err, 'warning'); return }
 
   const payload = { ...form, capacity: Number(form.capacity) }
@@ -181,6 +201,20 @@ watch(
     }
   }
 )
+
+watch(() => form.active, async (newVal) => {
+  if (isEdit.value && newVal === '폐지') {
+    try {
+      const res = await majorService.checkStudentsInMajor(majorId.value)
+      if (res.data?.data?.hasStudents || res.data?.data === true) {
+        await modal.showAlert('해당 학과에 소속된 재학생이 존재하여 폐지할 수 없습니다.', 'warning')
+        form.active = '정상' // 다시 '정상'으로 복구
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }
+})
 </script>
 
 <template>
