@@ -243,9 +243,7 @@ onMounted(async () => {
 
                 <div>{{ student.total_score }}</div>
                 <div>
-                    <span :class="['grade-badge', gradeClass(student.grade_letter)]">
-                        {{ student.grade_letter || '-' }}
-                    </span>
+                    <span>{{ student.grade_letter || '-' }}</span>
                 </div>
             </article>
         </DataTable>
@@ -290,23 +288,6 @@ onMounted(async () => {
 
 /* 출석 점수 — 수정 불가 표시 */
 .attend-score { color: var(--font-color-light); font-size: 14px; }
-
-/* 등급 뱃지 */
-.grade-badge {
-    display: inline-block;
-    min-width: 32px; height: 27px; line-height: 27px;
-    border-radius: 14px; font-size: 13px; font-weight: 700;
-    text-align: center; padding: 0 6px;
-}
-.grade-aplus  { background: #c8e6c9; color: #1b5e20; }
-.grade-a      { background: #e8f5e9; color: #2e7d32; }
-.grade-bplus  { background: #bbdefb; color: #0d47a1; }
-.grade-b      { background: #e3f2fd; color: #1565c0; }
-.grade-cplus  { background: #fff9c4; color: #e65100; }
-.grade-c      { background: #fff8e1; color: #f57f17; }
-.grade-dplus  { background: #ffd0d0; color: #b71c1c; }
-.grade-d      { background: #fce4ec; color: #c62828; }
-.grade-f      { background: #eeeeee; color: #757575; }
 
 .footer-section {
     display: flex;
