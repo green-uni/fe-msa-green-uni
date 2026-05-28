@@ -11,6 +11,7 @@ let reissuePromise = null
 // 에러 페이지로 보낼 상태 코드 정의
 const ERROR_PAGE_ROUTES = {
   403: 'Forbidden',
+  404: 'NotFound',
   500: 'ServerError',
   502: 'ServerError',
   503: 'Maintenance',
@@ -50,7 +51,7 @@ axios.interceptors.response.use(
           // ⭐️ 수정 [2] — 블로킹 에러(403/500/502/503)는 모달 대신 에러페이지로 이동
           // 아래 if 블록만 새로 추가하고, 기존 모달 로직은 else 안에 그대로 둠
           if (ERROR_PAGE_ROUTES[err.response.status] && !err.config?._skipErrorPage) {
-            router.push({ name: ERROR_PAGE_ROUTES[err.response.status] })
+            router.replace({ name: ERROR_PAGE_ROUTES[err.response.status] })
           } else {
             // [개발용] 배포 시 삭제 후 아래 [배포용] 주석 해제
             const message =

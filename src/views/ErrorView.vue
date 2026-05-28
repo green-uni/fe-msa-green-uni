@@ -22,7 +22,7 @@ const copy = computed(() => COPY[props.type] || COPY.not_found)
 
 const router = useRouter()
 const goHome = () => router.push('/')
-const goBack = () => (window.history.length > 1 ? router.back() : router.push('/'))
+const goBack = () => (window.history.state?.back ? router.back() : router.push('/'))
 </script>
 
 <template>
