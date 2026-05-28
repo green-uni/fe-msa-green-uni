@@ -8,11 +8,6 @@ export default defineConfig(({ mode }) => {
   console.log('mode: ', mode);
   const env = loadEnv(mode, process.cwd());
 
-  const apiBase = env.VITE_API_BASE_URL || '/api'
-  const proxyTarget = apiBase.startsWith('http')
-    ? new URL(apiBase).origin
-    : 'http://localhost:8000'
-
   return {
     build: {
       outDir: env.VITE_OUT_DIR || 'dist',
@@ -126,11 +121,7 @@ export default defineConfig(({ mode }) => {
       // VITE_API_BASE_URL을 /api(상대경로)로 바꾸면 PC·모바일 모두 이 프록시를 경유
       proxy: {
         '/api': {
-          target: proxyTarget,
-          changeOrigin: true,
-        },
-        '/file': {
-          target: proxyTarget,
+          target: 'http://localhost:8000',
           changeOrigin: true,
         }
       }
