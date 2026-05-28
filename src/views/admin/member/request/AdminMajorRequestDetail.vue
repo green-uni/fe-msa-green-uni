@@ -156,7 +156,7 @@ onMounted(fetchRequest);
           placeholder="승인 메모를 입력해주세요. (선택)" rows="3" />
         <div class="action-buttons">
           <button class="btn btn-default" @click="showApproveBox = false">취소</button>
-          <button class="btn btn-neutral" @click="approve">승인 처리</button>
+          <button class="btn btn-approval" @click="approve">승인 처리</button>
         </div>
       </div>
 
@@ -175,7 +175,7 @@ onMounted(fetchRequest);
           <font-awesome-icon icon="fa-solid fa-list" /> 목록
         </button>
         <div v-if="isPending && !showApproveBox && !showRejectBox" class="action-group">
-          <button class="btn btn-neutral" @click="openApproveBox">승인</button>
+          <button class="btn btn-approval" @click="openApproveBox">승인</button>
           <button class="btn btn-default" @click="openRejectBox">반려</button>
         </div>
       </div>

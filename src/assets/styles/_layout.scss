@@ -370,9 +370,11 @@
 .btn.btn-neutral { background: #334155; color: #fff;         border-color: #334155; }
 .btn.btn-neutral:hover  { filter: brightness(1.15); }
 .btn.btn-submit,
-.btn.btn-primary { background: $green-600; color: #fff;      border-color: $green-600; }
+.btn.btn-primary,
+.btn.btn-approval { background: $green-600; color: #fff;      border-color: $green-600; }
 .btn.btn-submit:hover,
-.btn.btn-primary:hover  { filter: brightness(1.1); }
+.btn.btn-primary:hover,
+.btn.btn-approval:hover  { filter: brightness(1.1); }
 .btn.btn-success { background: $green-600; color: #fff;      border-color: $green-600; }
 .btn.btn-success:hover  { filter: brightness(1.1); }
 .btn.btn-danger  { background: #c62828;   color: #fff;       border-color: #c62828; }
