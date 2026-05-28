@@ -1,6 +1,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import tuitionService from '@/services/tuitionService'
+import FilterBar from '@/components/common/FilterBar.vue'
 import DataTable from '@/components/common/DataTable.vue'
 import { useModalStore } from '@/stores/modal'
 
@@ -26,7 +27,6 @@ function isEditablePeriod(targetYear, targetSemester) {
 
   if (targetYear < currentYear) return false
   if (targetYear === currentYear && targetSemester < currentSemester) return false
-  
   return true
 }
 
@@ -69,7 +69,13 @@ async function fetchData() {
 }
 
 function onSearch() {
+  if (!isFilterValid.value) return
   fetchData()
+}
+
+function resetFilter() {
+  filter.year = new Date().getFullYear()
+  filter.semester = 1
 }
 
 function enableEdit(row) {
@@ -82,43 +88,32 @@ function cancelEdit(row) {
 }
 
 async function savePolicy(row) {
-  // 1. 프론트엔드 자체 최소 금액 검증 (1,000,000원 이하 차단)
   if (!row.editAmount || row.editAmount <= 1000000) {
-    // 🌟 스토어 명세에 맞춰 showAlert(메시지, 타입) 형태로 변경했습니다.
     await modal.showAlert('등록금 책정액은 1,000,000원보다 커야 합니다.\n금액을 다시 확인해주세요.', 'warning')
-    return 
+    return
   }
-  
-  const originalAmount = row.baseAmount;
+
+  const originalAmount = row.baseAmount
 
   try {
     isLoading.value = true
-    
-    // 백엔드로 전송 (여기서 백엔드가 100만원 이하 검증 후 예외를 반환함)
     await tuitionService.updatePolicy(row.policyId, row.editAmount)
-        
     row.baseAmount = row.editAmount
     row.isEditing = false
     isLoading.value = false
-    
-    // 🌟 수정 성공 알림창 호출
+
     await modal.showAlert('등록금 정책이 성공적으로 수정되었습니다.', 'success')
-
     await fetchData()
-
   } catch (error) {
-    isLoading.value = false 
+    isLoading.value = false
     row.isEditing = false
     row.editAmount = originalAmount
 
     console.error('서버 에러 디버깅:', error)
-    
-    // 백엔드(Spring)에서 throw한 IllegalStateException 메시지 가로채기
-    const serverMessage = error.response?.data?.message 
-                          || error.response?.data 
-                          || '등록금 정책 수정 중 오류가 발생했습니다.';
-      
-    // 🌟 백엔드가 보내준 경고 메시지를 그대로 팝업에 연동
+
+    const serverMessage = error.response?.data?.message
+                          || error.response?.data
+                          || '등록금 정책 수정 중 오류가 발생했습니다.'
     await modal.showAlert(serverMessage, 'error')
   }
 }
@@ -141,31 +136,46 @@ onMounted(() => {
 <template>
   <div>
 
-    <div class="filter-header">
-      <div class="filter-group">
-        <div class="filter-item">
-          <div class="input-label">연도</div>
-          <div class="input-content">
-            <input type="number" v-model.number="filter.year" min="2000" max="2099" />
-          </div>
-        </div>
-        <div class="filter-item">
-          <div class="input-label">학기</div>
-          <div class="input-content">
-            <select v-model.number="filter.semester">
-              <option value="" disabled>학기 선택</option>
-              <option :value="1">1학기</option>
-              <option :value="2">2학기</option>
-            </select>
-          </div>
-        </div>
-        <div class="search-area" style="margin-left: auto;">
-          <button class="btn search-btn" :disabled="!isFilterValid || isLoading" @click="onSearch">
-            <font-awesome-icon icon="fa-solid fa-magnifying-glass" /> 조회
-          </button>
+    <!-- 검색창 불필요: showSearch=false, 필터 조건(연도·학기)만 노출 -->
+    <FilterBar
+      :hasFilter="false"
+      :showSearch="false"
+      @search="onSearch"
+      @reset="resetFilter"
+    >
+      <div class="filter-item">
+        <div class="input-label">연도</div>
+        <div class="input-content">
+          <input
+            v-model.number="filter.year"
+            type="number"
+            min="2000"
+            max="2099"
+          />
         </div>
       </div>
-    </div>
+
+      <div class="filter-item">
+        <div class="input-label">학기</div>
+        <div class="input-content">
+          <select v-model.number="filter.semester">
+            <option value="" disabled>학기 선택</option>
+            <option :value="1">1학기</option>
+            <option :value="2">2학기</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 조회 버튼: showSearch=false이므로 직접 배치, margin-left:auto로 우측 정렬 -->
+      <button
+        class="btn search-btn"
+        style="margin-left: auto;"
+        :disabled="!isFilterValid || isLoading"
+        @click="onSearch"
+      >
+        <font-awesome-icon icon="fa-solid fa-magnifying-glass" /> 조회
+      </button>
+    </FilterBar>
 
     <p v-if="!searched" class="guide-text">연도와 학기를 선택한 후 조회하세요.</p>
 
@@ -201,9 +211,9 @@ onMounted(() => {
                 <button class="btn-save-sm" @click="savePolicy(policy)">저장</button>
                 <button class="btn-cancel-sm" @click="cancelEdit(policy)">취소</button>
               </div>
-              <button 
-                v-else 
-                class="btn-edit" 
+              <button
+                v-else
+                class="btn-edit"
                 :disabled="policy.isHistory || !isEditablePeriod(filter.year, filter.semester) || isPaymentPeriod"
                 :class="{ 'btn-disabled': policy.isHistory || !isEditablePeriod(filter.year, filter.semester) || isPaymentPeriod }"
                 @click="enableEdit(policy)"
@@ -215,25 +225,110 @@ onMounted(() => {
         </template>
       </DataTable>
     </template>
+
   </div>
 </template>
 
 <style scoped lang="scss">
-.page-title { font-size: var(--text-xl); font-weight: 600; display: flex; align-items: center; gap: 8px; .title-icon { color: var(--main-color); font-size: 0.8em; } }
-.breadcrumb { font-size: var(--text-sm); color: var(--font-color-light); }
-.guide-text { text-align: center; padding: 60px 0; color: var(--font-color-light); font-size: var(--text-sm); }
-.count-summary { margin-bottom: 12px; font-size: var(--text-sm); color: #334155; font-weight: 500; }
-.price-display { font-weight: 600; color: #1e293b; text-align: right; padding-right: 24px; }
-.edit-form { display: flex; align-items: center; justify-content: flex-end; padding-right: 24px; gap: 4px; }
-.edit-input { width: 120px; padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: right; font-weight: 600; font-size: 13px; }
+.guide-text {
+  text-align: center;
+  padding: 60px 0;
+  color: var(--font-color-light);
+  font-size: var(--text-sm);
+}
+
+.count-summary {
+  margin-bottom: 12px;
+  font-size: var(--text-sm);
+  color: #334155;
+  font-weight: 500;
+}
+
+.price-display {
+  font-weight: 600;
+  color: #1e293b;
+  text-align: right;
+  padding-right: 24px;
+}
+
+.edit-form {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 24px;
+  gap: 4px;
+}
+
+.edit-input {
+  width: 120px;
+  padding: 4px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  text-align: right;
+  font-weight: 600;
+  font-size: 13px;
+}
+
 .unit { font-size: 13px; color: #475569; }
-.btn-edit { padding: 4px 14px; border: 1px solid #cbd5e1; background: #fff; border-radius: 4px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
-.btn-edit:hover:not(:disabled) { background: #f1f5f9; }
-.btn-disabled { background: #f1f5f9 !important; color: #94a3b8 !important; border-color: #e2e8f0 !important; cursor: not-allowed !important; }
+
+.btn-edit {
+  padding: 4px 14px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+  &:hover:not(:disabled) { background: #f1f5f9; }
+}
+
+.btn-disabled {
+  background: #f1f5f9 !important;
+  color: #94a3b8 !important;
+  border-color: #e2e8f0 !important;
+  cursor: not-allowed !important;
+}
+
 .btn-actions { display: flex; gap: 4px; justify-content: center; }
-.btn-save-sm { padding: 4px 10px; background: var(--main-color, #2e7d32); color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; }
-.btn-cancel-sm { padding: 4px 10px; background: #64748b; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
-.filter-header { width: 100%; margin-bottom: 20px; }
-.filter-group { display: flex; align-items: center; gap: 16px; width: 100%; }
-.search-area { display: flex; gap: 8px; }
+
+.btn-save-sm {
+  padding: 4px 10px;
+  background: var(--main-color, #2e7d32);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.btn-cancel-sm {
+  padding: 4px 10px;
+  background: #64748b;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+/* FilterBar 내부 조회 버튼 스타일 재사용 */
+.search-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: $green-600;
+  color: #fff;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: 0.2s;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
 </style>

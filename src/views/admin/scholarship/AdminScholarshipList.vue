@@ -132,7 +132,7 @@ onMounted(() => {
   <div>
     <FilterBar 
       v-model:searchQuery="searchInput" 
-      :hasFilter="true"
+      :hasFilter="false"
       @search="onSearch" 
       @reset="resetFilter"
     >

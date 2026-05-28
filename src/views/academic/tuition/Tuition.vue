@@ -2,15 +2,16 @@
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import tuitionService from '@/services/tuitionService';
-import axios from '@/services/httpRequester'; // 서비스 레이어 공통 인스턴스 사용
+import axios from '@/services/httpRequester';
+import { useModalStore } from '@/stores/modal'; // 추가
 
 const route = useRoute();
 const router = useRouter();
+const modal = useModalStore(); // 추가
 const isLoading = ref(true);
 const tuitionDetail = ref(null);
 const currentTuitionId = ref(null);
 
-// 기간 내부인지 여부를 관리하는 변수
 const isPeriod = ref(true);
 
 const fetchTuitionDetail = async () => {
@@ -18,8 +19,6 @@ const fetchTuitionDetail = async () => {
     isLoading.value = true;
     console.log('--- [시작] 데이터 동적 로딩 및 순서 보정 ---');
 
-    // 🎯 1. [순서 보정 및 방어] 백엔드 경로 충돌을 피하기 위해 axios 공통 인스턴스로 
-    // 패스파라미터가 아닌 쿼리스트링 혹은 고유 주소 형태로 안전하게 호출 시도
     let deadlineDate = '-';
     try {
       const periodResponse = await tuitionService.getStudentPaymentPeriod(); 
@@ -30,35 +29,30 @@ const fetchTuitionDetail = async () => {
       deadlineDate = '-'; 
     }
 
-    // 🎯 2. 학생의 등록금 내역 목록 조회
     const listResponse = await tuitionService.getMyTuitionList();
     console.log('2. 내 등록금 목록 조회 성공:', listResponse);
     
     const listData = listResponse?.data;
 
-    // 데이터가 존재한다면 납부 상태 화면 활성화
     if (listData && listData.length > 0) {
       isPeriod.value = true;
 
       const targetTuition = listData[0];
       currentTuitionId.value = targetTuition.tuitionId;
 
-      // ✅ URL에 실제 tuitionId가 없으면 교체 (`:tuitionId` 문자열 그대로인 경우 방지)
       if (route.params.tuitionId !== String(currentTuitionId.value)) {
         router.replace(`/tuitions/${currentTuitionId.value}`);
       }
       
-      // 🎯 3. 확실하게 걸러진 '숫자형 고지서 ID'만 패스 파라미터로 상세 API 호출 (payment-period 문자열 유입 차단)
       const detailResponse = await tuitionService.getMyTuitionDetail(currentTuitionId.value);
       console.log('3. 등록금 상세 내역 조회 성공:', detailResponse);
       
       const rawDetail = detailResponse?.data || {};
 
-      // 🎯 4. 템플릿 뷰에 최종 바인딩할 데이터 취합 및 결합
       tuitionDetail.value = {
-        ...targetTuition,     // 목록 기본 데이터 (year, semester 확보)
-        ...rawDetail,         // 상세 데이터 (정확한 금액 및 PAID/UNPAID 상태)
-        deadline: deadlineDate // 위에서 정합성 체크 완료한 실시간 기한 주입
+        ...targetTuition,
+        ...rawDetail,
+        deadline: deadlineDate
       };
 
     } else {
@@ -75,18 +69,18 @@ const fetchTuitionDetail = async () => {
 
 const handlePayment = async () => {
   if (!currentTuitionId.value) {
-    alert('처리할 고지서 정보가 유효하지 않습니다.');
+    await modal.showAlert('처리할 고지서 정보가 유효하지 않습니다.', 'warning'); // alert → modal
     return;
   }
-  if (!confirm('가상계좌 입금 후 확인 요청 처리를 진행하시겠습니까?')) return;
+  if (!await modal.showConfirm('가상계좌 입금 후 확인 요청 처리를 진행하시겠습니까?')) return; // confirm → modal
   
   try {
     await tuitionService.requestPayment(currentTuitionId.value);
-    alert('등록금 납부 확인 과정 요청이 완료되었습니다.');
+    await modal.showAlert('등록금 납부 확인 과정 요청이 완료되었습니다.', 'success'); // alert → modal
     await fetchTuitionDetail();
   } catch (error) {
     console.error('납부 신청 처리 실패:', error);
-    alert('처리에 실패했습니다. 다시 시도해 주세요.');
+    await modal.showAlert('처리에 실패했습니다. 다시 시도해 주세요.', 'error'); // alert → modal
   }
 };
 
