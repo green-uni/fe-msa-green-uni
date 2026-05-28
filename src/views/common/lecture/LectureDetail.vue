@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/authentication';
 import DataTable from '@/components/common/DataTable.vue';
 import { useModalStore } from '@/stores/modal';
 import Pagination from '@/components/common/Pagination.vue';
+import { APPROVAL_STATUS, BADGE_CLASS, BUILDING_LABEL } from '@/utils/constants';
 
 const route = useRoute();
 const router = useRouter();
@@ -396,9 +397,9 @@ onMounted(async () => {
         <div class="info-title">
           <div class="title-row">
             <h2>{{ state.data.lectureName }}</h2>
-            <span v-if="state.data.status === '대기'" class="status-badge pending">대기</span>
-            <span v-else-if="state.data.status === '반려'" class="status-badge rejected">반려</span>
-            <span v-else-if="state.data.status === '취소'" class="status-badge cancelled">폐강</span>
+            <span v-if="state.data.status === '대기'" :class="['status-badge', BADGE_CLASS.PENDING]">대기</span>
+            <span v-else-if="state.data.status === '반려'" :class="['status-badge', BADGE_CLASS.REJECTED]">반려</span>
+            <span v-else-if="state.data.status === '취소'" :class="['status-badge', BADGE_CLASS.CANCELLED]">폐강</span>
           </div>
           <span class="info-detail">{{ state.data.year }}년 {{ state.data.semester }}학기</span>
         </div>
@@ -416,7 +417,7 @@ onMounted(async () => {
             <dt>이수학점</dt>
             <dd>{{ state.data.credit }}</dd>
           </dl>
-          <dl class="info-row">
+          <dl class="info-row" v-if="authStore.role === 'PROFESSOR' || authStore.role === 'ADMIN'">
             <dt>수강인원</dt>
             <dd>{{ state.studentList.length }} / {{ state.data.maxStd }}</dd>
           </dl>
@@ -424,7 +425,7 @@ onMounted(async () => {
             <dt>강의실</dt>
             <dd>
               <div v-for="(s, i) in state.data.schedules" :key="i">
-                {{ s.building }} {{ s.room }}
+                {{ BUILDING_LABEL[s.building] ?? s.building }} {{ s.room }}
               </div>
             </dd>
           </dl>
@@ -656,9 +657,9 @@ onMounted(async () => {
 
 /* 상태 배지 */
 .status-badge { padding: 4px 8px; border-radius: 4px; font-size: var(--text-xs); font-weight: 500; }
-.status-badge.pending { background: #fff3e0; color: #ef6c00; }
-.status-badge.rejected { background: #ffebee; color: #c62828; }
-.status-badge.cancelled { background: #f1f5f9; color: #64748b; }
+.badge-pending { background: #fff3e0; color: #ef6c00; }
+.badge-rejected { background: #ffebee; color: #c62828; }
+.badge-closed { background: #f1f5f9; color: #64748b; }
 
 /* 반려사유 박스 (하단 노출용) */
 .rejection-info-box { margin: var(--size-df); border: 2px solid #e53e3e; border-radius: 8px; padding: 16px 20px; background: #fff5f5; }

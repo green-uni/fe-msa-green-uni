@@ -28,7 +28,6 @@
           </span>
         </div>
         <div class="action-cell">
-          <button class="btn btn-line" @click.stop="$router.push('/attendances/roster')">출석 현황</button>
           <button class="btn btn-submit" @click.stop="$router.push(`/attendances/${lecture.lectureId}/qr`)">QR 출석</button>
         </div>
       </article>

@@ -6,8 +6,8 @@ export const memberRoutes = [
     component: () => import('@/views/common/member/MemberDashboard.vue'),
     meta: {
       title: '대시보드',
-      groupTitle: '그린대학교',
-      showInNav: false,
+      groupTitle: '대시보드',
+      navSection: '홈',
       auth: ['STUDENT', 'PROFESSOR'],
     },
   },
@@ -17,6 +17,7 @@ export const memberRoutes = [
     meta: {
       title: '나의 정보 조회',
       groupTitle: '나의 정보 관리',
+      navSection: '나의 정보',
       auth: ['STUDENT', 'PROFESSOR','ADMIN'],
     },
   },
@@ -26,6 +27,7 @@ export const memberRoutes = [
     meta: {
       title: '나의 정보 수정',
       groupTitle: '나의 정보 관리',
+      navSection: '나의 정보',
       showInNav: false,
       activeMenu: `${url}/my`,
       auth: ['STUDENT', 'PROFESSOR','ADMIN'],
@@ -37,6 +39,7 @@ export const memberRoutes = [
     meta: {
       title: '비밀번호 변경',
       groupTitle: '나의 정보 관리',
+      navSection: '나의 정보',
       showInNav: false,
       activeMenu: 'my',
       auth: ['STUDENT', 'PROFESSOR'],
@@ -49,6 +52,7 @@ export const memberRoutes = [
     meta: {
       title: '학적 변동 신청',
       groupTitle: '나의 정보 관리',
+      navSection: '나의 정보',
       auth: ['STUDENT'],
     },
   },
@@ -58,6 +62,7 @@ export const memberRoutes = [
     meta: {
       title: '학적 변동 신청서 제출',
       groupTitle: '나의 정보 관리',
+      navSection: '나의 정보',
       subTitle: '학적 변동 신청',
       showInNav: false,
       activeMenu: `${url}/status-request`,
@@ -71,6 +76,7 @@ export const memberRoutes = [
     meta: {
       title: '전공 변경 신청',
       groupTitle: '나의 정보 관리',
+      navSection: '나의 정보',
       auth: ['STUDENT'],
     },
   },
@@ -80,6 +86,7 @@ export const memberRoutes = [
     meta: {
       title: '전과/복수전공 신청서 제출',
       groupTitle: '나의 정보 관리',
+      navSection: '나의 정보',
       subTitle: '전공 변경 신청',
       showInNav: false,
       activeMenu: `${url}/major-request`,
@@ -96,6 +103,7 @@ export const adminMemberRoutes = [
       showInNav: false,
       title: '대시보드',
       groupTitle: '그린대학교',
+      navSection: '홈',
       auth: ['ADMIN'],
     },
   },
@@ -105,6 +113,7 @@ export const adminMemberRoutes = [
     meta: {
       title: '나의 정보 조회',
       groupTitle: '나의 정보 관리',
+      navSection: '나의 정보',
       auth: ['ADMIN'],
     },
   },
@@ -114,6 +123,7 @@ export const adminMemberRoutes = [
     meta: {
       title: '나의 정보 수정',
       groupTitle: '나의 정보 관리',
+      navSection: '나의 정보',
       showInNav: false,
       activeMenu: `${url}/my`,
       auth: ['ADMIN'],
@@ -125,6 +135,7 @@ export const adminMemberRoutes = [
     meta: {
       title: '비밀번호 변경',
       groupTitle: '나의 정보 관리',
+      navSection: '나의 정보',
       showInNav: false,
       activeMenu: '/member/my',
       auth: ['ADMIN'],
@@ -138,6 +149,7 @@ export const adminMemberRoutes = [
       title: '학생 목록 조회',
       navTitle: '회원 조회',
       groupTitle: '회원 정보 관리',
+      navSection: '회원 관리',
       subTitle: '회원 전체 조회',
       auth: ['ADMIN'],
     },
@@ -149,6 +161,7 @@ export const adminMemberRoutes = [
       title: '교수 목록 조회',
       navTitle: '회원 조회',
       groupTitle: '회원 정보 관리',
+      navSection: '회원 관리',
       subTitle: '회원 전체 조회',
       showInNav: false,
       activeMenu: `${url}/students`,
@@ -162,6 +175,7 @@ export const adminMemberRoutes = [
       title: '관리자 목록 조회',
       navTitle: '회원 조회',
       groupTitle: '회원 정보 관리',
+      navSection: '회원 관리',
       subTitle: '회원 전체 조회',
       showInNav: false,
       activeMenu: `${url}/students`,
@@ -174,6 +188,7 @@ export const adminMemberRoutes = [
     meta: {
       title: '회원 상세 정보 조회',
       groupTitle: '회원 정보 관리',
+      navSection: '회원 관리',
       showInNav: false,
       activeMenu: `${url}/students`,
       auth: ['ADMIN'],
@@ -185,6 +200,7 @@ export const adminMemberRoutes = [
     meta: {
       title: '회원 정보 변경',
       groupTitle: '회원 정보 관리',
+      navSection: '회원 관리',
       showInNav: false,
       activeMenu: `${url}/students`,
       auth: ['ADMIN'],
@@ -199,6 +215,7 @@ export const adminMemberRoutes = [
       navTitle: '회원 계정 생성',
       subTitle: '회원 계정 생성',
       groupTitle: '회원 정보 관리',
+      navSection: '회원 관리',
       auth: ['ADMIN'],
     },
   },
@@ -210,6 +227,7 @@ export const adminMemberRoutes = [
       navTitle: '회원 계정 생성',
       subTitle: '회원 계정 생성',
       groupTitle: '회원 정보 관리',
+      navSection: '회원 관리',
       showInNav: false,
       activeMenu: `${url}/new`,
       auth: ['ADMIN'],
@@ -222,6 +240,7 @@ export const adminMemberRoutes = [
     meta: {
       title: '학적 변경 신청 조회',
       groupTitle: '회원 정보 관리',
+      navSection: '회원 관리',
       auth: ['ADMIN'],
     },
   },
@@ -232,6 +251,7 @@ export const adminMemberRoutes = [
       title: '학적 변경 신청 상세 조회',
       subTitle: '학적 변경 신청 조회',
       groupTitle: '회원 정보 관리',
+      navSection: '회원 관리',
       showInNav: false,
       activeMenu: `${url}/status-request`,
       auth: ['ADMIN'],
@@ -244,6 +264,7 @@ export const adminMemberRoutes = [
     meta: {
       title: '전공 변경 신청 조회',
       groupTitle: '회원 정보 관리',
+      navSection: '회원 관리',
       auth: ['ADMIN'],
     },
   },
@@ -254,6 +275,7 @@ export const adminMemberRoutes = [
       title: '전공 변경 신청 상세 조회',
       subTitle: '전공 변경 신청 조회',
       groupTitle: '회원 정보 관리',
+      navSection: '회원 관리',
       showInNav: false,
       activeMenu:`${url}/major-request`,
       auth: ['ADMIN'],

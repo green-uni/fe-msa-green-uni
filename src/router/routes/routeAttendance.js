@@ -9,6 +9,7 @@ export const attendanceRoutes = [
     meta: {
       title: '내 강의 목록',
       groupTitle: 'QR 출석 관리',
+      navSection: '학사정보',
       auth: ['PROFESSOR'],
     },
   },
@@ -20,23 +21,25 @@ export const attendanceRoutes = [
     meta: {
       title: 'QR 출석 관리',
       groupTitle: 'QR 출석 관리',
+      navSection: '학사정보',
       auth: ['PROFESSOR'],
       showInNav: false,
       activeMenu: '/attendances/professor',
     },
   },
-  
+
   {
     // 출석 현황 — 강의 목록 선택 후 날짜별 출석부 조회/수정
     path: `${url}/roster`,
     component: () => import('@/views/attendance/AttendanceList.vue'),
     meta: {
       title: '출석 현황',
-      groupTitle: '출석 관리',
+      groupTitle: 'QR 출석 관리',
+      navSection: '학사정보',
       auth: ['PROFESSOR'],
     },
   },
-  
+
   // ── 학생 화면 ───────────────────────────────────────────────
 
   {
@@ -47,6 +50,7 @@ export const attendanceRoutes = [
     meta: {
       title: '내 출석 조회',
       groupTitle: '출석',
+      navSection: '학사정보',
       auth: ['STUDENT'],
     },
   },

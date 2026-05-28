@@ -1,6 +1,7 @@
 <script setup>
 import courseService from '@/services/courseService'
 import MemberService from '@/services/memberService' // 🎯 MSA 환경의 전체 학과 조회를 위해 추가
+import ScheduleService from '@/services/scheduleService' // 🎯 일정 조회 서비스 추가
 import { useModalStore } from '@/stores/modal'
 import { useRouter } from 'vue-router'
 import { ref, onMounted, computed, reactive, watch, nextTick } from 'vue'
@@ -9,6 +10,9 @@ import DataTable from '@/components/common/DataTable.vue'
 
 const modal = useModalStore()
 const router = useRouter()
+
+// 🎯 기간 체크 상태 변수 (기본값 true)
+const isPeriod = ref(true)
 
 const courseList = ref([])
 const myCourseData = ref({
@@ -159,171 +163,186 @@ const keydown = (e) => { if (e.key === 'Enter') search() }
 
 onMounted(async () => {
   try {
-    const res = await courseService.getCourseStatus()
-    const data = res.data.data
-    
-    // 수강신청 또는 정정 기간이 모두 닫혀있는 경우
-    if (!data.isOpen) {
-      await modal.showAlert('수강 신청 기간이 아닙니다.', 'error')
-      router.push('/members/my') // 🎯 경로 변경
-      return
-    }
+    const res = await ScheduleService.getActiveSchedules();
+
+    console.log(res.data);
+
+    const scheduleData = res.data?.data;
+
+    isPeriod.value = !!(
+      scheduleData?.수강신청 ||
+      scheduleData?.수강정정
+    );
+
+    if (!isPeriod.value) return;
+
   } catch (e) {
-    console.error('수강 상태 확인 실패', e)
-    await nextTick()
-    await modal.showAlert('수강 신청 정보를 불러오지 못했습니다.', 'error')
-    router.push('/members/my') // 🎯 에러 발생 시에도 튕겨내기
-    return
+    console.error('수강 상태 확인 실패', e);
+    isPeriod.value = false;
+    return;
   }
 
-  // 정상 기간일 때만 데이터 로드 실행
-  fetchDepartments()
-  fetchCourseList()
-  fetchMyCourseList()
-})
+  fetchDepartments();
+  fetchCourseList();
+  fetchMyCourseList();
+});
 </script>
 
 <template>
-  <div class="container" style="padding-bottom: 30px;">
-    <div class="data-header" style="margin-bottom:16px;">
-      <h2 class="page-title"><span class="title-icon">&#9658;</span> 수강 신청</h2>
-      <nav class="breadcrumb">수강 관리 &gt; 수강 신청</nav>
-    </div>
+  <div v-if="!isPeriod" class="empty-period">수강신청 기간이 아닙니다.</div>
 
-    <div class="filter-header">
-      <div class="tab-area">
-        <button
-          v-for="tab in tabs" :key="tab"
-          :class="['filter-btn', { active: typeTab === tab }]"
-          @click="typeTab = tab"
-        >{{ tab }}</button>
+  <div v-else class="form-wrap">
+    <div class="container" style="padding-bottom: 30px;">
+      <div class="data-header" style="margin-bottom:16px;">
+        <h2 class="page-title"><span class="title-icon">&#9658;</span> 수강 신청</h2>
+        <nav class="breadcrumb">수강 관리 &gt; 수강 신청</nav>
       </div>
-      <div class="filter-group">
-        <div class="filter-item">
-          <div class="input-label">학과</div>
-          <div class="input-content">
-            <select v-model="selectedMajor">
-              <option v-for="major in majorList" :key="major" :value="major">{{ major }}</option>
-            </select>
-          </div>
+
+      <div class="filter-header">
+        <div class="tab-area">
+          <button
+            v-for="tab in tabs" :key="tab"
+            :class="['filter-btn', { active: typeTab === tab }]"
+            @click="typeTab = tab"
+          >{{ tab }}</button>
         </div>
-        <div class="filter-item">
-          <div class="input-label">학년</div>
-          <div class="input-content">
-            <select v-model="selectedYear">
-              <option value="전체">전체</option>
-              <option value="1">1학년</option>
-              <option value="2">2학년</option>
-              <option value="3">3학년</option>
-              <option value="4">4학년</option>
-            </select>
+        <div class="filter-group">
+          <div class="filter-item">
+            <div class="input-label">학과</div>
+            <div class="input-content">
+              <select v-model="selectedMajor">
+                <option v-for="major in majorList" :key="major" :value="major">{{ major }}</option>
+              </select>
+            </div>
           </div>
-        </div>
-        <div class="search-area">
-          <input
-            v-model="searchInput"
-            type="text"
-            placeholder="검색어를 입력하세요"
-            @keydown="keydown"
-          />
-          <button class="btn search-btn" @click="search">
-            <font-awesome-icon icon="fa-solid fa-magnifying-glass" /> 검색
-          </button>
+          <div class="filter-item">
+            <div class="input-label">학년</div>
+            <div class="input-content">
+              <select v-model="selectedYear">
+                <option value="전체">전체</option>
+                <option value="1">1학년</option>
+                <option value="2">2학년</option>
+                <option value="3">3학년</option>
+                <option value="4">4학년</option>
+              </select>
+            </div>
+          </div>
+          <div class="search-area">
+            <input
+              v-model="searchInput"
+              type="text"
+              placeholder="검색어를 입력하세요"
+              @keydown="keydown"
+            />
+            <button class="btn search-btn" @click="search">
+              <font-awesome-icon icon="fa-solid fa-magnifying-glass" /> 검색
+            </button>
+          </div>
         </div>
       </div>
+
+      <div><p>전체: {{ filteredList.length }}개</p></div>
+
+      <DataTable
+        :columns="['학과명','강의명','강의실','이수구분','학년','담당교수','수업시간','학점','여석/정원','신청']"
+        :rows="pagedCourseList"
+        :isLoading="state.isLoading"
+        gridCols="1fr 1fr 200px 100px 50px 100px 200px 50px 100px 100px"
+        emptyMessage="조회된 강의가 없습니다."
+      >
+        <template v-if="!state.isLoading && pagedCourseList.length > 0">
+          <article
+            class="tbl-row no-hover"
+            v-for="(item, idx) in pagedCourseList"
+            :key="item.lectureId ?? idx"
+          >
+            <div>{{ item.majorName }}</div>
+            <div>{{ item.lectureName }}</div>
+            <div>{{ item.building }} {{ item.roomNumber }}</div>
+            <div>{{ item.lectureType }}</div>
+            <div>{{ item.academicYear }}</div>
+            <div>{{ item.proName }}</div>
+            <div>{{ item.dayOfWeek }} {{ item.startPeriod }}교시~ {{ item.endPeriod }}교시</div>
+            <div>{{ item.credit }}</div>
+            <div>{{ item.remStd }}/{{ item.maxStd }}</div>
+            <div>
+              <button v-if="isEnrolled(item.lectureId)" class="btn-register-success">신청완료</button>
+              <button v-else class="btn-register" @click="enroll(item.lectureId)">수강신청</button>
+            </div>
+          </article>
+        </template>
+      </DataTable>
+
+      <Pagination
+        :currentPage="state.coursePage"
+        :maxPage="courseMaxPage"
+        :pageGroupSize="5"
+        @goToPage="state.coursePage = $event"
+      />
     </div>
 
-    <div><p>전체: {{ filteredList.length }}개</p></div>
+    <div class="container" style="padding-bottom: 10px;">
+      <div class="my-course-header">
+        <h1 style="font-weight: bold;">신청 내역
+          <span class="totalCredit">신청 학점: <strong>{{ myCourseData.totalEnrolledCredits }}</strong>학점</span>
+        </h1>
+      </div>
 
-    <DataTable
-      :columns="['학과명','강의명','강의실','이수구분','학년','담당교수','수업시간','학점','여석/정원','신청']"
-      :rows="pagedCourseList"
-      :isLoading="state.isLoading"
-      gridCols="1fr 1fr 200px 100px 50px 100px 200px 50px 100px 100px"
-      emptyMessage="조회된 강의가 없습니다."
-    >
-      <template v-if="!state.isLoading && pagedCourseList.length > 0">
-        <article
-          class="tbl-row no-hover"
-          v-for="(item, idx) in pagedCourseList"
-          :key="item.lectureId ?? idx"
-        >
-          <div>{{ item.majorName }}</div>
-          <div>{{ item.lectureName }}</div>
-          <div>{{ item.building }} {{ item.roomNumber }}</div>
-          <div>{{ item.lectureType }}</div>
-          <div>{{ item.academicYear }}</div>
-          <div>{{ item.proName }}</div>
-          <div>{{ item.dayOfWeek }} {{ item.startPeriod }}교시~ {{ item.endPeriod }}교시</div>
-          <div>{{ item.credit }}</div>
-          <div>{{ item.remStd }}/{{ item.maxStd }}</div>
-          <div>
-            <button v-if="isEnrolled(item.lectureId)" class="btn-register-success">신청완료</button>
-            <button v-else class="btn-register" @click="enroll(item.lectureId)">수강신청</button>
-          </div>
-        </article>
-      </template>
-    </DataTable>
+      <DataTable
+        :columns="['학과명','강의명','강의실','이수구분','학년','담당교수','수업시간','학점','여석/정원','신청']"
+        :rows="pagedMyCourseList"
+        :isLoading="false" 
+        gridCols="1fr 1fr 200px 100px 50px 100px 200px 50px 100px 100px"
+        emptyMessage="신청한 강의가 없습니다."
+      >
+        <template v-if="pagedMyCourseList.length > 0">
+          <article
+            class="tbl-row no-hover"
+            v-for="(item, idx) in pagedMyCourseList"
+            :key="item.lectureId ?? idx"
+          >
+            <div>{{ item.majorName }}</div>
+            <div>{{ item.lectureName }}</div>
+            <div>{{ item.building }} {{ item.roomNumber }}</div>
+            <div>{{ item.lectureType }}</div>
+            <div>{{ item.academicYear }}</div>
+            <div>{{ item.proName }}</div>
+            <div>{{ item.dayOfWeek }} {{ item.startPeriod }}교시~ {{ item.endPeriod }}교시</div>
+            <div>{{ item.credit }}</div>
+            <div>{{ item.remStd }}/{{ item.maxStd }}</div>
+            <div>
+              <button
+                v-if="item.isAttended === 0"
+                class="btn-register-del"
+                @click="courseDelete(item.lectureId)"
+              >수강취소</button>
+              <span class="not-cancel" v-else>취소 불가</span>
+            </div>
+          </article>
+        </template>
+      </DataTable>
 
-    <Pagination
-      :currentPage="state.coursePage"
-      :maxPage="courseMaxPage"
-      :pageGroupSize="5"
-      @goToPage="state.coursePage = $event"
-    />
-  </div>
-
-  <div class="container" style="padding-bottom: 10px;">
-    <div class="my-course-header">
-      <h1 style="font-weight: bold;">신청 내역
-        <span class="totalCredit">신청 학점: <strong>{{ myCourseData.totalEnrolledCredits }}</strong>학점</span>
-      </h1>
+      <Pagination
+        :currentPage="state.myPage"
+        :maxPage="myMaxPage"
+        :pageGroupSize="5"
+        @goToPage="state.myPage = $event"
+      />
     </div>
-
-    <DataTable
-      :columns="['학과명','강의명','강의실','이수구분','학년','담당교수','수업시간','학점','여석/정원','신청']"
-      :rows="pagedMyCourseList"
-      :isLoading="false" 
-      gridCols="1fr 1fr 200px 100px 50px 100px 200px 50px 100px 100px"
-      emptyMessage="신청한 강의가 없습니다."
-    >
-      <template v-if="pagedMyCourseList.length > 0">
-        <article
-          class="tbl-row no-hover"
-          v-for="(item, idx) in pagedMyCourseList"
-          :key="item.lectureId ?? idx"
-        >
-          <div>{{ item.majorName }}</div>
-          <div>{{ item.lectureName }}</div>
-          <div>{{ item.building }} {{ item.roomNumber }}</div>
-          <div>{{ item.lectureType }}</div>
-          <div>{{ item.academicYear }}</div>
-          <div>{{ item.proName }}</div>
-          <div>{{ item.dayOfWeek }} {{ item.startPeriod }}교시~ {{ item.endPeriod }}교시</div>
-          <div>{{ item.credit }}</div>
-          <div>{{ item.remStd }}/{{ item.maxStd }}</div>
-          <div>
-            <button
-              v-if="item.isAttended === 0"
-              class="btn-register-del"
-              @click="courseDelete(item.lectureId)"
-            >수강취소</button>
-            <span class="not-cancel" v-else>취소 불가</span>
-          </div>
-        </article>
-      </template>
-    </DataTable>
-
-    <Pagination
-      :currentPage="state.myPage"
-      :maxPage="myMaxPage"
-      :pageGroupSize="5"
-      @goToPage="state.myPage = $event"
-    />
   </div>
 </template>
 
 <style scoped lang="scss">
+// 🎯 규칙에 정의된 기간 미충족 시 스타일 추가
+.empty-period {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 60vh;
+  font-size: 18px;
+  color: #999;
+}
+
 .page-title {
   font-size: var(--text-xl); font-weight: 600; display: flex; align-items: center; gap: 8px;
   .title-icon { color: var(--main-color); font-size: 0.8em; }

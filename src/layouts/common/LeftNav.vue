@@ -12,14 +12,19 @@ const authStore = useAuthStore()
 const route = useRoute();
 const router = useRouter();
 const role = authStore.role
-const menus = ref([]);
+const menus = ref([]);  // [{ sectionTitle, groups: [{ title, isSingle, path, isOpen, subMenus }] }]
 const isAdmin = route.path.startsWith('/admin');
 const isMobile = route.path.startsWith('/student/');
 
+// 섹션 표시 순서 정의
+const SECTION_ORDER = isAdmin
+  ? ['나의 정보', '회원 관리', '학사 관리', '재정 관리', '커뮤니티']
+  : ['홈', '학사정보', '나의 정보', '커뮤니티']
+
 const doLogOut = async () => {
   try {
-    NotificationService.disconnect() // 1. 웹소켓 끊기
-    authStore.logOut()               // 2. isLogin = false로 먼저 만들기 (인터셉터가 재발급 안 하게)
+    NotificationService.disconnect()
+    authStore.logOut()
     await AuthService.logOut();
     authStore.logOut();
     await router.push(role === 'ADMIN' ? '/admin/login' : '/login')
@@ -43,36 +48,52 @@ onMounted(async () => {
 })
 
 const makeMenu = () => {
-  const temp = {};
-  const role = authStore?.role;
+  const sectionMap = {}; // { navSection: { groupTitle: { title, isOpen, subMenus[] } } }
+  const currentRole = authStore?.role;
 
-  // children을 전부 꺼내서 하나의 배열로 합치기
   const flatRoutes = routes
     .filter(r => isAdmin ? r.path === '/admin/' : r.path === '/')
     .flatMap(r => r.children || [])
 
   flatRoutes.forEach(r => {
-    const { groupTitle, title, auth } = r.meta || {};
-    if (!groupTitle) return; // groupTitle이 없다면 메뉴로 만들지 않음
-    if (r.meta?.showInNav === false) return // showInNav: false면 메뉴에서 제외
-    if (auth && !auth.includes(role)) return  // 권한 없으면 메뉴에서 제외
+    const { navSection, groupTitle, title, auth } = r.meta || {};
+    if (!groupTitle) return;                          // groupTitle 없으면 메뉴 제외
+    if (r.meta?.showInNav === false) return;          // showInNav: false면 제외
+    if (auth && !auth.includes(currentRole)) return;  // 권한 없으면 제외
+    if (!navSection) return;                          // navSection 없으면 제외
 
-    if (!temp[groupTitle]) { //groupTitle이 있다면 임시 객체로 그룹화
-      temp[groupTitle] = {
+    if (!sectionMap[navSection]) sectionMap[navSection] = {};
+    if (!sectionMap[navSection][groupTitle]) {
+      sectionMap[navSection][groupTitle] = {
         title: groupTitle,
         isOpen: false,
         subMenus: []
       };
     }
-    temp[groupTitle].subMenus.push({ // 그룹 안에 서브메뉴로 작업
-      title: title,
+    sectionMap[navSection][groupTitle].subMenus.push({
+      title,
       navTitle: r.meta?.navTitle,
-      path: (isAdmin ? '/admin/' : '/') + r.path,  // ← / 붙이기
+      path: (isAdmin ? '/admin/' : '/') + r.path,
       planTitle: r.meta?.planTitle
     });
-  })
-  menus.value = Object.values(temp); // 그룹 객체를 배열로 변환
-}
+  });
+
+  // 섹션 배열 변환 — SECTION_ORDER 순서대로 정렬, 모르는 섹션은 뒤에 추가
+  const orderedKeys = [
+    ...SECTION_ORDER.filter(s => sectionMap[s]),
+    ...Object.keys(sectionMap).filter(s => !SECTION_ORDER.includes(s))
+  ];
+
+  menus.value = orderedKeys.map(sectionTitle => ({
+    sectionTitle,
+    groups: Object.values(sectionMap[sectionTitle]).map(g => ({
+      ...g,
+      // subMenus가 1개면 accordion 없이 직접 링크
+      isSingle: g.subMenus.length === 1,
+      path: g.subMenus.length === 1 ? g.subMenus[0].path : null,
+    }))
+  }));
+};
 
 const activePath = computed(() => {
   if (route.meta?.activeMenu) {
@@ -82,22 +103,27 @@ const activePath = computed(() => {
 })
 
 const updateMenuState = () => {
-  menus.value.forEach(menu => {
-    const presentMenu = menu.subMenus.some(sub => sub.path === activePath.value);
-    menu.isOpen = presentMenu
+  menus.value.forEach(section => {
+    section.groups.forEach(group => {
+      if (!group.isSingle) {
+        group.isOpen = group.subMenus.some(sub => sub.path === activePath.value);
+      }
+    });
   });
 };
 
-const toggleMenu = (targetMenu) => {
-  menus.value.forEach(m => {
-    if (m === targetMenu) m.isOpen = !m.isOpen;
-    else m.isOpen = false;
+const toggleMenu = (targetGroup) => {
+  menus.value.forEach(section => {
+    section.groups.forEach(g => {
+      if (g === targetGroup) g.isOpen = !g.isOpen;
+      else g.isOpen = false;
+    });
   });
 };
 
 onMounted(() => {
-  makeMenu(); // 메뉴 생성
-  updateMenuState(); // 현재 경로 활성화
+  makeMenu();
+  updateMenuState();
 });
 
 watch(() => route.path, () => {
@@ -109,11 +135,11 @@ watch(() => route.path, () => {
   <div class="left-nav" :class="isAdmin ? 'admin' : 'academic'">
 
     <div v-if="!isMobile" class="uni-title" @click="router.push(isAdmin? '/admin/members/dashboard' : '/members/dashboard')">
-      <img :src="logo" @click="moveToMain" />
+      <img :src="logo" />
       <div class="uni-title-name">
         <h1>그린대학교</h1>
         <span>{{ isAdmin? '학사 관리 시스템' : '종합 정보 시스템' }}</span>
-      </div>      
+      </div>
     </div>
     <div v-if="isMobile">
       <h1>그린대학교 전자출결 시스템</h1>
@@ -137,28 +163,51 @@ watch(() => route.path, () => {
         </button>
       </div>
     </div>
+
     <section class="logout">
       <a @click.prevent="doLogOut" class="pointer"><font-awesome-icon icon="fa-solid fa-right-from-bracket" /> 로그아웃</a>
-    </section>    
+    </section>
+
     <nav v-if="!isMobile">
-      <div v-for="menu in menus" :key="menu.title" class="group">
-        <div class="group-title d-flex jc-space-b ai-center" @click="toggleMenu(menu)"
-          :class="{ 'active': menu.isOpen }">
-          <span>{{ menu.title }}</span>
+      <div v-for="section in menus" :key="section.sectionTitle" class="nav-section">
+        <p class="section-label">{{ section.sectionTitle }}</p>
 
-          <span class="arrow">
-            <font-awesome-icon :icon="menu.isOpen ? ['fas', 'angle-up'] : ['fas', 'angle-down']" />
-          </span>
-        </div>
+        <div v-for="group in section.groups" :key="group.title" class="group">
 
-        <div v-show="menu.isOpen" class="sub-menu">
-          <router-link :to="sub.path" v-for="sub in menu.subMenus" :key="sub.title"
-            :class="{ active: sub.path === activePath, plan: sub.planTitle }">
-            <span>{{ sub.navTitle || sub.title }}</span>
-            <span v-if="sub.planTitle">
-              <font-awesome-icon icon="fa-solid fa-check-double" />
-            </span>
+          <!-- 단일 메뉴: accordion 없이 router-link 직접 렌더 -->
+          <router-link
+            v-if="group.isSingle"
+            :to="group.path"
+            class="group-title single"
+            :class="{ active: group.path === activePath }">
+            <span>{{ group.title }}</span>
           </router-link>
+
+          <!-- 복수 메뉴: accordion -->
+          <template v-else>
+            <div class="group-title d-flex jc-space-b ai-center"
+              @click="toggleMenu(group)"
+              :class="{ active: group.isOpen }">
+              <span>{{ group.title }}</span>
+              <span class="arrow">
+                <font-awesome-icon :icon="group.isOpen ? ['fas', 'angle-up'] : ['fas', 'angle-down']" />
+              </span>
+            </div>
+
+            <div v-show="group.isOpen" class="sub-menu">
+              <router-link
+                v-for="sub in group.subMenus"
+                :key="sub.title"
+                :to="sub.path"
+                :class="{ active: sub.path === activePath, plan: sub.planTitle }">
+                <span>{{ sub.navTitle || sub.title }}</span>
+                <span v-if="sub.planTitle">
+                  <font-awesome-icon icon="fa-solid fa-check-double" />
+                </span>
+              </router-link>
+            </div>
+          </template>
+
         </div>
       </div>
     </nav>
@@ -180,7 +229,7 @@ watch(() => route.path, () => {
 }
 .login-info {
   padding: 15px; border-radius: 10px; background: linear-gradient(140deg, $green-600 0%, $green-700 100%); color: #fff; position: relative;
-  .name { font-weight: 700;font-size: 1.4em; 
+  .name { font-weight: 700;font-size: 1.4em;
     .role{font-size:.8em;opacity: .8;font-weight: normal; }
   }
   &-detail { display: flex; font-size: 0.9em; gap: 4px; flex-wrap: wrap;
@@ -197,28 +246,40 @@ watch(() => route.path, () => {
   }
 }
 nav {
-  display: flex; flex-direction: column; gap: 5px;
-  .group { display: flex; flex-direction: column; gap: 5px; }
+  display: flex; flex-direction: column; gap: 2px;
+
+  .nav-section {
+    display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px;
+  }
+  .section-label {
+    font-size: 0.75em; font-weight: 600; opacity: 0.45; text-transform: uppercase;
+    letter-spacing: 0.05em; padding: 4px 10px 2px; margin: 0;
+  }
+  .group { display: flex; flex-direction: column; gap: 2px; }
   .group-title {
     padding: 5px 7px 5px 10px; cursor: pointer; height: 40px; font-weight: 500; border-radius: 5px;
-    &:hover{background: $green-50;}
+    text-decoration: none; color: inherit; display: flex; align-items: center;
+    &:hover { background: $green-50; }
     &.active {
-      background-color: $green-500;   font-weight: 500;
+      background-color: $green-500; font-weight: 500;
       span { color: #fff; opacity: 1; }
-      }    
-    svg {font-size: .8em;}
     }
+    // 단일 메뉴 active (router-link)
+    &.single.active { background-color: $green-500;
+      span { color: #fff; }
+    }
+    svg { font-size: .8em; }
+  }
   .sub-menu { border-radius: 5px; overflow: hidden; background: $default-bg;
-    a { text-decoration: none;  display: flex;  justify-content: space-between;  padding: 10px;color: $font-color-light; 
+    a { text-decoration: none; display: flex; justify-content: space-between; padding: 10px; color: $font-color-light;
       &:hover { color: $font-color }
-      &.active { background-color: var(--hover-bg-color); color: var(--main-color);font-weight: bold;}
-      &.plan { opacity: .6;}
+      &.active { background-color: var(--hover-bg-color); color: var(--main-color); font-weight: bold; }
+      &.plan { opacity: .6; }
     }
-    &.active {display: block; }
-    }
+  }
 }
 .logout{ margin:10px 0; text-align: center;font-size: .9em;opacity: .5;font-weight: 500;
-  a{ border: 1px solid #ccc;display: block;padding: 5px;border-radius: 5px;} 
+  a{ border: 1px solid #ccc;display: block;padding: 5px;border-radius: 5px;}
   &:hover{opacity: 1;}
 }
 

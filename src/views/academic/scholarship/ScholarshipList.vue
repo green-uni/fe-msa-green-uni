@@ -1,28 +1,20 @@
 <script setup>
-import { ref, computed, reactive, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import scholarshipService from '@/services/scholarshipService'
 import DataTable from '@/components/common/DataTable.vue'
 import Pagination from '@/components/common/Pagination.vue'
+import FilterBar from '@/components/common/FilterBar.vue'
 
 const scholarships = ref([])
 const isLoading = ref(false)
 const currentPage = ref(1)   // Pagination 컴포넌트용 (1-based)
 const totalElements = ref(0)
-const pageSize = 10          // 10개씩 페이징
+const pageSize = ref(10)     // FilterBar v-model 연동
 
-// 화면 상단의 임시 입력 필터값 (초기값은 비워두어 입력 유도)
-const filterInput = reactive({
-  year: '',
-  semester: '',
-  scholarshipType: ''
-})
-
-// 💡 [변경] 실제 데이터 필터링에 적용될 확정 검색 조건 객체
-// 초기값을 빈 값(null/empty)으로 두어 처음에는 필터 없이 전체가 나오도록 합니다.
-const searchParams = reactive({
-  year: null,
-  semester: null
-})
+// 💡 실시간 필터링을 위한 단일 ref 정의 (참고 스타일 반영)
+const selectedYear = ref('')
+const selectedSemester = ref('')
+const selectedType = ref('')
 
 // 백엔드 원본 데이터에 가상 필드(parsedYear, parsedSemester) 결합
 const processedScholarships = computed(() => {
@@ -42,29 +34,31 @@ const processedScholarships = computed(() => {
   })
 })
 
-// [실시간 필터링] 
+// 💡 데이터에서 연도 추출 함수
+const yearOf = (item) => item.parsedYear ? String(item.parsedYear) : ''
+
+// 💡 1. 실제 가공된 데이터 리스트에 존재하는 연도만 추출하여 내림차순 정렬
+const yearOptions = computed(() =>
+  [...new Set(processedScholarships.value.map(yearOf).filter(Boolean))].sort().reverse()
+)
+
+// 💡 2. 필터 조건 중 하나라도 선택되어 있으면 초기화 버튼 활성화
+const hasSearchFilter = computed(() => !!selectedYear.value || !!selectedSemester.value || !!selectedType.value)
+
+// 💡 3. 드롭다운 선택 시 즉시 반영되는 실시간 필터링
 const filteredScholarships = computed(() => {
   return processedScholarships.value.filter(item => {
-    // 1. 조회 버튼을 눌러 연도를 지정했을 때만 필터링 (값이 없으면 통과)
-    if (searchParams.year && Number(item.parsedYear) !== Number(searchParams.year)) return false
+    // 1. 연도 필터링
+    if (selectedYear.value && yearOf(item) !== selectedYear.value) return false
     
-    // 2. 조회 버튼을 눌러 학기를 지정했을 때만 필터링 (값이 없으면 통과)
-    if (searchParams.semester && Number(item.parsedSemester) !== Number(searchParams.semester)) return false
+    // 2. 학기 필터링 (타입 통일을 위해 문자열 비교)
+    if (selectedSemester.value && String(item.parsedSemester) !== selectedSemester.value) return false
     
-    // 3. 장학금 유형 필터링 (선택 시 즉시 반영)
-    if (filterInput.scholarshipType && item.scholarshipType !== filterInput.scholarshipType) return false
+    // 3. 장학금 유형 필터링
+    if (selectedType.value && item.scholarshipType !== selectedType.value) return false
     
     return true
   })
-})
-
-// 💡 [변경] 전체보기 상태도 지원하므로 유효성 검사 완화 (연도만 있거나, 둘 다 없어도 조회 가능하게 하거나 취향껏 조절)
-// 여기서는 연도와 학기가 '입력 중일 때' 버튼이 활성화되도록 하거나, 언제든 조회 가능하게 엽니다.
-const isFilterValid = computed(() => {
-  // 연도와 학기를 모두 입력했거나, 혹은 아예 둘 다 비워서 '전체 조회' 하거나 둘 다 허용
-  if (!filterInput.year && !filterInput.semester) return true
-  if (filterInput.year && filterInput.semester) return true
-  return false // 하나만 입력했을 때는 버튼 비활성화
 })
 
 // 해당 조건 장학금 합계 금액 계산
@@ -78,28 +72,23 @@ const totalAmountFormatted = computed(() => {
 })
 
 // 맥스 페이지 계산
-const maxPage = computed(() => Math.ceil(totalElements.value / pageSize) || 1)
+const maxPage = computed(() => Math.ceil(totalElements.value / pageSize.value) || 1)
 
-// '조회' 버튼 클릭 또는 엔터 키 입력 시 호출
-function onSearch() {
-  // 사용자가 입력한 값을 검색 기준 파라미터로 확정
-  searchParams.year = filterInput.year ? Number(filterInput.year) : null
-  searchParams.semester = filterInput.semester ? Number(filterInput.semester) : null
-  
+// 💡 4. 필터 초기화 함수
+const resetFilter = () => {
+  selectedYear.value = ''
+  selectedSemester.value = ''
+  selectedType.value = ''
   currentPage.value = 1
-  fetchData()
 }
 
-// 엔터키 입력 지원
-const keydown = (e) => { if (e.key === 'Enter') onSearch() }
-
-// 데이터 요청 함수 (인자 버그가 없도록 순수하게 page와 size만 전달)
+// 데이터 요청 함수
 async function fetchData() {
   isLoading.value = true
   try {
     const { data } = await scholarshipService.getMyScholarships(
       currentPage.value - 1, 
-      pageSize
+      pageSize.value
     )
     scholarships.value = data.content ?? []
     totalElements.value = data.totalElements ?? 0
@@ -112,6 +101,12 @@ async function fetchData() {
   }
 }
 
+// 페이지 사이즈 변경 시 데이터를 새로 받아옴
+function onPageSizeChange() {
+  currentPage.value = 1
+  fetchData()
+}
+
 function goPage(page) {
   currentPage.value = page
   fetchData()
@@ -121,6 +116,7 @@ function formatAmount(amount) {
   return Number(amount).toLocaleString('ko-KR')
 }
 
+// 날짜 포맷팅 함수
 function formatDate(dateStr) {
   if (!dateStr) return '-'
   return new Date(dateStr).toLocaleDateString('ko-KR', {
@@ -128,6 +124,7 @@ function formatDate(dateStr) {
   })
 }
 
+// 배지 디자인 매핑
 const BADGE_MAP = {
   성적: 'badge--grade',
   편입학: 'badge--transfer',
@@ -138,76 +135,66 @@ function badgeClass(type) {
   return BADGE_MAP[type] ?? 'badge--default'
 }
 
-// 💡 [핵심 변경] 컴포넌트가 마운트되자마자 백엔드에서 전체 데이터를 곧바로 당겨옵니다.
 onMounted(fetchData)
 </script>
 
 <template>
-  <div class="container">
-    <div class="data-header">
-      <h2 class="page-title"><span class="title-icon">&#9658;</span> 내 장학금 내역</h2>
-      <nav class="breadcrumb">장학금 &gt; 내 장학금 조회</nav>
-    </div>
-
-    <div class="filter-header">
-      <div class="filter-group">
-        <div class="filter-item">
-          <div class="input-label">연도</div>
-          <div class="input-content">
-            <input
-              v-model.number="filterInput.year"
-              type="number"
-              placeholder="전체"
-              min="2000"
-              max="2099"
-              class="year-input-box"
-              @keydown="keydown"
-            />
-          </div>
+  <div>
+    <FilterBar 
+      v-model:pageSize="pageSize"
+      :hasFilter="hasSearchFilter" 
+      :show-search="false"
+      :show-count="false"
+      :count="totalElements"
+      :showPageSize="false"
+      :pageSizeOptions="[10, 20, 30, 50]"
+      @reset="resetFilter"
+      @pageSizeChange="onPageSizeChange"
+    >
+      <div class="filter-item">
+        <div class="input-label">신청 연도</div>
+        <div class="input-content">
+          <select v-model="selectedYear">
+            <option value="">전체</option>
+            <option v-for="y in yearOptions" :key="y" :value="y">{{ y }}년</option>
+          </select>
         </div>
-
-        <div class="filter-item">
-          <div class="input-label">학기</div>
-          <div class="input-content">
-            <select v-model="filterInput.semester">
-              <option value="">전체</option>
-              <option :value="1">1학기</option>
-              <option :value="2">2학기</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="filter-item">
-          <div class="input-label">장학금 유형</div>
-          <div class="input-content">
-            <select v-model="filterInput.scholarshipType">
-              <option value="">전체</option>
-              <option value="성적">성적</option>
-              <option value="편입학">편입학</option>
-              <option value="보훈">보훈</option>
-              <option value="다자녀">다자녀</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="search-area" style="margin-left: auto;">
-          <button
-            class="btn search-btn"
-            @click="onSearch"
-          >
-            <font-awesome-icon icon="fa-solid fa-magnifying-glass" />조회
-          </button>
-        </div>        
       </div>
-    </div>
+
+      <div class="filter-item">
+        <div class="input-label">학기</div>
+        <div class="input-content">
+          <select v-model="selectedSemester">
+            <option value="">전체</option>
+            <option value="1">1학기</option>
+            <option value="2">2학기</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-item">
+        <div class="input-label">유형</div>
+        <div class="input-content">
+          <select v-model="selectedType">
+            <option value="">전체</option>
+            <option value="성적">성적</option>
+            <option value="편입학">편입학</option>
+            <option value="보훈">보훈</option>
+            <option value="다자녀">다자녀</option>
+          </select>
+        </div>
+      </div>
+    </FilterBar>
 
     <div class="summary-bar">
-      <p>조회 결과: {{ filteredScholarships.length }}건 (총 {{ totalElements }}건)</p>
+      <div class="result-count">
+        조회 결과: <strong>{{ filteredScholarships.length }}</strong>건
+      </div>
       <p>해당 합계: <strong>{{ totalAmountFormatted }}</strong>원</p>
     </div>
 
     <DataTable
-      :columns="['연도', '학기', '장학금 유형', '장학금액', '지급일']"
+      :columns="['연도', '학기', '유형', '금액', '지급일']"
       :rows="filteredScholarships"
       :isLoading="isLoading"
       gridCols="100px 80px 1.5fr 1fr 1fr"
@@ -219,15 +206,15 @@ onMounted(fetchData)
           v-for="(item, idx) in filteredScholarships"
           :key="idx"
         >
-          <div class="mono">{{ item.parsedYear ? `${item.parsedYear}년` : '-' }}</div>
+          <div>{{ item.parsedYear ? `${item.parsedYear}년` : '-' }}</div>
           <div>{{ item.parsedSemester ? `${item.parsedSemester}학기` : '-' }}</div>
           <div>
             <span class="badge" :class="badgeClass(item.scholarshipType)">
               {{ item.scholarshipType }}
             </span>
           </div>
-          <div class="amount">{{ formatAmount(item.scholarshipAmount) }}원</div>
-          <div class="date">{{ formatDate(item.createdAt) }}</div>
+          <div>{{ formatAmount(item.scholarshipAmount) }}원</div>
+          <div>{{ formatDate(item.createdAt) }}</div>
         </article>
       </template>
     </DataTable>
@@ -242,45 +229,35 @@ onMounted(fetchData)
 </template>
 
 <style scoped lang="scss">
-.page-title {
-  font-size: var(--text-xl);
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  .title-icon { color: var(--main-color); font-size: 0.8em; }
-}
-.breadcrumb { font-size: var(--text-sm); color: var(--font-color-light); }
-
-.filter-header {
-  width: 100%;
-}
-
-.filter-group {
-  display: flex;
-  align-items: center; /* 요소들의 세로 중앙 정렬 */
-  gap: 16px;           /* 연도와 학기 사이의 간격 */
-  width: 100%;
-}
-
-/* 검색 영역 안의 input과 버튼도 나란히 배치되도록 수정 */
-.search-area {
-  display: flex;
-  gap: 8px;            /* input과 조회 버튼 사이의 간격 */
-}
-
 .summary-bar {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   font-size: var(--text-sm);
   color: var(--font-color-light);
-  margin-bottom: 8px;
-  strong { color: var(--main-color); font-weight: 700; }
+  margin-bottom: 12px;
+  strong { color: #16a34a; font-weight: 700; }
 }
 
-:deep(.tbl-row) .mono   { font-family: monospace; color: var(--font-color-light); }
-:deep(.tbl-row) .amount { font-weight: 600; }
-:deep(.tbl-row) .date   { color: var(--font-color-light); }
+.filter-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  
+  .input-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #333;
+  }
+  
+  select {
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    outline: none;
+    font-size: 0.9rem;
+  }
+}
 
 .badge {
   display: inline-block;

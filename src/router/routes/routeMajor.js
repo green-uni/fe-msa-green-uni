@@ -7,6 +7,7 @@ export const adminMajorRoutes = [
     meta: {
       title: '학과 조회',
       groupTitle: '학과 관리',
+      navSection: '학사 관리',
       auth: ['ADMIN'],
     },
   },
@@ -16,6 +17,7 @@ export const adminMajorRoutes = [
     meta: {
       title: '학과 개설',
       groupTitle: '학과 관리',
+      navSection: '학사 관리',
       auth: ['ADMIN'],
     },
   },
@@ -25,6 +27,7 @@ export const adminMajorRoutes = [
     meta: {
       title: '학과 상세조회',
       groupTitle: '학과 관리',
+      navSection: '학사 관리',
       showInNav: false,
       activeMenu: '/admin/majors',
       auth: ['ADMIN'],
@@ -36,6 +39,7 @@ export const adminMajorRoutes = [
     meta: {
       title: '학과 정보수정',
       groupTitle: '학과 관리',
+      navSection: '학사 관리',
       showInNav: false,
       activeMenu: '/admin/majors',
       auth: ['ADMIN'],

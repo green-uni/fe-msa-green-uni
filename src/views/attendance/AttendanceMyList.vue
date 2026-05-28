@@ -1,111 +1,48 @@
-<template>
-  <div class="my-attend-page">
-    <!-- [추가] PWA 모바일(/student/attendances) 진입 시 홈으로 돌아가기 버튼 -->
-    <button v-if="isMobilePwa" class="btn-back" @click="router.push('/student/attendances/home')">
-      ← 홈으로 돌아가기
-    </button>
-    <h2 class="page-title">내 출석 현황</h2>
-
-    <!-- 로딩 -->
-    <div v-if="isLoading" class="hint">출석 정보를 불러오는 중...</div>
-
-    <!-- 데이터 없음 -->
-    <div v-else-if="lectures.length === 0" class="hint">수강 중인 강의의 출석 기록이 없습니다.</div>
-
-    <!-- 강의별 출석 카드 -->
-    <div v-else class="lecture-list">
-      <div v-for="lec in lectures" :key="lec.lectureId" class="lecture-card">
-
-        <!-- 강의 헤더 -->
-        <div class="card-header" @click="toggleDetail(lec.lectureId)">
-          <div class="header-left">
-            <span class="lec-name">{{ lec.lectureName }}</span>
-            <!-- 출석률 계산: (출석+지각) / 전체 -->
-            <span class="attend-rate" :class="rateClass(lec)">
-              출석률 {{ attendRate(lec) }}%
-            </span>
-          </div>
-          <span class="toggle-icon">{{ openIds.has(lec.lectureId) ? '▲' : '▼' }}</span>
-        </div>
-
-        <!-- 요약 뱃지 -->
-        <div class="summary-row">
-          <span class="summary-chip attend">출석 {{ lec.attendCount }}</span>
-          <span class="summary-chip late">지각 {{ lec.lateCount }}</span>
-          <span class="summary-chip early">조퇴 {{ lec.earlyLeaveCount }}</span>
-          <span class="summary-chip absent">결석 {{ lec.absentCount }}</span>
-          <span class="summary-chip total">총 {{ lec.totalCount }}회</span>
-        </div>
-
-        <!-- 세부 이력 (토글) -->
-        <div v-if="openIds.has(lec.lectureId)" class="detail-list">
-          <div
-            v-for="(d, idx) in lec.details"
-            :key="idx"
-            class="detail-row"
-          >
-            <span class="detail-date">{{ d.attendDate }}</span>
-            <!-- [수정] status가 null인 CANCEL(휴강) 세션은 뱃지 미표시 -->
-            <span v-if="d.status" :class="['status-badge', statusClass(d.status)]">
-              {{ statusLabel(d.status) }}
-            </span>
-            <!-- [추가] QR 스캔 시각 — ATTEND·LATE 만 표시 -->
-            <span v-if="d.attendedAt" class="detail-time">{{ d.attendedAt }}</span>
-            <span v-if="d.reason" class="detail-reason">{{ d.reason }}</span>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import attendanceService from '@/services/attendanceService.js'
 
 const router = useRouter()
-const route  = useRoute()
 
-// [추가] /student/attendances/** 경로면 출석 전용 PWA 진입 → 뒤로가기 버튼 표시
-const isMobilePwa = computed(() => route.path.startsWith('/student/attendances'))
+// ── 상태값 ────────────────────────────────────────────
+const allLectures  = ref([])       // API 전체 데이터
+const selectedYear = ref(null)
+const selectedSemester = ref(null)
+const activeLecture = ref(null)    // 상세보기 대상 (null이면 목록 화면)
+const isLoading = ref(false)
 
-// ── 상태 ────────────────────────────────────────────────────────────────────
-const lectures  = ref([])
-const isLoading = ref(true)
-
-// 펼쳐진 강의 ID 목록 (Set으로 토글)
-const openIds = ref(new Set())
-
-// ── 데이터 로드 ──────────────────────────────────────────────────────────────
-onMounted(async () => {
-  try {
-    const res = await attendanceService.getMyAttendance()
-    // res = ResultResponse → res.data = List<AttendStuListRes>
-    lectures.value = res.data ?? res
-  } catch {
-    // 에러는 httpRequester 인터셉터가 모달로 처리
-  } finally {
-    isLoading.value = false
+// ── 학기 옵션 (실제 데이터 기반 — 성적 페이지와 동일 패턴) ──
+// Set을 쓰는 이유: 여러 강의가 같은 학기여도 탭은 1개만 나와야 해서 중복 제거용
+const semesterOptions = computed(() => {
+  const seen = new Set()
+  const result = []
+  for (const lec of allLectures.value) {
+    const key = `${lec.lectureYear}-${lec.lectureSemester}`
+    if (!seen.has(key)) {
+      seen.add(key)
+      result.push({ year: lec.lectureYear, semester: lec.lectureSemester })
+    }
   }
+  return result.sort((a, b) => b.year - a.year || b.semester - a.semester)
 })
 
-// ── 세부 이력 토글 ────────────────────────────────────────────────────────────
-function toggleDetail(lectureId) {
-  const s = new Set(openIds.value)
-  s.has(lectureId) ? s.delete(lectureId) : s.add(lectureId)
-  openIds.value = s
-}
+// ── 선택된 학기의 강의 목록 ───────────────────────────
+const filteredLectures = computed(() => {
+  if (!selectedYear.value || !selectedSemester.value) return []
+  return allLectures.value.filter(
+    lec => lec.lectureYear === selectedYear.value &&
+           lec.lectureSemester === selectedSemester.value
+  )
+})
 
-// ── 유틸 ─────────────────────────────────────────────────────────────────────
-// 출석률: (출석 + 지각) / 전체 × 100 (지각도 출석으로 인정)
+// ── 유틸 함수 ─────────────────────────────────────────
+// 출석률: 출석+지각을 출석으로 인정 (기존 로직 유지)
 function attendRate(lec) {
   if (!lec.totalCount) return 0
   return Math.round(((lec.attendCount + lec.lateCount) / lec.totalCount) * 100)
 }
 
-// 출석률에 따른 색 클래스
 function rateClass(lec) {
   const rate = attendRate(lec)
   if (rate >= 90) return 'rate-good'
@@ -120,69 +57,242 @@ function statusLabel(code) {
 function statusClass(code) {
   return { ATTEND: 'attend', ABSENT: 'absent', LATE: 'late', EARLY_LEAVE: 'early-leave' }[code] ?? ''
 }
-</script>
 
-/* [수정] 1차 프로젝트 공통 디자인 토큰(CSS 변수)으로 통일 */
-<style scoped lang="scss">
-.my-attend-page {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 28px var(--size-df);
+// ── 이벤트 핸들러 ─────────────────────────────────────
+function selectSemester(option) {
+  selectedYear.value = option.year
+  selectedSemester.value = option.semester
+  activeLecture.value = null  // 상세보기 닫기
 }
 
-/* PWA 모바일 뒤로가기 버튼 */
-.btn-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 16px;
-  padding: 8px 14px;
-  background: var(--hover-bg-color);
-  color: var(--main-color);
-  border: 1px solid var(--main-color);
-  border-radius: var(--bdrs-sm);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  cursor: pointer;
-  &:hover { background: var(--main-color); color: #fff; }
+// 강의 클릭 → 상세보기
+function openDetail(lec) {
+  activeLecture.value = lec
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+// 뒤로가기 → 강의 목록
+function goBack() {
+  activeLecture.value = null
+}
+
+// ── API 호출 ──────────────────────────────────────────
+async function fetchMyAttendance() {
+  isLoading.value = true
+  try {
+    const res = await attendanceService.getMyAttendance()
+    allLectures.value = res.data ?? res
+
+    // 가장 최신 학기 자동 선택
+    if (semesterOptions.value.length > 0) {
+      const latest = semesterOptions.value[0]
+      selectedYear.value = latest.year
+      selectedSemester.value = latest.semester
+    }
+  } catch (e) {
+    console.error(e)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// ── onMounted (항상 마지막) ───────────────────────────
+onMounted(async () => {
+  await fetchMyAttendance()
+})
+</script>
+
+<template>
+  <div class="my-attend-page">
+
+    <!-- 로딩 -->
+    <div v-if="isLoading" class="hint">출석 정보를 불러오는 중...</div>
+
+    <!-- 데이터 없음 -->
+    <div v-else-if="allLectures.length === 0" class="hint">
+      수강 중인 강의의 출석 기록이 없습니다.
+    </div>
+
+    <template v-else>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- 상세보기 (activeLecture 있을 때)           -->
+      <!-- ══════════════════════════════════════════ -->
+      <div v-if="activeLecture">
+
+        <!-- 헤더 -->
+        <div class="detail-header">
+          <button class="btn-back" @click="goBack">← 목록으로</button>
+          <h2 class="detail-title">출결 조회</h2>
+        </div>
+
+        <!-- 강의 정보 박스 -->
+        <div class="info-card">
+          <div class="info-row">
+            <span class="info-label">과 목</span>
+            <span class="info-value">{{ activeLecture.lectureName }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">교 수</span>
+            <span class="info-value">{{ activeLecture.professorName }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">일 시</span>
+            <span class="info-value">{{ activeLecture.scheduleInfo }}</span>
+          </div>
+        </div>
+
+        <!-- 출결 현황 요약 -->
+        <div class="summary-line">
+          출석 / 지각 / 결석 :
+          <strong>{{ activeLecture.attendCount }}</strong> /
+          <strong>{{ activeLecture.lateCount }}</strong> /
+          <strong>{{ activeLecture.absentCount }}</strong>
+        </div>
+
+        <!-- 출결 기록 표 -->
+        <div class="record-table-wrap">
+          <table class="record-table">
+            <thead>
+              <tr>
+                <th class="col-no">번호</th>
+                <th class="col-date">강의날짜(요일)</th>
+                <th class="col-time">출결일시</th>
+                <th class="col-status">출결</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="(d, idx) in activeLecture.details"
+                :key="idx"
+              >
+                <td class="col-no">{{ idx + 1 }}</td>
+                <td class="col-date">{{ d.attendDate }}</td>
+                <td class="col-time">{{ d.attendedAt ?? '-' }}</td>
+                <td class="col-status">
+                  <span v-if="d.status" :class="['status-badge', statusClass(d.status)]">
+                    {{ statusLabel(d.status) }}
+                  </span>
+                  <span v-else class="status-badge absent">결석</span>
+                </td>
+              </tr>
+              <tr v-if="!activeLecture.details?.length">
+                <td colspan="4" class="empty-row">출석 기록이 없습니다.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- 목록보기 (activeLecture 없을 때)           -->
+      <!-- ══════════════════════════════════════════ -->
+      <div v-else>
+        <h2 class="page-title">내 출석 현황</h2>
+
+        <!-- 학기 탭 -->
+        <div class="semester-tabs">
+          <button
+            v-for="opt in semesterOptions"
+            :key="`${opt.year}-${opt.semester}`"
+            class="semester-tab"
+            :class="{ active: opt.year === selectedYear && opt.semester === selectedSemester }"
+            @click="selectSemester(opt)"
+          >
+            {{ opt.year }}년 {{ opt.semester }}학기
+          </button>
+        </div>
+
+        <!-- 강의 목록 -->
+        <div class="lecture-list">
+          <div
+            v-for="lec in filteredLectures"
+            :key="lec.lectureId"
+            class="lecture-card"
+            @click="openDetail(lec)"
+          >
+            <div class="card-header">
+              <span class="lec-name">{{ lec.lectureName }}</span>
+              <span class="arrow-icon">›</span>
+            </div>
+          </div>
+
+          <div v-if="filteredLectures.length === 0" class="hint">
+            해당 학기의 강의가 없습니다.
+          </div>
+        </div>
+      </div>
+
+    </template>
+  </div>
+</template>
+
+<style scoped lang="scss">
+.my-attend-page {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 20px var(--size-df);
 }
 
 .page-title {
   font-size: var(--text-xl);
   font-weight: 700;
   color: var(--font-color);
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .hint {
   text-align: center;
-  padding: 60px 0;
+  padding: 40px 0;
   font-size: var(--text-sm);
   color: var(--font-color-light);
 }
 
-/* ── 강의 카드 ── */
-.lecture-list { display: flex; flex-direction: column; gap: 12px; }
+/* ── 학기 탭 ── */
+.semester-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;   /* 탭이 많아져도 자동으로 다음 줄로 */
+  margin-bottom: 16px;
+}
+
+.semester-tab {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--line-color);
+  background: #fff;
+  font-size: var(--text-sm);
+  color: var(--font-color-light);
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &.active {
+    background: var(--main-color);
+    color: #fff;
+    border-color: transparent;
+  }
+}
+
+/* ── 강의 목록 ── */
+.lecture-list { display: flex; flex-direction: column; gap: 10px; }
 
 .lecture-card {
   background: #fff;
   border: 1px solid var(--line-color);
   border-radius: var(--bdrs-df);
   overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0,0,0,.04);
+  cursor: pointer;
+
+  &:active { background: var(--hover-bg-color); }
 }
 
-/* 카드 헤더 */
 .card-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 14px 20px;
-  cursor: pointer;
+  align-items: center;
+  padding: 14px 16px;
   background: var(--hover-bg-color);
   border-bottom: 1px solid var(--line-color);
-  user-select: none;
-  &:hover { background: #eaf5ef; }
 }
 
 .header-left { display: flex; flex-direction: column; gap: 4px; }
@@ -201,15 +311,64 @@ function statusClass(code) {
   &.rate-bad  { color: #c62828; }
 }
 
-.toggle-icon { font-size: var(--text-sm); color: var(--font-color-light); }
+.arrow-icon {
+  font-size: 22px;
+  color: var(--font-color-light);
+}
 
-/* 요약 뱃지 */
+/* ── 상세보기 헤더 ── */
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.btn-back {
+  background: none;
+  border: none;
+  font-size: var(--text-sm);
+  color: var(--main-color);
+  cursor: pointer;
+  padding: 0;
+  white-space: nowrap;
+}
+
+.detail-title {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  margin: 0;
+  color: var(--font-color);
+}
+
+/* ── 상세보기 요약 박스 ── */
+.summary-box {
+  background: var(--hover-bg-color);
+  border-radius: var(--bdrs-df);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+
+.rate-line {
+  font-size: var(--text-sm);
+  color: var(--font-color-light);
+  margin-bottom: 10px;
+
+  span {
+    font-weight: 700;
+    margin-left: 6px;
+    &.rate-good { color: #2e7d32; }
+    &.rate-warn { color: #f57f17; }
+    &.rate-bad  { color: #c62828; }
+  }
+}
+
+/* ── 요약 칩 (목록·상세 공통) ── */
 .summary-row {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
-  padding: 10px 20px;
-  border-bottom: 1px solid var(--line-color);
+  padding: 10px 16px;
 }
 
 .summary-chip {
@@ -217,47 +376,48 @@ function statusClass(code) {
   border-radius: 20px;
   font-size: var(--text-xs);
   font-weight: 700;
-  &.attend  { background: #e6f9ee; color: #2e7d32; }
-  &.late    { background: #fff8e1; color: #f57f17; }
-  &.early   { background: #fff3e0; color: #e65100; }
-  &.absent  { background: #fdecea; color: #c62828; }
-  &.total   { background: var(--hover-bg-color); color: var(--main-color); }
+  &.attend { background: #e6f9ee; color: #2e7d32; }
+  &.late   { background: #fff8e1; color: #f57f17; }
+  &.early  { background: #fff3e0; color: #e65100; }
+  &.absent { background: #fdecea; color: #c62828; }
+  &.total  { background: var(--hover-bg-color); color: var(--main-color); }
 }
 
-/* 세부 이력 */
-.detail-list { display: flex; flex-direction: column; padding: 4px 0; }
+/* ── 날짜별 기록 ── */
+.record-list {
+  border: 1px solid var(--line-color);
+  border-radius: var(--bdrs-df);
+  overflow: hidden;
+}
 
-.detail-row {
+.record-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 9px 20px;
+  gap: 10px;
+  padding: 11px 16px;
   border-bottom: 1px solid var(--line-color);
   &:last-child { border-bottom: none; }
-  &:hover { background: var(--default-hover-bg-color); }
+  &:hover { background: var(--hover-bg-color); }
 }
 
-.detail-date {
+.record-date {
   font-size: var(--text-sm);
   color: var(--font-color);
-  /* [수정] (휴강)·(보강) 레이블 포함 시 더 길어지므로 min-width 확장 */
-  min-width: 175px;
+  min-width: 160px; /* (휴강)·(보강) 레이블 포함 시 여유 확보 */
 }
 
-/* [추가] QR 스캔 시각 표시 */
-.detail-time {
+.record-time {
   font-size: var(--text-xs);
   color: var(--main-color);
   font-weight: 600;
-  white-space: nowrap;
 }
 
-.detail-reason {
+.record-reason {
   font-size: var(--text-xs);
   color: var(--font-color-light);
 }
 
-/* 상태 뱃지 */
+/* ── 상태 뱃지 ── */
 .status-badge {
   display: inline-block;
   padding: 2px 10px;
@@ -268,5 +428,90 @@ function statusClass(code) {
   &.absent      { background: #fdecea; color: #c62828; }
   &.late        { background: #fff8e1; color: #f57f17; }
   &.early-leave { background: #fff3e0; color: #e65100; }
+}
+
+/* ── 강의 정보 카드 ── */
+.info-card {
+  background: var(--hover-bg-color);
+  border-radius: var(--bdrs-df);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.info-label {
+  font-size: var(--text-sm);
+  color: var(--font-color-light);
+  min-width: 40px;
+  white-space: nowrap;
+}
+
+.info-value {
+  font-size: var(--text-sm);
+  color: var(--font-color);
+  font-weight: 600;
+}
+
+/* ── 출결 요약 한 줄 ── */
+.summary-line {
+  font-size: var(--text-sm);
+  color: var(--font-color-light);
+  margin-bottom: 12px;
+
+  strong {
+    color: var(--font-color);
+    font-weight: 700;
+  }
+}
+
+/* ── 출결 기록 표 ── */
+.record-table-wrap {
+  border: 1px solid var(--line-color);
+  border-radius: var(--bdrs-df);
+  overflow: hidden;
+}
+
+.record-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-xs);
+
+  thead tr {
+    background: var(--hover-bg-color);
+  }
+
+  th, td {
+    padding: 10px 8px;
+    text-align: center;
+    border-bottom: 1px solid var(--line-color);
+    color: var(--font-color);
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  tbody tr:hover td {
+    background: var(--hover-bg-color);
+  }
+}
+
+.col-no     { width: 36px; }
+.col-date   { text-align: left; padding-left: 12px !important; }
+.col-time   { width: 56px; color: var(--main-color); font-weight: 600; }
+.col-status { width: 60px; }
+
+.empty-row {
+  text-align: center;
+  color: var(--font-color-light);
+  padding: 24px 0 !important;
 }
 </style>

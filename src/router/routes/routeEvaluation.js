@@ -7,6 +7,7 @@ export const evaluationRoutes = [
     meta: {
       title: '나의 강의평가',
       groupTitle: '강의 관리',
+      navSection: '학사정보',
       auth: ['STUDENT', 'PROFESSOR'],
     },
   },

@@ -7,6 +7,7 @@ export const courseRoutes = [
         meta: {
             title: '수강신청',
             groupTitle: '수강 관리',
+            navSection: '학사정보',
             auth: ['STUDENT']
         }
     }

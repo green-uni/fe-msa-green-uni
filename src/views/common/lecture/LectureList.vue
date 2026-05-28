@@ -6,6 +6,7 @@ import DataTable from '@/components/common/DataTable.vue';
 import Pagination from '@/components/common/Pagination.vue';
 import SearchInput from '@/components/util/SearchInput.vue';
 import { useAuthStore } from '@/stores/authentication';
+import { BUILDING_LABEL } from '@/utils/constants';
 
 const authStore = useAuthStore();
 const route = useRoute();
@@ -28,9 +29,14 @@ const PAGE_SIZE = 10;
 
 const state = reactive({
   list: [],
+  currentPage: 1,
   totalCount: 0,
   isLoading: false,
-  currentPage: 1,
+});
+
+// ── 최대 페이지 ───────────────────────────────────
+const maxPage = computed(() => {
+  return Math.ceil(state.totalCount / PAGE_SIZE) || 1;
 });
 
 // 필터: 서버로 보낼 파라미터
@@ -66,14 +72,10 @@ const scheduleText = (schedules) => {
 const roomText = (schedules) => {
   if (!schedules || schedules.length === 0) return '-';
   // 강의실이 모두 같으면 하나만, 다르면 첫 번째만 표시
-  const rooms = [...new Set(schedules.map(s => `${s.building ?? ''} ${s.room ?? ''}`.trim()))];
+  const rooms = [...new Set(schedules.map(s => `${BUILDING_LABEL[s.building] ?? s.building ?? ''} ${s.room ?? ''}`.trim()))];
   return rooms.join(',\n');
 };
 
-// ── 최대 페이지 ───────────────────────────────────
-const maxPage = computed(() => {
-  return Math.ceil(state.totalCount / PAGE_SIZE) || 1;
-});
 
 // ── API 호출 ─────────────────────────────────────
 const fetchList = async () => {
@@ -188,12 +190,8 @@ watch(
 // 연도 옵션만 가져오는 함수
 const fetchYearOptions = async () => {
   try {
-    const res = await LectureService.getAllLectures({ 
-      page: 1, size: 9999, startIdx: 0 
-    });
-    const data = res.data || [];
-    const years = [...new Set(data.map(i => i.year).filter(Boolean))].sort((a, b) => b - a);
-    yearOptions.value = years;
+    const res = await LectureService.getLectureYears();
+    yearOptions.value = res ?? [];
   } catch (err) {
     console.error('연도 옵션 로드 실패:', err);
   }

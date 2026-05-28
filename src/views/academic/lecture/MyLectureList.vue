@@ -7,6 +7,7 @@ import { useRouter, useRoute } from 'vue-router';
 import DataTable from '@/components/common/DataTable.vue';
 import Pagination from '@/components/common/Pagination.vue';
 import SearchInput from '@/components/util/SearchInput.vue';
+import { APPROVAL_STATUS, BADGE_CLASS, BUILDING_LABEL } from '@/utils/constants';
 
 const route = useRoute();
 const router = useRouter();
@@ -61,7 +62,6 @@ const fetchPeriodStatus = async () => {
 // ── 탭 (교수만) ───────────────────────────────────
 const TABS = ['전체', '대기', '승인', '반려'];
 const STATUS_MAP = { '대기': 'PENDING', '승인': 'APPROVED', '반려': 'REJECTED' };
-const LABEL_MAP = { PENDING: '대기', APPROVED: '승인', REJECTED: '반려' };
 const activeTab = ref('전체');
 
 const onTabClick = (tab) => {
@@ -106,7 +106,7 @@ const scheduleText = (schedules) => {
 };
 const roomText = (schedules) => {
   if (!schedules?.length) return '-';
-  const rooms = [...new Set(schedules.map(s => `${s.building ?? ''} ${s.room ?? ''}`.trim()))];
+  const rooms = [...new Set(schedules.map(s => `${BUILDING_LABEL[s.building] ?? s.building ?? ''} ${s.room ?? ''}`.trim()))];
   return rooms.join(',\n');
 };
 
@@ -189,7 +189,7 @@ const syncFromQuery = (query) => {
   state.currentPage = query.page ? Number(query.page) : 1;
 
   // 탭 동기화
-  const tabLabel = LABEL_MAP[query.status] || '전체';
+  const tabLabel = APPROVAL_STATUS[query.status] || '전체';
   activeTab.value = tabLabel === '전체' ? '전체' : tabLabel;
 };
 
@@ -264,15 +264,13 @@ const fetchYearOptions = async () => {
   try {
     let res;
     if (isProfessor.value) {
-      res = await LectureService.getProfessorMyLectures({ page: 1, size: 100, startIdx: 0 });
+      res = await LectureService.getProfessorLectureYears();
     } else if (isStudent.value) {
-      res = await LectureService.getStudentMyLectures({ page: 1, size: 100, startIdx: 0 });
+      res = await LectureService.getStudentLectureYears();
     } else {
       return; // 관리자는 스킵
     }
-    const data = res.data || []; 
-    const years = [...new Set(data.map(i => i.year).filter(Boolean))].sort((a, b) => b - a);
-    yearOptions.value = years;
+    yearOptions.value = res.data ?? [];
   } catch (err) {
     console.error('연도 옵션 로드 실패:', err);
   }
@@ -344,15 +342,18 @@ onMounted(() => {
       </div>
     </div>
 
-    <div v-if="isStudent && periodMessage" class="period-notice">
+    <div v-if="isStudent && periodMessage" class="notice-card">
+      <font-awesome-icon icon="fa-solid fa-circle-exclamation" style="color: var(--main-color);" />
       {{ periodMessage }}
     </div>
 
-    <div class="data-header d-flex ai-center jc-space-b">
+    <div v-if="isStudent && modificationNotice" class="notice-card">
+      <font-awesome-icon icon="fa-solid fa-circle-info" style="color: var(--main-color);" />
+      {{ modificationNotice }}
+    </div>
+
+    <div class="data-header">
       전체: {{ state.totalCount }}건
-      <span v-if="isStudent && modificationNotice" class="modification-notice">
-        {{ modificationNotice }}
-      </span>
     </div>
 
     <DataTable
@@ -381,8 +382,8 @@ onMounted(() => {
         <template v-if="isProfessor">
           <div>{{ item.academicYear }}학년</div>
           <div>
-            <span :class="['status-badge', item.status?.toLowerCase()]">
-              {{ LABEL_MAP[item.status] || item.status }}
+            <span :class="['status-badge', BADGE_CLASS[item.status]]">
+              {{ APPROVAL_STATUS[item.status] || item.status }}
             </span>
           </div>
         </template>
@@ -407,18 +408,17 @@ onMounted(() => {
   text-align: center;
 }
 .filter-header .full { justify-content: space-between; width: 100%; }
-.period-notice {
-  background: #fff8e1;
-  border: 1px solid #ffe082;
+.notice-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: 1px solid #ddd;
   border-radius: 6px;
-  padding: 10px 16px;
-  color: #795548;
+  background: #fff;
+  color: #555;
   font-size: 0.9em;
   margin-bottom: 10px;
-}
-.modification-notice {
-  font-size: 0.85em;
-  color: #e67e22;
 }
 
 .status-badge {
@@ -430,7 +430,7 @@ onMounted(() => {
   font-size: 13px;
   font-weight: 700;
 }
-.status-badge.pending  { background: #fff3e0; color: #ef6c00; }
-.status-badge.rejected { background: #ffebee; color: #c62828; }
-.status-badge.approved { background: #eafdf6; color: #3e9e7e; }
+.status-badge.badge-pending  { background: #fff3e0; color: #ef6c00; }
+.status-badge.badge-rejected { background: #ffebee; color: #c62828; }
+.status-badge.badge-approved { background: #eafdf6; color: #3e9e7e; }
 </style>

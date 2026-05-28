@@ -8,6 +8,7 @@ export const scholarshipRoutes = [
     meta: {
       title: '내 장학금 조회',
       groupTitle: '장학금',
+      navSection: '나의 정보',
       auth: ['STUDENT'],
     },
   },
@@ -20,6 +21,7 @@ export const adminScholarshipRoutes = [
     meta: {
       title: '장학 수혜 학생 조회',
       groupTitle: '장학금 관리',
+      navSection: '재정 관리',
       auth: ['ADMIN'],
     },
   },

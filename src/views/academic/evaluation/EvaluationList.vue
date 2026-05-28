@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/authentication';
 import { useModalStore } from '@/stores/modal';
 import evaluationService from '@/services/evaluationService';
 import CardListDetail from '@/components/common/CardListDetail.vue';
+import Pagination from '@/components/common/Pagination.vue';
 
 const route = useRoute();
 const authStore = useAuthStore();
@@ -184,12 +185,16 @@ const getProfessorBadge = (item) => {
 const getBadge = (item) =>
   role.value === 'STUDENT' ? getStudentBadge(item) : getProfessorBadge(item);
 
+const goToPage = (page) => {
+  state.currentPage = page;
+  fetchList();
+};
+
 onMounted(fetchList);
 </script>
 
 <template>
   <div class="container">
-    <!-- 필터 -->
     <div class="filter-header">
       <div class="filter-group">
         <div class="filter-item">
@@ -222,7 +227,6 @@ onMounted(fetchList);
       empty-message="조회된 강의평가가 없습니다."
       @select="selectItem"
     >
-      <!-- 카드 -->
       <template #card="{ item }">
         <div class="card-left">
           <span class="lecture-name">{{ item.lectureName }}</span>
@@ -231,16 +235,12 @@ onMounted(fetchList);
         <span :class="['badge', getBadge(item).cls]">{{ getBadge(item).label }}</span>
       </template>
 
-      <!-- 상세 -->
       <template #detail>
-        <!-- 학생 패널 -->
         <template v-if="role === 'STUDENT' && selectedItem">
-          <!-- active + 성적 미입력 -->
           <template v-if="getEvalStatus(selectedItem) === 'active' && !selectedItem.hasGrade">
             <p class="empty-text">교수님이 성적을 입력한 후 강의평가가 가능합니다.</p>
           </template>
 
-          <!-- active + 성적 있음 + 미작성: 작성 폼 -->
           <template v-else-if="getEvalStatus(selectedItem) === 'active' && selectedItem.hasGrade && selectedDetail?.score == null">
             <div class="detail-row"><span class="label">강의명</span><span>{{ selectedItem.lectureName }}</span></div>
             <div class="detail-row"><span class="label">교수명</span><span>{{ selectedItem.proName }}</span></div>
@@ -292,7 +292,6 @@ onMounted(fetchList);
             </div>
           </template>
 
-          <!-- active + 성적 있음 + 완료 -->
           <template v-else-if="getEvalStatus(selectedItem) === 'active' && selectedItem.hasGrade && selectedDetail?.score != null">
             <div class="detail-row">
               <span class="label">강의 만족도</span>
@@ -320,12 +319,10 @@ onMounted(fetchList);
             <div class="comment-box">{{ selectedDetail.comment }}</div>
           </template>
 
-          <!-- before -->
           <template v-else-if="getEvalStatus(selectedItem) === 'before'">
             <p class="empty-text">진행중인 강의입니다.</p>
           </template>
 
-          <!-- done + 작성완료 -->
           <template v-else-if="getEvalStatus(selectedItem) === 'done' && selectedItem.isEvaluated">
             <div class="detail-row">
               <span class="label">강의 만족도</span>
@@ -353,13 +350,11 @@ onMounted(fetchList);
             <div class="comment-box">{{ selectedDetail.comment }}</div>
           </template>
 
-          <!-- done + 미작성 -->
           <template v-else-if="getEvalStatus(selectedItem) === 'done' && !selectedItem.isEvaluated">
             <p class="empty-text">작성되지 않은 강의입니다.</p>
           </template>
         </template>
 
-        <!-- 교수 패널 -->
         <template v-else-if="role !== 'STUDENT' && selectedItem && selectedDetail">
           <div class="detail-row"><span class="label">강의명</span><span>{{ selectedDetail.lectureName }}</span></div>
           <div class="detail-row"><span class="label">교수명</span><span>{{ selectedDetail.proName }}</span></div>
@@ -397,8 +392,6 @@ onMounted(fetchList);
           </template>
         </template>
       </template>
-
-      <!-- 안내 패널 (선택 전) -->
       <template #detail-empty>
         <h3 class="notice-title">나의 강의평가</h3>
         <p class="notice-desc">
@@ -424,7 +417,14 @@ onMounted(fetchList);
           </tbody>
         </table>
       </template>
-    </CardListDetail>
+      </CardListDetail>
+
+    <Pagination
+      :currentPage="state.currentPage"
+      :maxPage="maxPage"
+      :pageGroupSize="10"
+      @goToPage="goToPage"
+    />
   </div>
 </template>
 
@@ -442,9 +442,6 @@ onMounted(fetchList);
 .comment-box { padding: 10px 14px; background: #f9f9f9; border-radius: 6px; font-size: 14px; color: #333; }
 .empty-text { color: #999; font-size: 14px; text-align: center; }
 .btn-primary { padding: 8px 20px; background: var(--main-color, #3e9e7e); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
-.pagination { display: flex; justify-content: center; gap: 4px; margin-top: 12px; }
-.pagination button { padding: 4px 10px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; background: #fff; }
-.pagination button.active { background: var(--main-color, #3e9e7e); color: #fff; border-color: var(--main-color, #3e9e7e); }
 .filter-header { margin-bottom: 16px; }
 .filter-group { display: flex; gap: 12px; }
 .filter-item { display: flex; align-items: center; gap: 8px; }
