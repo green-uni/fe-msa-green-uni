@@ -161,21 +161,21 @@ onMounted(fetchList);
     <div class="filter-header">
       <div class="filter-group">
         <div class="filter-item">
+          <div class="input-label">연도</div>
+          <div class="input-content">
+            <select v-model="filter.year" @change="onFilterChange">
+              <option value="">전체</option>
+              <option v-for="y in [2026, 2025, 2024]" :key="y" :value="y">{{ y }}년</option>
+            </select>
+          </div>
+        </div>
+                <div class="filter-item">
           <div class="input-label">학기</div>
           <div class="input-content">
             <select v-model="filter.semester" @change="onFilterChange">
               <option value="">전체</option>
               <option value="1">1학기</option>
               <option value="2">2학기</option>
-            </select>
-          </div>
-        </div>
-        <div class="filter-item">
-          <div class="input-label">연도</div>
-          <div class="input-content">
-            <select v-model="filter.year" @change="onFilterChange">
-              <option value="">전체</option>
-              <option v-for="y in [2026, 2025, 2024]" :key="y" :value="y">{{ y }}년</option>
             </select>
           </div>
         </div>
