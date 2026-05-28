@@ -17,19 +17,14 @@ const isLoading = ref(false);
 
 const isPending = computed(() => request.value?.status === 'PENDING');
 
-const actionMode = ref(null);
+const showApproveBox = ref(false);
 const note = ref('');
+const showRejectBox = ref(false);
 const rejectReason = ref('');
 
-const openAction = (mode) => {
-  actionMode.value = mode;
+const openApproveBox = () => {
+  showApproveBox.value = true;
   note.value = '';
-  rejectReason.value = '';
-};
-const closeAction = () => {
-  actionMode.value = null;
-  note.value = '';
-  rejectReason.value = '';
 };
 
 const approve = async () => {
@@ -41,11 +36,16 @@ const approve = async () => {
       note: note.value.trim() || undefined,
     });
     await fetchRequest();
-    closeAction();
+    showApproveBox.value = false;
     modal.showAlert('승인되었습니다.', 'success');
   } catch (err) {
     console.error('승인 실패:', err);
   }
+};
+
+const openRejectBox = () => {
+  showRejectBox.value = true;
+  rejectReason.value = '';
 };
 
 const reject = async () => {
@@ -61,7 +61,7 @@ const reject = async () => {
       rejectReason: rejectReason.value,
     });
     await fetchRequest();
-    closeAction();
+    showRejectBox.value = false;
     modal.showAlert('반려 처리되었습니다.', 'success');
   } catch (err) {
     console.error('반려 실패:', err);
@@ -104,7 +104,13 @@ onMounted(fetchRequest);
 
       <!-- 신청자 정보 -->
       <section class="card">
-        <p class="card-label">신청자 정보</p>
+        <div class="card-label">
+          <span>신청자 정보</span>
+          <button class="btn btn-default history-btn"
+            @click="router.push(`/admin/members/${request.memberCode}`)">
+            변동 이력 보기
+          </button>
+        </div>
         <div class="info-grid">
           <div class="info-item">
             <span class="info-key">이름</span>
@@ -138,25 +144,28 @@ onMounted(fetchRequest);
             <span class="info-val">{{ request.email ?? '-' }}</span>
           </div>
         </div>
-        <button class="btn btn-default history-btn"
-          @click="router.push(`/admin/members/${request.memberCode}`)">
-          변동 이력 보기
-        </button>
       </section>
 
       <!-- 신청 내용 -->
       <StatusRequestDetail :request="request" @downloadFile="downloadFile" />
 
-      <!-- 승인/반려 입력 박스 -->
-      <div v-if="actionMode" class="action-box" :class="actionMode">
-        <textarea v-if="actionMode === 'approve'" v-model="note" class="action-textarea"
-          placeholder="승인 사유를 입력해주세요. (선택)" rows="3" />
-        <textarea v-else v-model="rejectReason" class="action-textarea"
+      <!-- 승인 메모 입력 박스 -->
+      <div v-if="showApproveBox" class="action-box">
+        <textarea v-model="note" class="action-textarea"
+          placeholder="승인 메모를 입력해주세요. (선택)" rows="3" />
+        <div class="action-buttons">
+          <button class="btn btn-default" @click="showApproveBox = false">취소</button>
+          <button class="btn btn-neutral" @click="approve">승인 처리</button>
+        </div>
+      </div>
+
+      <!-- 반려 사유 입력 박스 -->
+      <div v-if="showRejectBox" class="action-box">
+        <textarea v-model="rejectReason" class="action-textarea"
           placeholder="반려 사유를 입력해주세요." rows="3" />
         <div class="action-buttons">
-          <button class="btn btn-default" @click="closeAction">취소</button>
-          <button v-if="actionMode === 'approve'" class="btn btn-success" @click="approve">승인 처리</button>
-          <button v-else class="btn btn-danger" @click="reject">반려 처리</button>
+          <button class="btn btn-default" @click="showRejectBox = false">취소</button>
+          <button class="btn btn-default" @click="reject">반려 처리</button>
         </div>
       </div>
 
@@ -164,9 +173,9 @@ onMounted(fetchRequest);
         <button class="btn btn-default" @click="goBack">
           <font-awesome-icon icon="fa-solid fa-list" /> 목록
         </button>
-        <div v-if="isPending && !actionMode" class="action-group">
-          <button class="btn btn-success" @click="openAction('approve')">승인</button>
-          <button class="btn btn-danger" @click="openAction('reject')">반려</button>
+        <div v-if="isPending && !showApproveBox && !showRejectBox" class="action-group">
+          <button class="btn btn-neutral" @click="openApproveBox">승인</button>
+          <button class="btn btn-default" @click="openRejectBox">반려</button>
         </div>
       </div>
 
@@ -175,5 +184,6 @@ onMounted(fetchRequest);
 </template>
 
 <style scoped lang="scss">
-.history-btn { width: 100%; margin-top: 16px; }
+.card-label { justify-content: space-between; }
+.history-btn { font-size: 0.8em; padding: 4px 12px; font-weight: 400; }
 </style>

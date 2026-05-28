@@ -4,8 +4,7 @@ import { BADGE_CLASS, APPROVAL_STATUS, STATUS_REQUEST_TYPE } from '@/utils/const
 import { formatDateTime } from '@/utils/dateNumber';
 
 const props = defineProps({
-  request: { type: Object, required: true },
-  showAcademicYear: { type: Boolean, default: false },
+  request: { type: Object, required: true }
 });
 
 const emit = defineEmits(['downloadFile']);
@@ -24,7 +23,7 @@ const isAbsence = computed(() => props.request.type === 'ABSENCE');
         <dt>신청일</dt>
         <dd>{{ formatDateTime(request.createdAt) }}</dd>
       </dl>
-      <dl v-if="showAcademicYear" class="req-row">
+      <dl class="req-row">
         <dt>학년/학기</dt>
         <dd>{{ request.academicYear }}학년 {{ request.semester }}학기</dd>
       </dl>
@@ -60,13 +59,13 @@ const isAbsence = computed(() => props.request.type === 'ABSENCE');
           <span v-else class="empty-text">첨부 파일 없음</span>
         </dd>
       </dl>
-      <dl v-if="request.updaterName" class="req-row">
-        <dt>처리자</dt>
-        <dd>{{ request.updaterName }}</dd>
-      </dl>
       <dl v-if="request.status !== 'PENDING' && request.updatedAt" class="req-row">
         <dt>처리일</dt>
         <dd>{{ formatDateTime(request.updatedAt) }}</dd>
+      </dl>
+      <dl v-if="request.updaterName" class="req-row">
+        <dt>처리자</dt>
+        <dd>{{ request.updaterName }}</dd>
       </dl>
     </div>
 

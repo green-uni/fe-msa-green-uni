@@ -60,8 +60,8 @@ const fetchOptions = async () => {
   }
 };
 
-const GRID_COLS = 'minmax(90px, 1fr) minmax(70px, 1fr) minmax(90px, 1fr) minmax(80px, 1fr) minmax(120px, 1fr) minmax(70px, 1fr) minmax(70px, 1fr)';
-
+const GRID_COLS = 'minmax(90px, 1fr) minmax(70px, 1fr) minmax(90px, 1fr) minmax(90px, 1fr) minmax(80px, 1fr) minmax(120px, 1fr) minmax(70px, 1fr) minmax(70px, 1fr)';
+const TABLE_COLUMN = ['학번', '이름', '학년','학기', '신청 유형', '신청일자', '처리자', '상태'];
 const moveToDetail = (id) => router.push(`/admin/members/status-request/${id}`);
 
 const selectStatus = (code) => {
@@ -102,7 +102,7 @@ onMounted(() => {
     </FilterBar>
 
     <DataTable
-      :columns="['학번', '이름', '학년/학기', '신청 유형', '신청일자', '처리자', '상태']"
+      :columns="TABLE_COLUMN"
       :rows="pagedList"
       :gridCols="GRID_COLS"
       :isLoading="state.isLoading"
@@ -112,7 +112,8 @@ onMounted(() => {
               @click="moveToDetail(item.requestId)">
         <div>{{ item.memberCode }}</div>
         <div>{{ item.studentName }}</div>
-        <div>{{ item.academicYear }}학년 {{ item.semester }}학기</div>
+        <div>{{ item.academicYear }}학년</div>
+        <div>{{ item.semester }}학기</div>
         <div>{{ STATUS_REQUEST_TYPE[item.type] ?? item.type }}</div>
         <div>{{ formatDateTime(item.createdAt) }}</div>
         <div>{{ item.updaterName ?? '-' }}</div>

@@ -62,7 +62,7 @@ onMounted(async () => {
     <LoadingSpinner v-if="isLoading" :overlay="true" size="md" />
 
     <template v-if="!isLoading && request">
-      <StatusRequestDetail :request="request" :showAcademicYear="true" @downloadFile="downloadFile" />
+      <StatusRequestDetail :request="request"  @downloadFile="downloadFile" />
 
       <div class="page-footer">
         <button class="btn btn-default" @click="goBack">

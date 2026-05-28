@@ -66,7 +66,7 @@ const goTo = (page) => {
 </template>
 
 <style scoped lang="scss">
-.pagination { display: flex; justify-content: flex-start; align-items: center; gap: 4px; margin-top: 20px;}
+.pagination { display: flex; justify-content: center; align-items: center; gap: 4px; margin-top: 20px;}
 .page-btn { min-width: 27px; height: 27px; padding: 0 5px; border: 1px solid $border-color; font-size: 0.9em; border-radius: 4px; background: #fff; color: $font-color-light; cursor: pointer;  transition: all 0.2s;
   &:hover:not(:disabled):not(.active) { background: $default-hover-bg-color; color: $font-color; }
   &.active {  background: $green-600;  color: #fff;  border-color: $green-600;  font-weight: 700;}
