@@ -277,17 +277,3 @@ onMounted(async () => {
     </div>
   </div>
 </template>
-
-<style scoped lang="scss">
-.pf-profile {
-  max-width: 200px;
-  width: 22%;
-  display: flex;
-  flex-direction: column;
-  align-self: flex-start;
-}
-
-.pf-img-wrap {
-  padding: 16px 20px;
-}
-</style>

@@ -310,16 +310,4 @@ onMounted(async () => {
   margin-bottom: 12px;
   :deep(.tab-nav) { margin-bottom: 0; }
 }
-
-.pf-profile {
-  max-width: 200px;
-  width: 22%;
-  display: flex;
-  flex-direction: column;
-  align-self: flex-start;
-}
-
-.pf-img-wrap {
-  padding: 16px 20px;
-}
 </style>

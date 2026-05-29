@@ -1,5 +1,24 @@
 @use './variables' as *;
 
+/* === 프로필 사진 컬럼 (form/profile 페이지 공통) === */
+.pf-profile {
+  max-width: 200px;
+  width: 22%;
+  display: flex;
+  flex-direction: column;
+  align-self: flex-start;
+}
+.pf-img-wrap { padding: 16px 20px; }
+
+/* 섹션 독립 제목 (DataTable 위 등, form-wrap 외부에서 사용) */
+.section-title {
+  font-weight: 700;
+  font-size: 1.05em;
+  color: $font-color-bold;
+  margin: 20px 0 10px;
+  padding-left: 2px;
+}
+
 /* === Info 카드 === */
 
 /* 좌우 분할 컨테이너 */

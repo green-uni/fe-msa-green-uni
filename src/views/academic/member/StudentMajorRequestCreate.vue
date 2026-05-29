@@ -262,19 +262,11 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .empty-period {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 60vh;
-    font-size: 18px;
-    color: #999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 60vh;
+  font-size: 18px;
+  color: #999;
 }
-
-.file-row {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    input[type='text'] { flex: 1; }
-}
-.hidden { display: none; }
 </style>

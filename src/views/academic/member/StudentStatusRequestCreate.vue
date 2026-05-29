@@ -279,10 +279,3 @@ onMounted(async () => {
         </template>
     </div>
 </template>
-
-<style scoped lang="scss">
-.file-row { display: flex;  gap: 8px; 
-    align-items: center;  input[type='text'] { flex: 1; } 
-}
-.hidden { display: none; }
-</style>

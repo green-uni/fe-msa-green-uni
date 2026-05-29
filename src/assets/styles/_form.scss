@@ -69,6 +69,14 @@ input[type='checkbox'] {
   cursor: pointer; flex-shrink: 0;
 }
 
+/* 파일 첨부 행 (파일명 input + 버튼) */
+.file-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  input[type='text'] { flex: 1; }
+}
+
 /* 인풋 내부 아이콘 버튼 */
 .btn.in-input {
   background-color: $green-600; color: #fff;
