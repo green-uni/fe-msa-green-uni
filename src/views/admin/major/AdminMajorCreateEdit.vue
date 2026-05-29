@@ -30,6 +30,7 @@ const form = reactive({
   info:               '',
   courseDuration: '',
   foundedDate: '',
+  closedDate:         '',
 })
 
 const professorKeyword = ref('')
@@ -45,7 +46,7 @@ function resetForm() {
     name: '', majorBuilding: '', room: '', tel: '',
     chairProfessorCode: null, capacity: '',
     active: '정상', collegeId: '', info: '',
-    courseDuration: '', foundedDate: ''
+    courseDuration: '', foundedDate: '', closedDate: ''
   })
   professorKeyword.value = ''
 
@@ -66,9 +67,10 @@ function loadTemp() {
   if (saved._profKeyword) professorKeyword.value = saved._profKeyword
 }
 
-function validate() {
-  if (!form.name.trim())      return '학과명을 입력해주세요.'
-  if (!form.collegeId)        return '소속대학을 선택해주세요.'
+// 1. validate 함수를 async로 변경하고 학생 존재 여부 체크 추가
+async function validate() {
+  if (!form.name.trim())       return '학과명을 입력해주세요.'
+  if (!form.collegeId)         return '소속대학을 선택해주세요.'
   if (!form.courseDuration || form.courseDuration < 4) {
     return '수업연한을 4년 이상으로 입력해주세요.'
   }
@@ -78,12 +80,34 @@ function validate() {
     return '입학정원을 30명 이상으로 입력해주세요.'
   }
   if (!form.foundedDate)      return '개설일을 선택해주세요.'
-  if (!form.tel.trim())       return '전화번호를 입력해주세요.'
+  
+  // [추가 및 변경] 학과 폐지 선택 시 검증 로직
+  if (form.active === '폐지') {
+    if (!form.closedDate) {
+      return '학과 폐지 시 폐지일을 선택해주세요.'
+    }
+    // 수정 모드일 때만 재학생 유무 판단 API 호출
+    if (isEdit.value) {
+      try {
+        // 백엔드에 학생 존재 여부를 확인하는 API 요청 (상황에 맞는 endpoint 호출 필요)
+        const res = await majorService.checkStudentsInMajor(majorId.value)
+        if (res.data?.data?.hasStudents || res.data?.data === true) {
+          return '학과 내에 재학 중인 학생(주전공/부전공)이 있어 학과를 폐지할 수 없습니다.'
+        }
+      } catch (e) {
+        console.error(e)
+        return '학생 정보 조회 중 오류가 발생했습니다.'
+      }
+    }
+  }
+  
+  if (!form.tel.trim())        return '전화번호를 입력해주세요.'
   return null
 }
 
+// 2. handleSubmit 내 validate() 호출부 await 추가
 async function handleSubmit() {
-  const err = validate()
+  const err = await validate() // ← async 함수가 되었으므로 await 추가
   if (err) { await modal.showAlert(err, 'warning'); return }
 
   const payload = { ...form, capacity: Number(form.capacity) }
@@ -139,6 +163,7 @@ async function fetchDetail() {
       info:               d.info ?? '',
       courseDuration:     d.courseDuration ?? '',
       foundedDate:        d.foundedDate ?? '',
+      closedDate:         d.closedDate ?? '',
     })
 
     const prof = professorList.value.find(p => p.memberCode === d.professorCode)
@@ -169,25 +194,40 @@ watch(
         name: '', majorBuilding: '', room: '', tel: '',
         chairProfessorCode: null, capacity: '',
         active: '정상', collegeId: '', info: '',
-        courseDuration: '', foundedDate: ''
+        courseDuration: '', foundedDate: '', closedDate: ''
       })
       professorKeyword.value = ''
       loadTemp()
     }
   }
 )
+
+watch(() => form.active, async (newVal) => {
+  if (isEdit.value && newVal === '폐지') {
+    try {
+      const res = await majorService.checkStudentsInMajor(majorId.value)
+      if (res.data?.data?.hasStudents || res.data?.data === true) {
+        await modal.showAlert('해당 학과에 소속된 재학생이 존재하여 폐지할 수 없습니다.', 'warning')
+        form.active = '정상' // 다시 '정상'으로 복구
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }
+})
+
+// ↓ [추가] 화면 표시용 교수 리스트 정의 ('이름(코드)' 형태)
+const displayProfessorList = computed(() => {
+  return professorList.value.map(prof => ({
+    ...prof,
+    // SearchInput 검색 및 표시용 라벨을 새로 생성합니다.
+    displayName: `${prof.name} (${prof.memberCode})`
+  }))
+})
 </script>
 
 <template>
   <div>
-    <div class="data-header" style="margin-bottom:20px;">
-      <h2 class="page-title">
-        <span class="title-icon">&#9658;</span> {{ pageTitle }}
-      </h2>
-      <nav class="breadcrumb">
-        학과 &gt; {{ isEdit ? '학과 조회 &gt; 학과 정보수정' : '학과 개설' }}
-      </nav>
-    </div>
 
     <div class="form-card">
       <div class="form-grid">
@@ -204,7 +244,7 @@ watch(
           <label class="input-label">소속대학</label>
           <div class="input-content">
             <select v-model="form.collegeId">
-              <option value="">소속대학 선택</option>
+              <option value="" disabled>소속대학 선택</option>
               <option v-for="c in collegeList" :key="c.collegeId" :value="c.collegeId">
                 {{ c.name }}
               </option>
@@ -213,7 +253,7 @@ watch(
         </div>
 
         <div class="input-wrap">
-          <label class="input-label">학과 구분</label>
+          <label class="input-label">학과구분</label>
           <div class="input-content">
             <div class="radio-group">
               <label class="radio-label">
@@ -226,19 +266,19 @@ watch(
           </div>
         </div>
 
-        <!-- Row 2: 학과장 / (빈칸) / 학과사무실 -->
+        <!-- Row 2: 학과장 / 수업연한 / 사무실 -->
         <div class="input-wrap">
           <label class="input-label">학과장명</label>
           <div class="input-content">
-            <SearchInput
-              v-model="professorKeyword"
-              :list="professorList"
-              label-key="name"
-              value-key="memberCode"
-              placeholder="교수명을 입력하세요"
-              :show-on-focus="true"
-              @select="onSelectProfessor"
-            />
+          <SearchInput
+            v-model="professorKeyword"
+            :list="displayProfessorList"
+            label-key="displayName"
+            value-key="memberCode"
+            placeholder="교수명을 입력하세요"
+            :show-on-focus="true"
+            @select="onSelectProfessor"
+          />
           </div>
         </div>
 
@@ -250,16 +290,21 @@ watch(
           </div>
         </div>
 
-        <div class="input-wrap">
-          <label class="input-label">학과사무실</label>
+        <div class="input-wrap multi-input-wrap">
+          <label class="input-label">사무실</label>
           <div class="input-content two-input">
             <select v-model="form.majorBuilding">
-              <option value="">건물 선택</option>
+              <option value="" disabled>건물 선택</option>
               <option v-for="b in buildingList" :key="b.code" :value="b.name">
                 {{ b.name }}
               </option>
             </select>
             <input v-model="form.room" type="text" placeholder="예: 201호" />
+          </div>
+
+          <label class="input-label">전화번호</label>
+          <div class="input-content">
+            <input v-model="form.tel" type="text" placeholder="예: 02-0000-0000" />
           </div>
         </div>
 
@@ -270,7 +315,6 @@ watch(
           </div>
         </div>
 
-        <!-- 개설일: CalendarDate 컴포넌트 사용 -->
         <div class="input-wrap">
           <label class="input-label">개설일</label>
           <div class="input-content">
@@ -279,9 +323,9 @@ watch(
         </div>
 
         <div class="input-wrap">
-          <label class="input-label">전화번호</label>
+          <label class="input-label">폐지일</label>
           <div class="input-content">
-            <input v-model="form.tel" type="text" placeholder="예: 02-0000-0000" />
+            <CalendarDate v-model="form.closedDate" />
           </div>
         </div>
 
@@ -341,8 +385,16 @@ watch(
 .input-grid-full { grid-column: 1 / -1; }
 
 .input-wrap {
-  display: grid; grid-template-columns: 70px 1fr;
-  align-items: center; gap: 12px;
+  display: grid; 
+  grid-template-columns: 70px 1fr;
+  align-items: center; 
+  gap: 12px;
+
+  /* 사무실과 전화번호를 한 줄에 놓기 위한 스타일 추가 */
+  &.multi-input-wrap {
+    grid-template-columns: 50px 1fr 50px 1fr;
+    column-gap: 5px; /* 사무실 입력 영역과 전화번호 라벨 사이의 여백 */
+  }
 }
 .input-label {
   text-align: right; font-weight: bold; font-size: var(--text-sm);

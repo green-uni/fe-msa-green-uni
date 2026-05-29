@@ -1,3 +1,11 @@
+.claude
+CLAUDE.md
+.env.local
+
+# PWA development build output
+dist
+dev-dist
+
 # Logs
 logs
 *.log

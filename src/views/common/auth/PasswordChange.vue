@@ -3,7 +3,7 @@ import { useAuthStore } from '@/stores/authentication';
 import { useRouter } from 'vue-router';
 import { reactive, ref } from 'vue';
 import { useModalStore } from '@/stores/modal'
-import memberService from '@/services/memberService';
+import AuthService from '@/services/authService';
 import PwCheckList from '@/components/util/PwCheckList.vue';
 
 const authStore = useAuthStore()
@@ -30,7 +30,6 @@ const state = reactive({
     chkPw: false
   }
 });
-const pwView = () => { state.modeShowPw = !state.modeShowPw }
 const oldPwView = () => { state.modeShowOldPw = !state.modeShowOldPw }
 
 const submit = async () => {
@@ -56,9 +55,16 @@ const submit = async () => {
     return
   }
   try {
-    const res = await memberService.changePw(state.data)
+    if(authStore.isFirstLogin){
+      const res = await AuthService.changeFirstPw(state.data)
+      authStore.setFirstLogin();
+      await modal.showAlert(res.message, 'success')
+      router.push(authStore.role === 'ADMIN' ? '/admin/members/my' : '/members/my')
+      return
+    }
+    const res = await AuthService.changePw(state.data)
     await modal.showAlert(res.message, 'success')
-    router.push('/member/my')
+    router.push(authStore.role === 'ADMIN' ? '/admin/members/my' : '/members/my')
   } catch (e) { console.error(e) }
 }
 </script>
@@ -110,8 +116,8 @@ const submit = async () => {
 
       </div>
       <div class="btn-row g10">
-        <!-- <button class="btn btn-default" @click="router.go(-1)"><font-awesome-icon icon="fa-solid fa-arrow-left" />
-          돌아가기</button> -->
+        <button class="btn btn-default" @click="router.push(authStore.role === 'ADMIN' ? '/admin/members/my' : '/members/my')"><font-awesome-icon icon="fa-solid fa-arrow-left" />
+          돌아가기</button>
         <button @click="submit" class="btn btn-submit"><font-awesome-icon icon="fa-solid fa-circle-check" /> 비밀번호
           변경</button>
       </div>

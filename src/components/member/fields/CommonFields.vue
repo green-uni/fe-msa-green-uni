@@ -33,7 +33,7 @@ const execDaumPostcode = () => {
       <div class="input-label"><span>이름</span></div>
       <div class="input-content">
         <label>
-          <input type="text" v-model="props.common.name" :disabled="props.mode === 'selfEdit'" placeholder="이름" />
+          <input type="text" v-model="props.common.name" :disabled="props.mode === 'selfEdit'" placeholder="이름을 입력해주세요" />
         </label>
       </div>
     </div>

@@ -14,6 +14,9 @@ import { gradeRoutes } from './routeGrade'
 import { announcementRoutes, adminAnnouncementRoutes } from './routeAnnouncement'
 import { attendanceRoutes, mobileAttendanceRoutes } from './routeAttendance'
 
+// 에러 라우트 import
+import { errorRoutes } from './routeError'
+
 export const routes = [
   // 학생/교수 레이아웃
   {
@@ -48,13 +51,15 @@ export const routes = [
       ...adminScholarshipRoutes
     ],
   },
-  // 모바일 출석 화면
+  // 모바일 출석 화면 (학생 전용, /student/* 경로)
   {
-    path: '/attend',
+    path: '/student',
     component: () => import('@/layouts/AttendanceLayout.vue'),
     children: [
       ...mobileAttendanceRoutes,
       ...mobileAuthRoutes,
     ],
   },
+    // 에러 페이지 (레이아웃 없이 풀스크린, catch-all 404 포함)
+  ...errorRoutes,
 ]

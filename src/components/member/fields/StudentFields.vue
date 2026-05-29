@@ -15,32 +15,29 @@ const props = defineProps({
 <template>
   <div class="form-grid" style="--grid-cols: repeat(auto-fill, minmax(350px, 1fr))">
 
-    <div class="input-wrap" v-if="props.mode === 'create'">
+    <div class="input-wrap" v-if="props.mode !== 'selfEdit'">
       <div class="input-label">전공</div>
       <div class="input-content">
         <SearchInput
           v-model="props.student.majorName"
           :list="props.majorList"
-          placeholder="전공명을 입력하세요"
+          placeholder="전공명을 검색하세요"
           @select="(major) => props.student.majorId = major.majorId"
         />
       </div>
     </div>
-
     <div class="input-wrap" v-if="props.mode === 'create'">
       <div class="input-label"><span>입학연월</span></div>
       <div class="input-content">
         <CalendarDate v-model="props.student.entryDate" />
       </div>
     </div>
-
-    <div class="input-wrap">
+    <div class="input-wrap" v-if="props.mode === 'adminEdit'">
       <div class="input-label"><span>졸업연월</span></div>
       <div class="input-content">
         <CalendarDate v-model="props.student.exitDate" />
       </div>
     </div>
-
     <div class="input-wrap" v-if="props.mode === 'create'">
       <div class="input-label">상태</div>
       <div class="input-content">
@@ -75,7 +72,7 @@ const props = defineProps({
 
     <div class="input-wrap">
       <div class="input-label">기타</div>
-      <div class="input-content d-flex g10">
+      <div class="input-content check-group d-flex g10">
         <label>
           <input type="checkbox" v-model="props.student.isTransfer"> 편입생
         </label>

@@ -7,51 +7,162 @@ const modeShowPw = ref(false)
 
 defineProps({
   form: Object,
+  variant: {
+    type: String,
+    default: 'academic',
+  },
+  isLoading: {
+    type: Boolean,
+    default: false,
+  },
+  mobile: {
+    type: Boolean,
+    default: false,
+  },
 })
 const emit = defineEmits(['login'])
 const pwView = () => { modeShowPw.value = !modeShowPw.value }
 </script>
 
 <template>
-  <div class="login-content" @keyup.enter="emit('login')">
-    <div class="login-box input-content">
-      <label class="login-input">
-        <input type="text" placeholder="학번/교번/사번" v-model="form.memberCode">
-      </label>
-      <label class="login-input">
-        <input :type="modeShowPw ? 'text' : 'password'" placeholder="비밀번호" v-model="form.password">
-        <span @click="pwView" class="showPw" :class="!modeShowPw || 'show'">
-          <font-awesome-icon icon="fa-solid fa-eye" />
-        </span>
-      </label>
+  <div class="login-form" :class="`login-form-${variant}`" @keyup.enter="emit('login')">
+    <label class="field">
+      <span class="field__label">{{ variant == 'admin' ? '사번' : mobile ? '학번' : '학번/교번' }}</span>
+      <input type="text" placeholder="학번/교번/사번" v-model="form.memberCode" required>
+    </label>
+    <label class="field">
+      <span class="field__label">비밀번호</span>
+      <input :type="modeShowPw ? 'text' : 'password'" placeholder="비밀번호" v-model="form.password" required>
+      <span @click="pwView" class="showPw" :class="!modeShowPw || 'show'">
+        <font-awesome-icon icon="fa-solid fa-eye" />
+      </span>
+    </label>
+    <div class="login-form-row">
+      <div class="changePw">
+        <button @click="router.push('/auth/password')">비밀번호 찾기</button>
+      </div>
     </div>
-    <button class="btn btn-submit" @click="emit('login')">로그인</button>
-  </div>
-  <div class="changePw">
-    <button @click="router.push('/auth/password')">비밀번호 찾기</button>
+    <button class="btn" :class="{ 'btn--loading': isLoading }" :disabled="isLoading" @click="emit('login')">
+      {{ isLoading ? '로그인 중...' : '로그인' }}
+    </button>
+    <p class="login-form-hint">
+      {{ variant == 'admin' ? '신규 입사자는' : '신입생은' }} 최초 비밀번호로 <b>생년월일 8자리</b>를 사용해 주세요.
+    </p>
   </div>
 </template>
 
 <style scoped lang="scss">
-.login-content{
-  width: 100%;display: flex;gap: 10px;
-  .login-box{
-    flex-grow:1;display: flex;flex-direction: column;gap: 5px;
-    .login-input{position: relative;}
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  &-row {
+    display: flex;
+    align-items: center;
+    justify-content: end;
+    margin-top: 2px;
+
+    .changePw {
+      button {
+        font-size: .95em;
+        background: none;
+        border: none;
+        color: #aaa;
+        cursor: pointer;
+
+        &:hover {
+          color: var(--main-color);
+        }
+      }
+    }
   }
-  button.btn{width: 100px;}
+
+  &-hint {
+    margin: 0;
+
+    b {
+      color: $green-600;
+      font-weight: bold;
+    }
+  }
 }
 
-.showPw{
-  position: absolute;right: 10px;top: 50%;transform: translateY(-50%);color: #ddd;cursor: pointer;
-  &.show{color: var(--font-color);}
-}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
 
-.changePw{
-  border-top: 1px solid var(--line-color);padding: 10px 0;
-  button{
-    font-size: .9em;background: none;border: none;color: #aaa;cursor: pointer;text-decoration: underline; text-underline-offset:4px;
-    &:hover{color: var(--main-color);}
+  &__label {
+    font-size: .95em;
+    font-weight: 600;
+  }
+
+  input {
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid $border-color;
+    border-radius: 5px;
+    background: #fafdfb;
+    color: $font-color;
+    transition: border-color .15s, box-shadow .15s;
+
+    &::placeholder {
+      color: #ddd;
+    }
+
+    &:hover {
+      border-color: $border-color;
+    }
+
+    &:focus {
+      outline: none;
+      background: #fff;
+      border-color: $green-600;
+      box-shadow: 0 0 0 4px rgba($hover-bg-color, .14);
+    }
+  }
+
+  .showPw {
+    position: absolute;
+    right: 10px;
+    top: 70%;
+    transform: translateY(-50%);
+    color: #ddd;
+    cursor: pointer;
+
+    &.show {
+      color: var(--font-color);
+    }
   }
 }
-</style>    
+
+.btn {
+  height: 50px;
+  border: 0;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform .05s ease, box-shadow .2s ease;
+  letter-spacing: 2px;
+  background: $green-600;
+  color: #fff;
+
+  &--loading, &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+}
+
+.login-form-admin {
+  .field input {
+    background: $admin-default-bg2;
+    border-color: $green-600;
+    color: #fff;
+
+    &::placeholder {
+      color: #999;
+    }
+  }
+}
+</style>
