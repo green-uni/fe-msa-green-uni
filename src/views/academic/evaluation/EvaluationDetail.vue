@@ -147,14 +147,14 @@ onMounted(fetchData);
           </thead>
           <tbody>
             <tr v-for="(q, idx) in QUESTIONS" :key="idx">
-              <td>{{ idx + 1 }}</td>
+              <td class="tac">{{ idx + 1 }}</td>
               <td>{{ q }}</td>
-              <td v-for="c in CHOICES" :key="c.label">
+              <td v-for="c in CHOICES" :key="c.label" class="tac vam">
                 <input type="radio" :name="`q${idx + 1}`" :value="c.value" v-model="evalForm[`q${idx + 1}`]"/>
               </td>
             </tr>
             <tr>
-              <td>6</td>
+              <td class="tac">6</td>
               <td colspan="6">
                 <div class="free-text-label">그 외 하고 싶은 말을 적어주세요.</div>
                 <textarea v-model="evalForm.comment" class="action-textarea" placeholder="10자 이상 작성해주세요." rows="4"/>
@@ -189,7 +189,7 @@ onMounted(fetchData);
           </thead>
           <tbody>
             <tr v-for="(q, idx) in QUESTIONS" :key="idx">
-              <td>{{ idx + 1 }}</td>
+              <td class="tac">{{ idx + 1 }}</td>
               <td>{{ q }}</td>
               <td>{{ detail?.[`q${idx + 1}`] ?? '-' }}</td>
             </tr>
@@ -246,7 +246,7 @@ onMounted(fetchData);
             </thead>
             <tbody>
               <tr v-for="(q, idx) in QUESTIONS" :key="idx">
-                <td>{{ idx + 1 }}</td>
+                <td class="tac">{{ idx + 1 }}</td>
                 <td>{{ q }}</td>
                 <td>{{ detail[`q${idx + 1}Avg`]?.toFixed(1) ?? '-' }}</td>
               </tr>
@@ -287,7 +287,7 @@ onMounted(fetchData);
 .score-text { margin-left: 8px; font-size: 14px; }
 
 .survey-guide { line-height: 1.6; padding: 12px; background: $default-bg; border-radius: 6px; margin: 14px 0; }
-.choice-score { font-weight: normal; opacity: 0.8; }
+.choice-score { font-weight: normal; opacity: 0.5; }
 .free-text-label { margin-bottom: 8px; text-align: left; }
 .comment-box { padding: 10px 14px; background: $default-bg; border-radius: 6px; margin-bottom: 8px; }
 </style>

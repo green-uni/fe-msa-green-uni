@@ -42,6 +42,9 @@ body.pwa-view #app { height: auto; min-height: 100vh; min-height: 100dvh; overfl
 .ai-end     { align-items: end; }
 .ai-center  { align-items: center; }
 
+.tac { text-align: center !important; }
+.vam {vertical-align: middle!important;}
+
 /* [추후 삭제 예정] 개발용 스크롤 테스트 클래스 */
 // .scrollbar { width: 250px; height: 250px; overflow-y: scroll; }
 
