@@ -162,8 +162,7 @@ onMounted(() => Promise.all([fetchPeriodStatus(), fetchList()]));
       <template v-if="!detail.isLoading && detail.data">
         <MajorRequestDetail :request="detail.data" @downloadFile="downloadFile" />
         <div class="page-footer">
-          <div></div>
-          <div class="action-group">
+          <div class="action-group" style="margin-left: auto">
             <button v-if="detail.data.status === 'PENDING'" class="btn btn-default" @click="cancelRequest">
               <font-awesome-icon icon="fa-solid fa-xmark" /> 신청 취소
             </button>

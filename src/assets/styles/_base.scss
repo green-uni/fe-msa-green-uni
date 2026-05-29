@@ -14,6 +14,7 @@ body.pwa-view #app { height: auto; min-height: 100vh; min-height: 100dvh; overfl
   #app { overflow-y: auto; }
 }
 
+.hidden    { display: none; }
 .pointer   { cursor: pointer; }
 .c-default { cursor: default; }
 .h100vh    { height: 100vh; }

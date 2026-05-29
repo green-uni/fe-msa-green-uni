@@ -180,101 +180,96 @@ onMounted(async () => {
 </script>
 
 <template>
+  <div>
     <div v-if="!isPeriod" class="empty-period">전공 변경 기간이 아닙니다.</div>
-    <div class="form-wrap" v-else style="position: relative;">
+    <template v-else>
+      <div class="form-wrap" style="position: relative; min-height: 200px;">
         <LoadingSpinner v-if="isLoading || !isReady" :overlay="true" size="md" />
-
         <template v-if="isReady">
-        <div class="form-grid" style="--grid-cols: 1fr 1fr 1fr;">
-            <!-- 이름 / 학번 -->
-            <div class="input-wrap">
+          <div class="content-wrap d-flex direct-col">
+            <h3><font-awesome-icon icon="fa-solid fa-file-pen" /> 전공 변경 신청</h3>
+            <div class="form-grid" style="--grid-cols: 1fr 1fr 1fr;">
+              <div class="input-wrap">
                 <div class="input-label">이름</div>
                 <div class="input-content">
-                    <input type="text" :value="authStore.name" disabled />
+                  <input type="text" :value="authStore.name" disabled />
                 </div>
-            </div>
-            <div class="input-wrap">
+              </div>
+              <div class="input-wrap">
                 <div class="input-label">학번</div>
                 <div class="input-content">
-                    <input type="text" :value="authStore.memberCode" disabled />
+                  <input type="text" :value="authStore.memberCode" disabled />
                 </div>
-            </div>
-            <div class="input-wrap">
+              </div>
+              <div class="input-wrap">
                 <div class="input-label">신청일</div>
                 <div class="input-content">
-                    <input type="text" :value="today" disabled />
+                  <input type="text" :value="today" disabled />
                 </div>
-            </div>
-            <div class="input-wrap">
+              </div>
+              <div class="input-wrap">
                 <div class="input-label">유형</div>
                 <div class="input-content radio-group">
-                    <label class="radio-label" v-for="opt in typeOptions" :key="opt.code">
-                        <input type="radio" v-model="form.type" :value="opt.code" />{{ opt.value }}
-                    </label>
+                  <label class="radio-label" v-for="opt in typeOptions" :key="opt.code">
+                    <input type="radio" v-model="form.type" :value="opt.code" />{{ opt.value }}
+                  </label>
                 </div>
-            </div>
-            <div class="input-wrap">
+              </div>
+              <div class="input-wrap">
                 <div class="input-label">희망 학과</div>
                 <div class="input-content">
-                    <select v-model="form.targetMajorId">
-                        <option value="">선택하세요</option>
-                        <option v-for="m in majorList" :key="m.majorId" :value="m.majorId">{{ m.name }}</option>
-                    </select>
+                  <select v-model="form.targetMajorId">
+                    <option value="">선택하세요</option>
+                    <option v-for="m in majorList" :key="m.majorId" :value="m.majorId">{{ m.name }}</option>
+                  </select>
                 </div>
-            </div>
-
-            <!-- 신청 사유 -->
-            <div class="input-wrap input-grid-full">
+              </div>
+              <div class="input-wrap input-grid-full">
                 <div class="input-label">신청 사유</div>
                 <div class="input-content">
-                    <textarea v-model="form.reason" placeholder="신청 사유를 입력해주세요." />
+                  <textarea v-model="form.reason" placeholder="신청 사유를 입력해주세요." />
                 </div>
-            </div>
-
-            <!-- 첨부파일 -->
-            <div class="input-wrap input-grid-full">
+              </div>
+              <div class="input-wrap input-grid-full">
                 <div class="input-label">첨부 파일</div>
                 <div class="input-content file-row">
-                    <button type="button" class="btn btn-line" @click="fileInput.click()">서류 선택</button>
-                    <input type="text" :value="file?.name ?? ''" placeholder="업로드된 파일 없음" disabled />
-                    <input ref="fileInput" type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" @change="onFileChange" />
+                  <button type="button" class="btn btn-line" @click="fileInput.click()">서류 선택</button>
+                  <input type="text" :value="file?.name ?? ''" placeholder="업로드된 파일 없음" disabled />
+                  <input ref="fileInput" type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" @change="onFileChange" />
                 </div>
+              </div>
             </div>
-        </div>
-
-        <div class="btn-row g10">
-            <button class="btn btn-default" @click="router.push('/members/major-request')">
-                <font-awesome-icon icon="fa-solid fa-arrow-left" /> 뒤로가기
-            </button>
-            <button class="btn btn-default" @click="resetForm">
-                <font-awesome-icon icon="fa-solid fa-rotate-left" /> 초기화
-            </button>
-            <button class="btn btn-line point" @click="handleTempSave">
-                <font-awesome-icon icon="fa-regular fa-floppy-disk" /> 임시저장
-            </button>
-            <button class="btn btn-submit" @click="submit" :disabled="isLoading">
-                <font-awesome-icon icon="fa-solid fa-circle-check" /> {{ isLoading ? '신청 중...' : '신청' }}
-            </button>
-        </div>
+          </div>
         </template>
-    </div>
+      </div>
+
+      <div v-if="isReady" class="page-footer">
+        <button class="btn btn-default" @click="router.push('/members/major-request')">
+          <font-awesome-icon icon="fa-solid fa-arrow-left" /> 뒤로가기
+        </button>
+        <div class="action-group">
+          <button class="btn btn-default" @click="resetForm">
+            <font-awesome-icon icon="fa-solid fa-rotate-left" /> 초기화
+          </button>
+          <button class="btn btn-line point" @click="handleTempSave">
+            <font-awesome-icon icon="fa-regular fa-floppy-disk" /> 임시저장
+          </button>
+          <button class="btn btn-submit" @click="submit" :disabled="isLoading">
+            <font-awesome-icon icon="fa-solid fa-circle-check" /> {{ isLoading ? '신청 중...' : '신청' }}
+          </button>
+        </div>
+      </div>
+    </template>
+  </div>
 </template>
 
 <style scoped lang="scss">
 .empty-period {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 60vh;
-    font-size: 18px;
-    color: #999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 60vh;
+  font-size: 18px;
+  color: #999;
 }
-
-.file-row {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    input[type='text'] { flex: 1; }
-}
-.hidden { display: none; }
 </style>
