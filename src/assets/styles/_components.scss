@@ -146,7 +146,7 @@
   cursor: pointer;
   padding: 0;
 }
-.empty-text { color: #aaa; font-size: 0.85em; }
+.empty-text { color: $font-color-light;text-align: center; padding: 20px 0; }
 
 .result-box {
   margin-top: 14px;
@@ -289,13 +289,14 @@
     padding: 10px 12px;
     text-align: left;
     border-bottom: 1px solid $border-color;
-    white-space: nowrap;
   }
   th {
     background-color: $default-bg;
     font-weight: 600;
-    color: $font-color;
+    color: $font-color-light;
+    border-top: 1px solid $border-color;
   }
+  tr:last-child td { border-bottom: none; }
 
   tr.row--error td  { background-color: #fde8e8; }
   tr.row--sample td { background-color: #fefce8; color: $font-color-light; font-style: italic; }
