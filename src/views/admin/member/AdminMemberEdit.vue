@@ -404,7 +404,7 @@ onMounted(async () => {
       </div>
     </div>
 
-    <div class="btn-row g10" style="margin-top: 12px">
+    <div class="page-footer">
       <button class="btn btn-default" @click="router.push(`/admin/members/${route.params.memberCode}`)">
         <font-awesome-icon icon="fa-solid fa-arrow-left" /> 돌아가기
       </button>

@@ -286,19 +286,21 @@ onMounted(async () => {
       </div>
     </div>
 
-    <div class="btn-row g10" style="margin-top: 12px">
+    <div class="page-footer">
       <button class="btn btn-default" @click="router.go(-1)">
         <font-awesome-icon icon="fa-solid fa-arrow-left" /> 돌아가기
       </button>
-      <button class="btn btn-default" @click="resetForm">
-        <font-awesome-icon icon="fa-solid fa-rotate-left" /> 초기화
-      </button>
-      <button class="btn btn-line point" @click="handleTempSave">
-        <font-awesome-icon icon="fa-regular fa-floppy-disk" /> 임시저장
-      </button>
-      <button @click="submit" class="btn btn-submit" :disabled="isLoading">
-        <font-awesome-icon icon="fa-solid fa-circle-check" /> {{ isLoading ? '등록 중...' : '등록' }}
-      </button>
+      <div class="action-group">
+        <button class="btn btn-default" @click="resetForm">
+          <font-awesome-icon icon="fa-solid fa-rotate-left" /> 초기화
+        </button>
+        <button class="btn btn-line point" @click="handleTempSave">
+          <font-awesome-icon icon="fa-regular fa-floppy-disk" /> 임시저장
+        </button>
+        <button @click="submit" class="btn btn-submit" :disabled="isLoading">
+          <font-awesome-icon icon="fa-solid fa-circle-check" /> {{ isLoading ? '등록 중...' : '등록' }}
+        </button>
+      </div>
     </div>
   </div>
 </template>

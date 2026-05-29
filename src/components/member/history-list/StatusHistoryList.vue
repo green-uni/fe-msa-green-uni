@@ -43,9 +43,9 @@ const tableColumns = computed(() => {
 <template>
   <div class="wrap">
     <h3>
-        <template v-if="role == 'STUDENT'">학적변동이력</template>
-        <template v-else-if="role == 'PROFESSOR'">직위/상태 변동 이력</template>
-        <template v-else>재직 변동 이력</template>
+      <template v-if="role == 'STUDENT'">학적 변동 이력</template>
+      <template v-else-if="role == 'PROFESSOR'">직위 / 상태 변동 이력</template>
+      <template v-else>재직 변동 이력</template>
     </h3>
     <DataTable
       :columns="tableColumns.colName"
@@ -72,6 +72,14 @@ const tableColumns = computed(() => {
 </template>
 
 <style scoped lang="scss">
+h3 {
+  font-weight: 700;
+  font-size: 1.05em;
+  color: $font-color-bold;
+  margin: 20px 0 10px;
+  padding-left: 2px;
+}
+
 .tbl-wrap { min-width: 800px;width: 100%; display: grid;}
 
 .tbl-head, .tbl-row { display: grid; grid-template-columns: var(--grid-cols); align-items: center; text-align: center;}
