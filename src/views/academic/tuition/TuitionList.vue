@@ -117,12 +117,12 @@ onMounted(() => {
 
 <template>
   <div>
-    <FilterBar 
+    <FilterBar
       v-model:pageSize="pageSize"
-      :hasFilter="hasSearchFilter" 
+      :hasFilter="hasSearchFilter"
       :show-search="false"
-      :show-count="false"
-      :count="totalElements"
+      :show-count="true"
+      :count="filteredTuitions.length"
       :showPageSize="false"
       :pageSizeOptions="[10, 20, 30, 50]"
       @reset="resetFilter"
@@ -151,10 +151,10 @@ onMounted(() => {
     </FilterBar>
 
     <div class="summary-bar">
-      <div class="result-count">
-        조회 결과: <strong>{{ filteredTuitions.length }}</strong>건
+      <div class="summary-item">
+        <p class="summary-label">실납부 합계</p>
+        <p class="summary-value">{{ totalAmountFormatted }}원</p>
       </div>
-      <p>실납부 합계 금액: <strong>{{ totalAmountFormatted }}</strong>원</p>
     </div>
 
     <DataTable
@@ -169,7 +169,7 @@ onMounted(() => {
           class="tbl-row"
           v-for="(item, idx) in filteredTuitions"
           :key="idx"
-          :class="{ 'clickable-row': item.status === '미납' || item.status === 'UNPAID' }"
+          :class="{ pointer: item.status === '미납' || item.status === 'UNPAID' }"
           @click="handleRowClick(item)"
         >
           <div>{{ item.year ? `${item.year}년` : '-' }}</div>
@@ -177,9 +177,9 @@ onMounted(() => {
           <div>{{ formatAmount(item.finalAmount) }}원</div>
           <div>{{ item.paidAt ? formatDate(item.paidAt) : '-' }}</div>
           <div>
-            <span v-if="item.status === '완납' || item.status === '납부완료' || item.status === 'PAID'" class="badge badge--paid">완납</span>
-            <span v-else-if="item.status === '처리중' || item.status === 'PENDING'" class="badge badge--pending">처리중</span>
-            <span v-else class="badge badge--unpaid">미납</span>
+            <span v-if="item.status === '완납' || item.status === '납부완료' || item.status === 'PAID'">완납</span>
+            <span v-else-if="item.status === '처리중' || item.status === 'PENDING'">처리중</span>
+            <span v-else>미납</span>
           </div>
         </article>
       </template>
@@ -194,49 +194,3 @@ onMounted(() => {
   </div>
 </template>
 
-<style scoped lang="scss">
-.summary-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: var(--text-sm);
-  color: var(--font-color-light);
-  margin-bottom: 12px;
-  strong { color: #16a34a; font-weight: 700; }
-}
-
-.filter-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  
-  select {
-    padding: 6px 10px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    outline: none;
-    font-size: 0.9rem;
-  }
-}
-
-// 🎯 5. [추가] 미납 row에 마우스를 올렸을 때 포인터 및 효과 주기
-.clickable-row {
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  &:hover {
-    background-color: #f8fafc; /* 연한 회색으로 피드백 제공 */
-  }
-}
-
-.badge {
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: var(--text-sm);
-  font-weight: 600;
-}
-.badge--paid { background: #dcfce7; color: #15803d; }
-/* 🎯 6. [추가] 미납 및 처리중 배지 스타일 */
-.badge--pending { background: #fef3c7; color: #d97706; }
-.badge--unpaid { background: #ffe4e6; color: #e11d48; }
-</style>
