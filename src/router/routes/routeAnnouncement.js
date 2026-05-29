@@ -1,12 +1,13 @@
 const url = 'announcements'
 
 export const announcementRoutes = [
-    // 학생/교수 공지사항 목록
+    // 학생/교수/관리자 공지사항 목록
     {
         path: url,
         component: () => import('@/views/academic/announcement/AnnouncementList.vue'),
         meta: {
             title: '공지사항',
+            groupTitle: '공지사항',
             navSection: '학사정보',
             auth: ['STUDENT', 'PROFESSOR', 'ADMIN'],
         },
@@ -31,7 +32,8 @@ export const adminAnnouncementRoutes = [
         component: () => import('@/views/admin/announcement/AdminAnnouncementList.vue'),
         meta: {
             title: '공지사항 관리',
-            navSection: '공지사항',
+            groupTitle: '공지사항',
+            navSection: '학사 관리',
             auth: ['ADMIN'],
         },
     },
@@ -48,7 +50,7 @@ export const adminAnnouncementRoutes = [
     },
     // 관리자 공지사항 수정
     {
-        path: `${url}/:annoId/edit`,
+        path: `${url}/:annoId`,
         component: () => import('@/views/admin/announcement/AdminAnnouncementCreate.vue'),
         meta: {
             title: '공지사항 수정',

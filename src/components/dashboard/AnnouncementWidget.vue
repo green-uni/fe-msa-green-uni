@@ -1,11 +1,16 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authentication'
 import AnnouncementService from '@/services/announcementService'
 
-const router   = useRouter()
-const annoList = ref([])
-const loading  = ref(false)
+const router    = useRouter()
+const authStore = useAuthStore()
+const annoList  = ref([])
+const loading   = ref(false)
+
+const listPath   = computed(() => authStore.role === 'ADMIN' ? '/admin/announcements' : '/announcements')
+const detailPath = (id) => authStore.role === 'ADMIN' ? `/admin/announcements/${id}` : `/announcements/${id}`
 
 onMounted(async () => {
     loading.value = true
@@ -26,7 +31,7 @@ const formatDate = (dateStr) => dateStr?.slice(0, 10) ?? ''
   <div class="anno-wrap">
     <div class="anno-header">
       <span class="anno-title">공지사항</span>
-      <router-link to="/announcements" class="anno-more">전체보기</router-link>
+      <router-link :to="listPath" class="anno-more">전체보기</router-link>
     </div>
 
     <div v-if="loading" class="anno-empty">불러오는 중...</div>
@@ -37,7 +42,7 @@ const formatDate = (dateStr) => dateStr?.slice(0, 10) ?? ''
         v-for="anno in annoList"
         :key="anno.annoId"
         class="anno-item"
-        @click="router.push(`/announcements/${anno.annoId}`)"
+        @click="router.push(detailPath(anno.annoId))"
       >
         <span class="anno-dot" />
         <span class="anno-name">{{ anno.title }}</span>

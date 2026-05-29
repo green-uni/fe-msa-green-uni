@@ -1,26 +1,40 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, watch, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import AnnouncementService from '@/services/announcementService'
+import DataTable from '@/components/common/DataTable.vue'
 import Pagination from '@/components/common/Pagination.vue'
+import FilterBar from '@/components/common/FilterBar.vue'
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
+import { useListFilter } from '@/composables/useListFilter'
 
+const route  = useRoute()
 const router = useRouter()
 
-const annoList    = ref([])
-const currentPage = ref(1)
-const maxPage     = ref(1)
-const isLoading   = ref(false)
-const targetRole  = ref('')
+const {
+  filter, searchQuery, currentPage,
+  onFilterChange, onSearch, resetFilter, goToPage, hasFilter,
+} = useListFilter({ targetRole: '' })
 
-const fetchList = async (page = 1) => {
+const annoList   = ref([])
+const maxPage    = ref(1)
+const totalCount = ref(0)
+const isLoading  = ref(false)
+
+const GRID_COLS = '60px 1fr 80px 120px'
+
+const fetchList = async () => {
     isLoading.value = true
     try {
-        const params = { page, size: 10 }
-        if (targetRole.value) params.targetRole = targetRole.value
-        const res = await AnnouncementService.getList(params)
-        annoList.value    = res.content ?? []
-        maxPage.value     = res.totalPages ?? 1
-        currentPage.value = page
+        const res = await AnnouncementService.getList({
+            page:       currentPage.value,
+            size:       10,
+            targetRole: filter.targetRole || null,
+            search:     searchQuery.value  || null,
+        })
+        annoList.value   = res.content ?? []
+        maxPage.value    = res.totalPages ?? 1
+        totalCount.value = res.totalElements ?? 0
     } catch (e) {
         console.error(e)
     } finally {
@@ -28,103 +42,76 @@ const fetchList = async (page = 1) => {
     }
 }
 
-const handleDelete = async (e, annoId) => {
-    e.stopPropagation()
-    if (!confirm('공지사항을 삭제하시겠습니까?')) return
-    try {
-        await AnnouncementService.remove(annoId)
-        fetchList(currentPage.value)
-    } catch (err) {
-        console.error(err)
-    }
-}
-
+const rowNum = (idx) => (currentPage.value - 1) * 10 + idx + 1
 const formatDate = (dateStr) => dateStr?.slice(0, 10) ?? ''
 
-onMounted(() => fetchList(1))
+watch(() => route.query, fetchList, { immediate: false })
+
+onMounted(() => {
+    const hasUrlQuery = Object.keys(route.query).length > 0
+    const stored = sessionStorage.getItem(`listFilter:${route.path}`)
+    if (hasUrlQuery || !stored) fetchList()
+})
 </script>
 
 <template>
-  <div class="page-wrap">
-    <div class="page-header">
-      <h2>공지사항 관리</h2>
-      <div class="filter-row">
-        <select v-model="targetRole" @change="fetchList(1)">
-          <option value="">전체</option>
-          <option value="STUDENT">학생</option>
-          <option value="PROFESSOR">교수</option>
-          <option value="ALL">전체공개</option>
-        </select>
-        <button class="btn-primary" @click="router.push('/admin/announcements/create')">
-          공지 등록
-        </button>
+  <div style="position: relative;">
+    <LoadingSpinner v-if="isLoading" :overlay="true" size="md" />
+
+    <FilterBar
+      v-model:searchQuery="searchQuery"
+      :hasFilter="hasFilter"
+      placeholder="제목 검색"
+      :showCount="true"
+      :count="totalCount"
+      @search="onSearch"
+      @reset="resetFilter"
+    >
+      <div class="tab-area">
+        <button class="filter-btn" :class="{ active: !filter.targetRole }"
+          @click="filter.targetRole = ''; onFilterChange()">전체</button>
+        <button class="filter-btn" :class="{ active: filter.targetRole === 'STUDENT' }"
+          @click="filter.targetRole = 'STUDENT'; onFilterChange()">학생</button>
+        <button class="filter-btn" :class="{ active: filter.targetRole === 'PROFESSOR' }"
+          @click="filter.targetRole = 'PROFESSOR'; onFilterChange()">교수</button>
       </div>
+    </FilterBar>
+
+    <div class="list-actions">
+      <button class="btn-create" @click="router.push('/admin/announcements/create')">
+        + 공지 등록
+      </button>
     </div>
 
-    <div v-if="isLoading" class="empty-msg">불러오는 중...</div>
-    <div v-else-if="annoList.length === 0" class="empty-msg">등록된 공지사항이 없습니다.</div>
-    <table v-else class="anno-table">
-      <thead>
-        <tr>
-          <th>대상</th><th>제목</th><th>조회수</th><th>등록일</th><th>관리</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="anno in annoList"
-          :key="anno.annoId"
-          class="clickable"
-          @click="router.push(`/admin/announcements/${anno.annoId}/edit`)"
-        >
-          <td><span class="badge">{{ anno.targetRole }}</span></td>
-          <td class="title-cell">{{ anno.title }}</td>
-          <td>{{ anno.viewCount }}</td>
-          <td>{{ formatDate(anno.createdAt) }}</td>
-          <td>
-            <button class="btn-danger-sm" @click="handleDelete($event, anno.annoId)">삭제</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <DataTable
+      :columns="['번호', '제목', '조회수', '등록일']"
+      :rows="annoList"
+      :gridCols="GRID_COLS"
+      :isLoading="isLoading"
+      emptyMessage="등록된 공지사항이 없습니다."
+    >
+      <article
+        v-for="(anno, idx) in annoList"
+        :key="anno.annoId"
+        class="tbl-row pointer"
+        @click="router.push(`/admin/announcements/${anno.annoId}`)"
+      >
+        <div>{{ rowNum(idx) }}</div>
+        <div>{{ anno.title }}</div>
+        <div>{{ anno.viewCount }}</div>
+        <div>{{ formatDate(anno.createdAt) }}</div>
+      </article>
+    </DataTable>
 
-    <Pagination
-      v-if="maxPage > 1"
-      :currentPage="currentPage"
-      :maxPage="maxPage"
-      @page-change="fetchList"
-    />
+    <Pagination :currentPage="currentPage" :maxPage="maxPage" :pageGroupSize="10" @goToPage="goToPage" />
   </div>
 </template>
 
 <style scoped lang="scss">
-.page-wrap { display: flex; flex-direction: column; gap: 16px; }
-.page-header {
-  display: flex; align-items: center; justify-content: space-between;
-  h2 { font-size: 1.1rem; font-weight: 700; margin: 0; }
-}
-.filter-row { display: flex; gap: 8px; align-items: center; }
-select { padding: 6px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.875rem; }
-.btn-primary {
+.list-actions { display: flex; justify-content: flex-end; margin: 8px 0; }
+.btn-create {
   padding: 6px 14px; background: #2d8659; color: #fff;
   border: none; border-radius: 6px; font-size: 0.875rem; cursor: pointer;
   &:hover { background: #246b47; }
-}
-.empty-msg { text-align: center; padding: 60px 0; color: #aaa; font-size: 0.875rem; }
-.anno-table {
-  width: 100%; border-collapse: collapse; font-size: 0.875rem;
-  th, td { padding: 10px 12px; border-bottom: 1px solid #eee; text-align: left; }
-  th { background: #f7f9f8; font-weight: 600; }
-  .clickable { cursor: pointer; &:hover { background: #f5f9f7; } }
-  .title-cell { max-width: 380px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-}
-.badge {
-  font-size: 0.75rem; padding: 2px 8px;
-  background: #e8f4ee; color: #2d8659;
-  border-radius: 10px; font-weight: 500;
-}
-.btn-danger-sm {
-  padding: 4px 10px; background: #e53935; color: #fff;
-  border: none; border-radius: 5px; font-size: 0.8rem; cursor: pointer;
-  &:hover { background: #c62828; }
 }
 </style>

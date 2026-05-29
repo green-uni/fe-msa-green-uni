@@ -6,9 +6,10 @@ class AnnouncementService {
     #publicPath = '/academic/public/announcements'
 
     // 목록 조회 (학생/교수/관리자 - 역할별 자동 필터)
-    async getList({ page = 1, size = 10, targetRole = null } = {}) {
+    async getList({ page = 1, size = 10, targetRole = null, search = null } = {}) {
         const params = { page, size }
         if (targetRole) params.targetRole = targetRole
+        if (search)     params.search     = search
         const res = await axios.get(this.#path, { params })
         return res.data.data
     }
