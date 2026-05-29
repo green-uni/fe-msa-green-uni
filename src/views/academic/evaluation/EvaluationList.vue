@@ -191,6 +191,30 @@ onMounted(() => {
       :pageGroupSize="10"
       @goToPage="goToPage"
     />
+
+    <div class="card notice-card">
+      <h3 class="notice-title">나의 강의평가</h3>
+      <p class="notice-desc">목록에서 강의를 선택하면 상세 내용을 확인할 수 있습니다.</p>
+      <table class="notice-table">
+        <colgroup>
+          <col style="width: 110px"/>
+          <col/>
+        </colgroup>
+        <tbody>
+          <template v-if="role === 'STUDENT'">
+            <tr><th><span class="badge before">강의진행중</span></th><td>강의평가 기간이 시작되지 않은 강의입니다.</td></tr>
+            <tr><th><span class="badge pending">미작성</span></th><td>강의평가 기간이며 아직 평가를 작성하지 않은 강의입니다.</td></tr>
+            <tr><th><span class="badge done">완료</span></th><td>강의평가를 완료한 강의입니다.</td></tr>
+            <tr><th><span class="badge expired">만료</span></th><td>평가 기간이 종료되어 더 이상 작성할 수 없습니다.</td></tr>
+          </template>
+          <template v-else>
+            <tr><th><span class="badge before">강의진행중</span></th><td>강의평가 기간이 시작되지 않은 강의입니다.</td></tr>
+            <tr><th><span class="badge pending">진행중</span></th><td>현재 강의평가 기간입니다. 결과는 기간 종료 후 확인 가능합니다.</td></tr>
+            <tr><th><span class="badge done">평가완료</span></th><td>강의평가 기간이 종료되어 결과를 확인할 수 있습니다.</td></tr>
+          </template>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 
@@ -200,6 +224,14 @@ onMounted(() => {
 .badge.pending { color: #c62828; }
 .badge.done    { color: #333; }
 .badge.expired { color: #888; }
+
+.notice-card { margin-top: 16px; }
+.notice-title { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+.notice-desc { font-size: 14px; color: #777; margin-bottom: 16px; line-height: 1.6; }
+.notice-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.notice-table th, .notice-table td { padding: 10px 12px; border: 1px solid #eee; vertical-align: middle; }
+.notice-table th { background: #f9f9f9; text-align: center; color: #333; }
+.notice-table .badge { color: #333; background: none; padding: 0; font-size: 13px; }
 
 :deep(.tbl-row div.txt-left) { justify-content: flex-start; }
 :deep(.tbl-row div.txt-ellipsis) { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; display: block; padding: 10px; }
