@@ -269,6 +269,39 @@
   transform: translate(-50%, -50%);
 }
 
+/* === 수평 스크롤 테이블 래퍼 === */
+.tbl-scroll {
+  overflow-x: auto;
+  border: 1px solid $border-color;
+  border-radius: 6px;
+  &::-webkit-scrollbar       { height: 4px; }
+  &::-webkit-scrollbar-thumb { background-color: $bold-border-color; border-radius: 2px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+}
+
+/* === HTML 테이블 공통 스타일 (DataTable 계열 디자인) === */
+.data-tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  th, td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid $border-color;
+    white-space: nowrap;
+  }
+  th {
+    background-color: $default-bg;
+    font-weight: 600;
+    color: $font-color;
+  }
+
+  tr.row--error td  { background-color: #fde8e8; }
+  tr.row--sample td { background-color: #fefce8; color: $font-color-light; font-style: italic; }
+  .empty-cell       { text-align: center; color: $font-color-light; padding: 32px; }
+}
+
 /* === Notice Panel === */
 .notice-panel {
   display: flex; flex-direction: column; gap: 10px; font-size: 0.95em;
