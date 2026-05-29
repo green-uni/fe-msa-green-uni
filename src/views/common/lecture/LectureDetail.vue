@@ -376,16 +376,16 @@ onMounted(async () => {
       </section>
 
     <!-- 수동폐강 입력박스 -->
-    <div v-if="showCancelBox" class="action-box cancel-box">
+    <div v-if="showCancelBox" class="action-box">
       <p class="action-box-title">폐강 사유</p>
       <textarea v-model="cancelReason" class="action-textarea" rows="3" />
       <div class="action-box-footer">
         <span class="char-count" :class="{ valid: cancelReason.trim().length >= 30 }">
           {{ cancelReason.trim().length }} / 255자 (30자 이상 작성필수)
         </span>
-        <div class="action-box-btns">
+        <div class="action-buttons">
           <button class="btn btn-default" @click="showCancelBox = false">취소</button>
-          <button class="btn btn-confirm" :disabled="cancelReason.trim().length < 30" @click="submitCancel">폐강 처리</button>
+          <button class="btn btn-submit" :disabled="cancelReason.trim().length < 30" @click="submitCancel">폐강 처리</button>
         </div>
       </div>
     </div>
@@ -393,42 +393,40 @@ onMounted(async () => {
       <!-- 교수 변경 입력박스 -->
       <div v-if="showProfessorBox" class="action-box">
         <p class="action-box-title">담당 교수 변경</p>
-        <div class="professor-form">
-          <div class="professor-form-row">
-            <div class="professor-field">
-              <span class="pf-label">교번</span>
-              <input type="text" :value="selectedProfessorCode" disabled placeholder="-" class="pf-input" />
-            </div>
-            <div class="professor-field">
-              <span class="pf-label">교수명</span>
-              <SearchInput
-                v-model="professorSearchText"
-                :list="professorListWithLabel"
-                labelKey="displayName"
-                valueKey="memberCode"
-                placeholder="교수 이름으로 검색"
-                :showOnFocus="true"
-                @select="onProfessorSelect"
-              />
-            </div>
+        <div class="d-flex g10">
+          <div class="professor-field d-flex direct-col g5" style="flex: 1">
+            <label class="pf-label">교번</label>
+            <input type="text" :value="selectedProfessorCode" disabled placeholder="-" class="pf-input" />
           </div>
-          <div class="professor-field">
-            <span class="pf-label">변경사유</span>
-            <textarea v-model="professorChangeReason" class="action-textarea" placeholder="변경 사유를 입력해주세요." rows="3" />
+          <div class="professor-field d-flex direct-col g5" style="flex: 2">
+            <label class="pf-label">교수명</label>
+            <SearchInput
+              v-model="professorSearchText"
+              :list="professorListWithLabel"
+              labelKey="displayName"
+              valueKey="memberCode"
+              placeholder="교수 이름으로 검색"
+              :showOnFocus="true"
+              @select="onProfessorSelect"
+            />
           </div>
+        </div>
+        <div class="professor-field d-flex direct-col g5">
+          <label class="pf-label">변경사유</label>
+          <textarea v-model="professorChangeReason" class="action-textarea" placeholder="변경 사유를 입력해주세요." rows="3" />
         </div>
         <div class="action-buttons">
           <button class="btn btn-default" @click="showProfessorBox = false">취소</button>
-          <button class="btn btn-neutral" @click="submitProfessorChange">변경 확정</button>
+          <button class="btn btn-default" @click="submitProfessorChange">변경 확정</button>
         </div>
       </div>
 
       <!-- 반려사유 입력박스 -->
-      <div v-if="showRejectionBox" class="action-box">
+      <div v-if="showRejectionBox" class="action-box reject">
         <textarea v-model="rejectionInput" class="action-textarea" placeholder="반려 사유를 입력해주세요." rows="3" />
         <div class="action-buttons">
           <button class="btn btn-default" @click="showRejectionBox = false; rejectionInput = ''">취소</button>
-          <button class="btn btn-neutral" @click="submitRejection">반려 처리</button>
+          <button class="btn btn-default" @click="submitRejection">반려 처리</button>
         </div>
       </div>
 
@@ -453,10 +451,10 @@ onMounted(async () => {
           </div>
           <!-- 교수: 수정 / 삭제 (내 강의 + 반려 상태 + 수강생 없음) -->
           <template v-if="canEdit && isMyLecture && state.data.status === '반려' && state.studentList.length === 0">
-            <button class="btn btn-line" @click="editLecture">
+            <button class="btn btn-default" @click="editLecture">
               <font-awesome-icon icon="fa-solid fa-pen-to-square" /> 강의 정보 수정
             </button>
-            <button class="btn btn-danger" @click="deleteLecture">
+            <button class="btn btn-default" @click="deleteLecture">
               <font-awesome-icon icon="fa-solid fa-trash" /> 강의 삭제
             </button>
           </template>
@@ -468,9 +466,6 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.page-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.action-group { display: flex; gap: 8px; align-items: center;}
-
 /* 더보기 드롭다운 */
 .more-menu-wrap { position: relative; }
 .more-btn { font-size: 18px; font-weight: 700; letter-spacing: 2px; padding: 4px 10px; background: none; border: none; cursor: pointer; }
@@ -499,22 +494,8 @@ onMounted(async () => {
 }
 .more-dropdown button:hover { background: #f1f5f9; }
 
-/* 수동폐강 / 교수변경 공통 박스 */
-.action-box { display: flex; flex-direction: column; gap: 10px; margin: 12px 0; padding: 16px; border-radius: 8px; background: #f8f8f7; border: 1px solid #e8e8e8; }
-.action-box-title { font-weight: 700; font-size: var(--text-sm); margin: 0; color: #334155; }
-.action-textarea { width: 100%; padding: 10px; border: 1px solid #e0e0e0; border-radius: 6px; resize: vertical; font-size: var(--text-sm); font-family: inherit; line-height: 1.5; }
-.action-select { padding: 8px 12px; border: 1px solid #e0e0e0; border-radius: 6px; font-size: var(--text-sm); }
-.action-box-btns { display: flex; gap: 8px; justify-content: flex-end; }
-.btn-subtle { background: #fafafa; color: #334155; }
-.btn-subtle:hover { filter: brightness(0.9); }
-.btn-confirm { background: #334155; color: #fff; border-color: #334155; }
-.btn-confirm:hover { filter: brightness(1.1); }
-.btn-confirm:disabled { background: #94a3b8; border-color: #94a3b8; cursor: not-allowed; filter: none; }
-.action-box-footer { display: flex; justify-content: space-between; align-items: center; }
-.char-count { font-size: var(--text-xs); color: #aaa; }
-.char-count.valid { color: #334155; font-weight: 600; }
-
 /* 교수 변경 폼 */
+.pf-label { font-size: 0.875em; color: #64748b; font-weight: 500; }
 .professor-field :deep(input),
 .professor-field .pf-input {
   border: 1px solid var(--table-border-color);
