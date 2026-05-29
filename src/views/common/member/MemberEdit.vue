@@ -241,49 +241,53 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="form-wrap" style="position: relative; min-height: 200px;">
-    <LoadingSpinner v-if="isLoading" :overlay="true" size="md" />
-
-    <div class="d-flex g20 jc-center">
-      <div class="pf-profile content-wrap">
-        <h3><font-awesome-icon icon="fa-solid fa-circle-info" /> 사진 수정</h3>
-        <ProfileImg :editable="true" v-model:pic="pic" :memberCode="authStore.memberCode" :existPic="common.pic" />
-      </div>
-      <!-- pf-profile-->
-
-      <div class="pf-content d-grid g10 d-flex-grow1">
-        <div class="content-wrap d-flex direct-col d-flex-grow1">
-          <h3><font-awesome-icon icon="fa-solid fa-circle-info" />개인 정보</h3>
-          <CommonFields :common="common" :mode="editMode" />
+  <div>
+    <div class="form-wrap" style="position: relative; min-height: 200px;">
+      <LoadingSpinner v-if="isLoading" :overlay="true" size="md" />
+      <div class="d-flex g20">
+        <div class="pf-profile content-wrap">
+          <h3><font-awesome-icon icon="fa-solid fa-camera" /> 사진 수정</h3>
+          <div class="pf-img-wrap">
+            <ProfileImg :editable="true" v-model:pic="pic" :memberCode="authStore.memberCode" :existPic="common.pic" />
+          </div>
         </div>
-        <!--form-grid-->
-        <div class="content-wrap d-flex direct-col d-flex-grow1" v-if="targetRole === 'PROFESSOR'">
-          <h3><font-awesome-icon icon="fa-solid fa-circle-info" />학적 정보</h3>
-          <ProfessorFields v-if="targetRole === 'PROFESSOR'" :professor="professor" :majorList="majorList"
-            :statusList="professorStatusList" :positionList="professorPositionList" :degreeList="professorDegreeList"
-            :buildingList="buildingList" :mode="editMode" />
+
+        <div class="pf-content d-grid g10 d-flex-grow1">
+          <div class="content-wrap d-flex direct-col d-flex-grow1">
+            <h3><font-awesome-icon icon="fa-solid fa-circle-info" /> 개인 정보</h3>
+            <CommonFields :common="common" :mode="editMode" />
+          </div>
+          <div class="content-wrap d-flex direct-col d-flex-grow1" v-if="targetRole === 'PROFESSOR'">
+            <h3><font-awesome-icon icon="fa-solid fa-circle-info" /> 학적 정보</h3>
+            <ProfessorFields :professor="professor" :majorList="majorList"
+              :statusList="professorStatusList" :positionList="professorPositionList" :degreeList="professorDegreeList"
+              :buildingList="buildingList" :mode="editMode" />
+          </div>
         </div>
-        <!-- content-wrap-->
       </div>
     </div>
-  </div>
 
-  <div class="btn-row g10">
-    <button class="btn btn-default" @click="router.go(-1)">
-      <font-awesome-icon icon="fa-solid fa-arrow-left" /> 돌아가기
-    </button>
-    <button @click="submit" class="btn btn-submit" :disabled="isLoading">
-      <font-awesome-icon icon="fa-solid fa-circle-check" /> {{ isLoading ? '수정 중...' : '수정' }}
-    </button>
+    <div class="btn-row g10" style="margin-top: 12px">
+      <button class="btn btn-default" @click="router.go(-1)">
+        <font-awesome-icon icon="fa-solid fa-arrow-left" /> 돌아가기
+      </button>
+      <button @click="submit" class="btn btn-submit" :disabled="isLoading">
+        <font-awesome-icon icon="fa-solid fa-circle-check" /> {{ isLoading ? '수정 중...' : '수정' }}
+      </button>
+    </div>
   </div>
 </template>
 
 <style scoped lang="scss">
 .pf-profile {
-  max-width: 280px;
-  width: 30%;
+  max-width: 200px;
+  width: 22%;
   display: flex;
   flex-direction: column;
   align-self: flex-start;
+}
+
+.pf-img-wrap {
+  padding: 16px 20px;
 }
 </style>

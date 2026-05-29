@@ -76,7 +76,7 @@ const handlePicChanged = (e) => {
   &.error { color: $error; font-weight: 500; }
 }
 
-.pic-box { max-width: 230px; width: 100%; aspect-ratio: 3 / 4; border: 1px solid #ddd; background-color: var(--hover-bg-color); display: flex;  justify-content: center; align-items: center; border-radius: 5px; overflow: hidden;
+.pic-box { max-width: 160px; width: 100%; aspect-ratio: 3 / 4; border: 1px solid #ddd; background-color: var(--hover-bg-color); display: flex;  justify-content: center; align-items: center; border-radius: 5px; overflow: hidden;
    img { width: 100%; height: 100%; object-fit: cover;}
     svg { font-size: 5rem; color: var(--main-color);}
 }

@@ -301,7 +301,7 @@ onMounted(async () => {
 
     <div class="content-wrap">
       <h3><font-awesome-icon icon="fa-solid fa-file-excel" /> {{ roleLabel }} 엑셀 양식 다운로드</h3>
-      <div class="template-download-row">
+      <div class="d-flex ai-center jc-space-b" style="padding: 12px 0 4px">
         <span class="template-hint">{{ roleLabel }} 데이터 입력용 엑셀 양식을 다운로드하세요.</span>
         <button class="btn btn-default" @click="handleDownloadTemplate">
           <font-awesome-icon icon="fa-solid fa-download" /> {{ roleLabel }} 엑셀 양식 다운로드
@@ -328,12 +328,12 @@ onMounted(async () => {
       </div>
 
       <div v-else class="preview-section">
-        <div class="preview-header">
+        <div class="d-flex ai-center jc-space-b">
           <span class="preview-filename">
             <font-awesome-icon icon="fa-solid fa-file-excel" /> {{ uploadedFile.name }}
             <span class="preview-count">{{ totalRows }}건</span>
           </span>
-          <button class="btn btn-default btn-sm" @click="handleFileReset">다시 선택</button>
+          <button class="btn btn-default btn-inline" @click="handleFileReset">다시 선택</button>
         </div>
 
         <div v-if="totalRows === 0" class="no-data-warning">
@@ -385,8 +385,8 @@ onMounted(async () => {
 
       <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
 
-      <div v-if="failedRowList.length > 0" class="fail-list">
-        <p class="fail-list__title">
+      <div v-if="failedRowList.length > 0" class="result-box rejected">
+        <p class="result-title">
           <font-awesome-icon icon="fa-solid fa-triangle-exclamation" /> 등록 실패 사유
         </p>
         <ul>
@@ -399,7 +399,7 @@ onMounted(async () => {
   </div>
 
   <div class="btn-row g10">
-    <div class="submit-wrap">
+    <div class="d-flex direct-col" style="gap:6px">
       <button
         class="btn btn-submit"
         :disabled="!uploadedFile || isLoading || errorSummary || hasSampleRows || totalRows === 0"
@@ -407,14 +407,6 @@ onMounted(async () => {
       >
         <font-awesome-icon icon="fa-solid fa-circle-check" /> {{ isLoading ? '등록 중...' : '등록' }}
       </button>
-      <!-- <p v-if="hasSampleRows" class="submit-disabled-hint">
-        <font-awesome-icon icon="fa-solid fa-triangle-exclamation" />
-        샘플 행을 삭제한 후 재업로드해주세요.
-      </p>
-      <p v-else-if="errorSummary" class="submit-disabled-hint">
-        <font-awesome-icon icon="fa-solid fa-triangle-exclamation" />
-        데이터 오류가 있습니다. 파일을 수정 후 다시 업로드해주세요.
-      </p> -->
     </div>
   </div>
 </template>
@@ -422,17 +414,9 @@ onMounted(async () => {
 
 
 <style scoped lang="scss">
-// ───── 템플릿 다운로드 ─────
-.template-download-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 0 4px;
-}
-
 .template-hint {
   font-size: 14px;
-  color: var(--color-text-muted);
+  color: $font-color-light;
 }
 
 // ───── 드롭존 ─────
@@ -443,26 +427,24 @@ onMounted(async () => {
   justify-content: center;
   gap: 16px;
   height: 180px;
-  border: 2px dashed var(--color-border);
+  border: 2px dashed $border-color;
   border-radius: 8px;
   cursor: pointer;
   transition: border-color 0.2s, background-color 0.2s;
 
   &--over {
-    border-color: var(--color-primary);
-    background-color: var(--color-bg);
+    border-color: $green-600;
+    background-color: $default-bg;
   }
 }
 
 .dropzone__text {
   font-size: 14px;
-  color: var(--color-text-muted);
+  color: $font-color-light;
   margin: 0;
 }
 
-.hidden-input {
-  display: none;
-}
+.hidden-input { display: none; }
 
 // ───── 미리보기 ─────
 .preview-section {
@@ -471,16 +453,10 @@ onMounted(async () => {
   gap: 12px;
 }
 
-.preview-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
 .preview-filename {
   font-size: 14px;
   font-weight: 600;
-  color: var(--color-text);
+  color: $font-color;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -489,12 +465,12 @@ onMounted(async () => {
 .preview-count {
   font-size: 13px;
   font-weight: 400;
-  color: var(--color-text-muted);
+  color: $font-color-light;
 }
 
 .error-summary {
   font-size: 13px;
-  color: #d32f2f;
+  color: $error;
   margin: 0;
   display: flex;
   align-items: center;
@@ -530,62 +506,28 @@ onMounted(async () => {
   color: #b45309;
   font-size: 14px;
 
-  svg {
-    margin-top: 2px;
-    flex-shrink: 0;
-  }
-
-  p {
-    margin: 0;
-    &:first-child { font-weight: 600; }
-    &:last-child { font-size: 13px; margin-top: 4px; color: #92400e; }
-  }
+  svg { margin-top: 2px; flex-shrink: 0; }
+  p { margin: 0; }
+  p:first-child { font-weight: 600; }
+  p:last-child { font-size: 13px; margin-top: 4px; color: #92400e; }
 }
 
 .error-message {
   font-size: 13px;
-  color: #d32f2f;
+  color: $error;
   margin: 8px 0 0;
-}
-
-.fail-list {
-  margin-top: 12px;
-  padding: 12px 16px;
-  border: 1px solid #f5c2c2;
-  border-radius: 6px;
-  background: #fff8f8;
-
-  &__title {
-    font-size: 13px;
-    font-weight: 600;
-    color: #d32f2f;
-    margin: 0 0 8px;
-  }
-
-  ul {
-    margin: 0;
-    padding-left: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  li {
-    font-size: 13px;
-    color: var(--color-text);
-  }
 }
 
 .fail-row-num {
   font-weight: 600;
-  color: #d32f2f;
+  color: $error;
   margin-right: 6px;
 }
 
 // ───── 테이블 ─────
 .table-wrapper {
   overflow-x: auto;
-  border: 1px solid var(--color-border);
+  border: 1px solid $border-color;
   border-radius: 6px;
 }
 
@@ -598,65 +540,41 @@ onMounted(async () => {
   th, td {
     padding: 10px 12px;
     text-align: left;
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: 1px solid $border-color;
     white-space: nowrap;
   }
 
   th {
-    background-color: var(--color-bg);
+    background-color: $default-bg;
     font-weight: 600;
-    color: var(--color-text);
+    color: $font-color;
   }
 
   .col-row-num {
     width: 48px;
     min-width: 48px;
     text-align: center;
-    color: var(--color-text-muted);
+    color: $font-color-light;
     font-weight: 400;
   }
 
-  tr.row--error td {
-    background-color: #fde8e8;
-  }
+  tr.row--error td { background-color: #fde8e8; }
 
   tr.row--sample td {
     background-color: #fefce8;
-    color: var(--color-text-muted);
+    color: $font-color-light;
     font-style: italic;
   }
 
   .col-error-reason {
-    color: #d32f2f;
+    color: $error;
     min-width: 160px;
   }
 
   .empty-cell {
     text-align: center;
-    color: var(--color-text-muted);
+    color: $font-color-light;
     padding: 32px;
   }
-}
-
-.submit-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-}
-
-.submit-disabled-hint {
-  font-size: 12px;
-  color: #d32f2f;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.btn-sm {
-  height: 32px;
-  font-size: 13px;
-  padding: 0 12px;
 }
 </style>

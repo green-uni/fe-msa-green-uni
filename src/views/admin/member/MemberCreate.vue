@@ -28,7 +28,11 @@ const isLoading = ref(false)
 const role = ref('STUDENT')
 const pic = ref(null)
 const majorList = ref([])
-const memberRoles = ref([])
+const memberRoles = [
+  { code: 'STUDENT', value: '학생' },
+  { code: 'PROFESSOR', value: '교수' },
+  { code: 'ADMIN', value: '관리자' },
+]
 
 // 상태값 목록
 const studentStatusList = ref([])
@@ -203,7 +207,6 @@ onMounted(async () => {
     professorDegree,
     building,
     adminStatus,
-    roles
   ] = await Promise.all([
     MemberService.getMajorList(),
     codeListService.getStudentStatusList(),
@@ -212,11 +215,9 @@ onMounted(async () => {
     codeListService.getProfessorDegreeList(),
     codeListService.getBuildingList(),
     codeListService.getAdminStatusList(),
-    codeListService.getMemberRole(),
   ])
 
   majorList.value = majors.data
-  memberRoles.value = roles.data
   studentStatusList.value = studentStatus.data
   professorStatusList.value = professorStatus.data
   professorPositionList.value = professorPosition.data
@@ -240,66 +241,83 @@ onMounted(async () => {
 </script>
 
 <template>
-  <TabNav />
-  <div class="form-wrap">
-    <div class="d-flex g20 jc-center">
-      <!-- pf-profile-->
-      <div class="pf-profile content-wrap">
-        <h3><font-awesome-icon icon="fa-solid fa-circle-info" /> 사진 등록</h3>
-        <ProfileImg :editable="true" v-model:pic="pic" />
-      </div>
-      <div class="pf-content d-grid g10 d-flex-grow1">
-        <div class="input-content radio-group radio-tab">
-          <label class="radio-label" v-for="memberRole in memberRoles" :key="memberRole.code">
-            <input type="radio" name="role" :value="memberRole.code" v-model="role" />
-            <span>{{ memberRole.value }}</span>
-          </label>
-        </div>
-        <div class="content-wrap d-flex direct-col d-flex-grow1">
-          <h3><font-awesome-icon icon="fa-solid fa-circle-info" />개인 정보</h3>
-          <CommonFields :common="common" mode="create" />
-        </div>
-        <!--form-grid-->
-        <div class="content-wrap d-flex direct-col d-flex-grow1">
-          <h3><font-awesome-icon icon="fa-solid fa-circle-info" />학적 정보</h3>
-          <StudentFields v-if="role === 'STUDENT'" :student="student" :majorList="majorList"
-            :statusList="studentStatusList" mode="create" />
-          <ProfessorFields v-if="role === 'PROFESSOR'" :professor="professor" :majorList="majorList"
-            :statusList="professorStatusList" :positionList="professorPositionList" :degreeList="professorDegreeList"
-            :buildingList="buildingList" mode="create" />
-          <AdminFields v-if="role === 'ADMIN'" :admin="admin" :statusList="adminStatusList" mode="create" />
-        </div>
-        <!-- content-wrap-->
+  <div>
+    <!-- 상단 네비게이션 행: TabNav(페이지 선택) + 역할 선택 -->
+    <div class="nav-row d-flex ai-center jc-space-b">
+      <TabNav />
+      <div class="radio-group radio-tab">
+        <label class="radio-label" v-for="memberRole in memberRoles" :key="memberRole.code">
+          <input type="radio" name="role" :value="memberRole.code" v-model="role" />
+          <span>{{ memberRole.value }}</span>
+        </label>
       </div>
     </div>
-  </div>
+    <div class="form-wrap">
+      <!-- 두 열 레이아웃: 사진 + 정보 -->
+      <div class="d-flex g20">
+        <!-- 사진 등록 카드 -->
+        <div class="pf-profile content-wrap">
+          <h3><font-awesome-icon icon="fa-solid fa-camera" /> 사진 등록</h3>
+          <div class="pf-img-wrap">
+            <ProfileImg :editable="true" v-model:pic="pic" />
+          </div>
+        </div>
 
-  <div class="btn-row g10">
-    <button class="btn btn-default" @click="router.go(-1)">
-      <font-awesome-icon icon="fa-solid fa-arrow-left" /> 돌아가기
-    </button>
-    <button class="btn btn-default" @click="resetForm">
-      <font-awesome-icon icon="fa-solid fa-rotate-left" /> 초기화
-    </button>
-    <button class="btn btn-line point" @click="handleTempSave">
-      <font-awesome-icon icon="fa-regular fa-floppy-disk" /> 임시저장
-    </button>
-    <button @click="submit" class="btn btn-submit" :disabled="isLoading">
-      <font-awesome-icon icon="fa-solid fa-circle-check" /> {{ isLoading ? '등록 중...' : '등록' }}
-    </button>
+        <div class="pf-content d-grid g10 d-flex-grow1">
+          <!-- 개인 정보 -->
+          <div class="content-wrap d-flex direct-col d-flex-grow1">
+            <h3><font-awesome-icon icon="fa-solid fa-circle-info" /> 개인 정보</h3>
+            <CommonFields :common="common" mode="create" />
+          </div>
+
+          <!-- 학적/재직 정보 -->
+          <div class="content-wrap d-flex direct-col d-flex-grow1">
+            <h3><font-awesome-icon icon="fa-solid fa-circle-info" />
+              <template v-if="role === 'ADMIN'">재직</template><template v-else>학적</template> 정보
+            </h3>
+            <StudentFields v-if="role === 'STUDENT'" :student="student" :majorList="majorList"
+              :statusList="studentStatusList" mode="create" />
+            <ProfessorFields v-if="role === 'PROFESSOR'" :professor="professor" :majorList="majorList"
+              :statusList="professorStatusList" :positionList="professorPositionList" :degreeList="professorDegreeList"
+              :buildingList="buildingList" mode="create" />
+            <AdminFields v-if="role === 'ADMIN'" :admin="admin" :statusList="adminStatusList" mode="create" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row g10" style="margin-top: 12px">
+      <button class="btn btn-default" @click="router.go(-1)">
+        <font-awesome-icon icon="fa-solid fa-arrow-left" /> 돌아가기
+      </button>
+      <button class="btn btn-default" @click="resetForm">
+        <font-awesome-icon icon="fa-solid fa-rotate-left" /> 초기화
+      </button>
+      <button class="btn btn-line point" @click="handleTempSave">
+        <font-awesome-icon icon="fa-regular fa-floppy-disk" /> 임시저장
+      </button>
+      <button @click="submit" class="btn btn-submit" :disabled="isLoading">
+        <font-awesome-icon icon="fa-solid fa-circle-check" /> {{ isLoading ? '등록 중...' : '등록' }}
+      </button>
+    </div>
   </div>
 </template>
 
 <style scoped lang="scss">
+.nav-row {
+  margin-bottom: 12px;
+  :deep(.tab-nav) { margin-bottom: 0; }
+}
+
 .pf-profile {
-  max-width: 280px;
-  width: 30%;
+  max-width: 200px;
+  width: 22%;
   display: flex;
   flex-direction: column;
   align-self: flex-start;
 }
 
-.pf-profile .pf-profile-pic {
-  padding: var(--size-df);
+.pf-img-wrap {
+  padding: 16px 20px;
 }
 </style>
