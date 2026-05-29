@@ -64,11 +64,3 @@ export const BADGE_CLASS = {
   REJECTED:  'badge-rejected',
   CANCELLED: 'badge-closed',
 }
-
-// 목록 카드용 텍스트 색상 클래스
-export const TEXT_CLASS = {
-  PENDING:   'text-pending',
-  APPROVED:  'text-approved',
-  REJECTED:  'text-rejected',
-  CANCELLED: 'text-closed',
-}
