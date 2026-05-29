@@ -230,13 +230,6 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
-.guide-text {
-  text-align: center;
-  padding: 60px 0;
-  color: var(--font-color-light);
-  font-size: var(--text-sm);
-}
-
 .count-summary {
   margin-bottom: 12px;
   font-size: var(--text-sm);
