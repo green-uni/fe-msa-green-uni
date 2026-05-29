@@ -57,8 +57,8 @@ class GradeService {
     }
 
     // 교수 이의신청 목록 조회
-    async getProfessorAppealList() {
-        const res = await axios.get(`${this.#professorPath}/appeals`)
+    async getProfessorAppealList({ page = 1, size = 10 } = {}) {
+        const res = await axios.get(`${this.#professorPath}/appeals`, { params: { page, size } })
         return res.data.data
     }
 

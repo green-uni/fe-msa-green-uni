@@ -2,7 +2,7 @@
 import { onMounted, reactive, computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authentication'
-import StudentFields from '@/components/member/StudentFields.vue'
+import StudentFields from '@/components/member/fields/StudentFields.vue'
 import ProfessorFields from '@/components/member/fields/ProfessorFields.vue'
 import ProfileImg from '@/components/common/ProfileImg.vue'
 import AdminFields from '@/components/member/fields/AdminFields.vue'
@@ -140,89 +140,61 @@ const validateStatus = () => {
   return true
 }
 
-const profileSubmit = async () => {
-  if (!validateProfile() || isLoading.value || isSubmitting.value) return
+const submit = async () => {
+  if (isLoading.value || isSubmitting.value) return
 
-  const current =
-    targetRole.value === 'STUDENT'
-      ? { ...common, ...student }
-      : targetRole.value === 'PROFESSOR'
-        ? { ...common, ...professor }
-        : { ...common, ...admin }
+  // 프로필 변경 감지
+  const current = targetRole.value === 'STUDENT' ? { ...common, ...student }
+    : targetRole.value === 'PROFESSOR' ? { ...common, ...professor }
+    : { ...common, ...admin }
 
   const changedData = {}
   Object.keys(current).forEach((key) => {
     if (current[key] !== original.value[key]) changedData[key] = current[key]
   })
   delete changedData.majorName
+  const profileChanged = Object.keys(changedData).length > 0 || !!pic.value
 
-  if (Object.keys(changedData).length === 0 && !pic.value) {
-    await modal.showAlert('변경된 내용이 없습니다', 'info')
-    return
-  }
-
-  isSubmitting.value = true
-  try {
-    const formData = new FormData()
-    formData.append('req', new Blob([JSON.stringify(changedData)], { type: 'application/json' }))
-    if (pic.value) formData.append('pic', pic.value)
-
-    const res =
-      targetRole.value === 'STUDENT'
-        ? await MemberService.updateStudent(route.params.memberCode, formData)
-        : targetRole.value === 'PROFESSOR'
-          ? await MemberService.updateProfessor(route.params.memberCode, formData)
-          : await MemberService.updateAdmin(route.params.memberCode, formData)
-
-    original.value = {}
-    await modal.showAlert(res.message, 'success')
-    router.push(`/admin/members/${route.params.memberCode}`)
-  } finally {
-    isSubmitting.value = false
-  }
-}
-
-const statusSubmit = async () => {
-  if (isLoading.value || isSubmitting.value) return
-
-  // 변경사항 없음 체크 (유효성 검사 전에 먼저)
+  // 상태 변경 감지
   const currentStatus = targetRole.value === 'STUDENT' ? student.status
     : targetRole.value === 'PROFESSOR' ? professor.status : admin.status
-  const statusUnchanged = !statusForm.status || statusForm.status === currentStatus
-  const positionUnchanged = !statusForm.position || statusForm.position === professor.position
-  if (statusUnchanged && positionUnchanged) {
+  const statusChanged = (!!statusForm.status && statusForm.status !== currentStatus)
+    || (targetRole.value === 'PROFESSOR' && !!statusForm.position && statusForm.position !== professor.position)
+
+  if (!profileChanged && !statusChanged) {
     await modal.showAlert('변경된 내용이 없습니다', 'info')
     return
   }
 
-  if (!validateStatus()) return
-
-  const payload = Object.fromEntries(
-    Object.entries(statusForm).filter(([_, v]) => v !== '' && v !== null)
-  )
+  if (profileChanged && !validateProfile()) return
+  if (statusChanged && !validateStatus()) return
 
   isSubmitting.value = true
   try {
-    const res =
-      targetRole.value === 'STUDENT'
-        ? await MemberService.updateStudentStatus(route.params.memberCode, payload)
+    if (profileChanged) {
+      const formData = new FormData()
+      formData.append('req', new Blob([JSON.stringify(changedData)], { type: 'application/json' }))
+      if (pic.value) formData.append('pic', pic.value)
+      await (targetRole.value === 'STUDENT'
+        ? MemberService.updateStudent(route.params.memberCode, formData)
         : targetRole.value === 'PROFESSOR'
-          ? await MemberService.updateProfessorStatus(route.params.memberCode, payload)
-          : await MemberService.updateAdminStatus(route.params.memberCode, payload)
-
-    await modal.showAlert(res.message, 'success')
-
-    if (targetRole.value === 'STUDENT') {
-      student.status = statusForm.status
-      original.value = { ...original.value, status: statusForm.status, returnYear: statusForm.returnYear, returnSemester: statusForm.returnSemester }
-    } else if (targetRole.value === 'PROFESSOR') {
-      if (statusForm.status) { professor.status = statusForm.status; original.value = { ...original.value, status: statusForm.status } }
-      if (statusForm.position) { professor.position = statusForm.position; original.value = { ...original.value, position: statusForm.position } }
-    } else {
-      admin.status = statusForm.status
-      original.value = { ...original.value, status: statusForm.status }
+          ? MemberService.updateProfessor(route.params.memberCode, formData)
+          : MemberService.updateAdmin(route.params.memberCode, formData))
     }
 
+    if (statusChanged) {
+      const payload = Object.fromEntries(
+        Object.entries(statusForm).filter(([_, v]) => v !== '' && v !== null)
+      )
+      await (targetRole.value === 'STUDENT'
+        ? MemberService.updateStudentStatus(route.params.memberCode, payload)
+        : targetRole.value === 'PROFESSOR'
+          ? MemberService.updateProfessorStatus(route.params.memberCode, payload)
+          : MemberService.updateAdminStatus(route.params.memberCode, payload))
+    }
+
+    original.value = {}
+    await modal.showAlert('수정이 완료되었습니다.', 'success')
     router.push(`/admin/members/${route.params.memberCode}`)
   } finally {
     isSubmitting.value = false
@@ -322,22 +294,24 @@ onMounted(async () => {
 <template>
   <div style="position: relative; min-height: 200px;">
     <LoadingSpinner v-if="isLoading" :overlay="true" size="md" />
-    <div class="form-wrap">
 
-      <div class="d-flex g20 jc-center">
+    <div class="form-wrap">
+      <div class="d-flex g20">
         <div class="pf-profile content-wrap">
-          <h3><font-awesome-icon icon="fa-solid fa-circle-info" /> 사진 수정</h3>
-          <ProfileImg :editable="true" v-model:pic="pic" :memberCode="route.params.memberCode" :existPic="common.pic" />
+          <h3><font-awesome-icon icon="fa-solid fa-camera" /> 사진 수정</h3>
+          <div class="pf-img-wrap">
+            <ProfileImg :editable="true" v-model:pic="pic" :memberCode="route.params.memberCode" :existPic="common.pic" />
+          </div>
         </div>
         <div class="pf-content d-grid g10 d-flex-grow1">
           <div class="content-wrap d-flex direct-col d-flex-grow1">
-            <h3><font-awesome-icon icon="fa-solid fa-circle-info" />개인 정보</h3>
+            <h3><font-awesome-icon icon="fa-solid fa-circle-info" /> 개인 정보</h3>
             <CommonFields :common="common" :mode="editMode" />
           </div>
-          <!--form-grid-->
           <div class="content-wrap d-flex direct-col d-flex-grow1">
-            <h3><font-awesome-icon icon="fa-solid fa-circle-info" /><template
-                v-if="targetRole === 'ADMIN'">재직</template><template v-else>학적</template> 정보</h3>
+            <h3><font-awesome-icon icon="fa-solid fa-circle-info" />
+              <template v-if="targetRole === 'ADMIN'">재직</template><template v-else>학적</template> 정보
+            </h3>
             <StudentFields v-if="targetRole === 'STUDENT'" :student="student" :majorList="majorList"
               :statusList="studentStatusList" :mode="editMode" />
             <ProfessorFields v-if="targetRole === 'PROFESSOR'" :professor="professor" :majorList="majorList"
@@ -345,139 +319,105 @@ onMounted(async () => {
               :buildingList="buildingList" :mode="editMode" />
             <AdminFields v-if="targetRole === 'ADMIN'" :admin="admin" :statusList="adminStatusList" :mode="editMode" />
           </div>
-          <!-- content-wrap-->
-        </div>
-      </div>
-    </div>
-
-    <div class="btn-row g10">
-      <button class="btn btn-default" @click="router.push(`/admin/members/${route.params.memberCode}`)">
-        <font-awesome-icon icon="fa-solid fa-arrow-left" /> 돌아가기
-      </button>
-      <button @click="profileSubmit" class="btn btn-submit" :disabled="isLoading || isSubmitting">
-        <font-awesome-icon icon="fa-solid fa-circle-check" /> {{ isSubmitting ? '수정 중...' : '수정' }}
-      </button>
-    </div>
-
-    <div class="d-flex g20 jc-center">
-      <div class="pf-content d-grid g10 d-flex-grow1">
-        <div class="content-wrap d-flex direct-col d-flex-grow1">
-          <h3><font-awesome-icon icon="fa-solid fa-circle-info" />상태 정보 수정</h3>
-          <div class="form-grid" style="--grid-cols: repeat(auto-fill, minmax(350px, 1fr))">
-            <div class="input-wrap">
-              <div class="input-label">회원코드</div>
-              <div class="input-content">{{ route.params.memberCode }}</div>
-            </div>
-            <div class="input-wrap">
-              <div class="input-label">현재 상태</div>
-              <div class="input-content">
-                {{
-                  STATUS_LABEL[targetRole]?.[
-                  targetRole === 'STUDENT'
-                    ? student.status
-                    : targetRole === 'PROFESSOR'
-                      ? professor.status
-                      : admin.status
-                  ]
-                }}
+          <div class="content-wrap d-flex direct-col d-flex-grow1">
+            <h3><font-awesome-icon icon="fa-solid fa-circle-info" /> 상태 정보 수정</h3>
+            <div class="form-grid" style="--grid-cols: repeat(auto-fill, minmax(350px, 1fr))">
+              <div class="input-wrap">
+                <div class="input-label">회원코드</div>
+                <div class="input-content">{{ route.params.memberCode }}</div>
               </div>
-            </div>
-            <div class="input-wrap" v-if="targetRole === 'PROFESSOR'">
-              <div class="input-label">현재 직위</div>
-              <div class="input-content">
-                {{ POSITION_LABEL[professor.position] }}
+              <div class="input-wrap">
+                <div class="input-label">현재 상태</div>
+                <div class="input-content">
+                  {{
+                    STATUS_LABEL[targetRole]?.[
+                    targetRole === 'STUDENT'
+                      ? student.status
+                      : targetRole === 'PROFESSOR'
+                        ? professor.status
+                        : admin.status
+                    ]
+                  }}
+                </div>
               </div>
-            </div>
-            <div class="input-wrap">
-              <div class="input-label">상태</div>
-              <div class="input-content">
-                <select v-model="statusForm.status">
-                  <option value="">상태를 선택하세요</option>
-                  <option v-for="s in availableStatusList" :key="s.code" :value="s.code">
-                    {{ s.value }}
-                  </option>
-                </select>
+              <div class="input-wrap" v-if="targetRole === 'PROFESSOR'">
+                <div class="input-label">현재 직위</div>
+                <div class="input-content">{{ POSITION_LABEL[professor.position] }}</div>
               </div>
-            </div>
-            <div class="input-wrap" v-if="targetRole === 'PROFESSOR'">
-              <div class="input-label">직위</div>
-              <div class="input-content">
-                <select v-model="statusForm.position">
-                  <option value="">직위를 선택하세요</option>
-                  <option v-for="s in availablePositionList" :key="s.code" :value="s.code">
-                    {{ s.value }}
-                  </option>
-                </select>
+              <div class="input-wrap">
+                <div class="input-label">상태</div>
+                <div class="input-content">
+                  <select v-model="statusForm.status">
+                    <option value="">상태를 선택하세요</option>
+                    <option v-for="s in availableStatusList" :key="s.code" :value="s.code">{{ s.value }}</option>
+                  </select>
+                </div>
               </div>
-            </div>
-            <div class="input-wrap">
-              <div class="input-label">변동 사유</div>
-              <div class="input-content">
-                <input type="text" v-model="statusForm.reason" placeholder="변동 사유가 있을 시 입력하세요" />
+              <div class="input-wrap" v-if="targetRole === 'PROFESSOR'">
+                <div class="input-label">직위</div>
+                <div class="input-content">
+                  <select v-model="statusForm.position">
+                    <option value="">직위를 선택하세요</option>
+                    <option v-for="s in availablePositionList" :key="s.code" :value="s.code">{{ s.value }}</option>
+                  </select>
+                </div>
               </div>
-            </div>
-            <div class="input-wrap"
-              v-if="statusForm.status === 'ABSENCE' || (targetRole === 'PROFESSOR' && statusForm.status === 'SABBATICAL')">
-              <div class="input-label">
-                <span>
-                  <template v-if="statusForm.status === 'SABBATICAL'">안식년 </template>
-                  <template v-else-if="targetRole === 'PROFESSOR' || targetRole === 'ADMIN'">휴직 </template>
-                  시작일
-                </span>
-                <span class="required-mark">*</span>
+              <div class="input-wrap">
+                <div class="input-label">변동 사유</div>
+                <div class="input-content">
+                  <input type="text" v-model="statusForm.reason" placeholder="변동 사유가 있을 시 입력하세요" />
+                </div>
               </div>
-              <div class="input-content">
-                <CalendarDate v-model="statusForm.startDate" />
+              <div class="input-wrap"
+                v-if="statusForm.status === 'ABSENCE' || (targetRole === 'PROFESSOR' && statusForm.status === 'SABBATICAL')">
+                <div class="input-label">
+                  <span>
+                    <template v-if="statusForm.status === 'SABBATICAL'">안식년 </template>
+                    <template v-else-if="targetRole === 'PROFESSOR' || targetRole === 'ADMIN'">휴직 </template>
+                    시작일
+                  </span>
+                  <span class="required-mark">*</span>
+                </div>
+                <div class="input-content">
+                  <CalendarDate v-model="statusForm.startDate" />
+                </div>
               </div>
-            </div>
-            <div class="input-wrap" v-if="statusForm.status === 'ABSENCE'">
-              <div class="input-label">
-                <span v-if="targetRole === 'PROFESSOR'">복직일</span><span v-else>종료일</span>
-                <span v-if="targetRole === 'STUDENT'" class="required-mark">*</span>
+              <div class="input-wrap" v-if="statusForm.status === 'ABSENCE'">
+                <div class="input-label">
+                  <span v-if="targetRole === 'PROFESSOR'">복직일</span><span v-else>종료일</span>
+                  <span v-if="targetRole === 'STUDENT'" class="required-mark">*</span>
+                </div>
+                <div class="input-content">
+                  <CalendarDate v-model="statusForm.endDate" />
+                </div>
               </div>
-              <div class="input-content">
-                <CalendarDate v-model="statusForm.endDate" />
-              </div>
-            </div>
-            <div class="input-wrap" v-if="targetRole === 'STUDENT' && statusForm.status === 'ABSENCE'">
-              <div class="input-label">복학시기 <span class="required-mark">*</span></div>
-              <div class="input-content d-flex g10">
-                <input type="number" v-model="statusForm.returnYear" placeholder="연도" />
-                <input type="number" v-model="statusForm.returnSemester" placeholder="학기" />
+              <div class="input-wrap" v-if="targetRole === 'STUDENT' && statusForm.status === 'ABSENCE'">
+                <div class="input-label">복학시기 <span class="required-mark">*</span></div>
+                <div class="input-content d-flex g10">
+                  <input type="number" v-model="statusForm.returnYear" placeholder="연도" />
+                  <input type="number" v-model="statusForm.returnSemester" placeholder="학기" />
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-    <div>
-      <div class="btn-row g10">
-        <button class="btn btn-default" @click="router.push(`/admin/members/${route.params.memberCode}`)">
-          <font-awesome-icon icon="fa-solid fa-arrow-left" /> 돌아가기
-        </button>
-        <button @click="statusSubmit" class="btn btn-submit" :disabled="isLoading || isSubmitting">
-          <font-awesome-icon icon="fa-solid fa-circle-check" /> {{ isSubmitting ? '처리 중...' : '상태변경' }}
-        </button>
-      </div>
+
+    <div class="page-footer">
+      <button class="btn btn-default" @click="router.push(`/admin/members/${route.params.memberCode}`)">
+        <font-awesome-icon icon="fa-solid fa-arrow-left" /> 돌아가기
+      </button>
+      <button @click="submit" class="btn btn-submit" :disabled="isLoading || isSubmitting">
+        <font-awesome-icon icon="fa-solid fa-circle-check" /> {{ isSubmitting ? '수정 중...' : '수정' }}
+      </button>
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
 .required-mark {
-  color: var(--color-danger, #e53e3e);
+  color: $error;
   margin-left: 2px;
-}
-
-.pf-profile {
-  max-width: 280px;
-  width: 30%;
-  display: flex;
-  flex-direction: column;
-  align-self: flex-start;
-}
-
-.pf-profile .pf-profile-pic {
-  padding: var(--size-df);
 }
 </style>

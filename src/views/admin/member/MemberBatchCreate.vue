@@ -1,21 +1,24 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import * as XLSX from 'xlsx'
 import MemberService from '@/services/memberService'
 import TabNav from '@/layouts/common/TabNav.vue'
-import codeListService from '@/services/codeService'
 import { useModalStore } from '@/stores/modal'
 
 const router = useRouter()
 const modal = useModalStore()
 
 // ── 역할 선택 ──────────────────────────────────
-const memberRoles = ref([])
+const memberRoles = [
+  { code: 'STUDENT',   value: '학생' },
+  { code: 'PROFESSOR', value: '교수' },
+  { code: 'ADMIN',     value: '관리자' },
+]
 const selectedRole = ref('STUDENT')
 
 const roleLabel = computed(() => {
-  const found = memberRoles.value.find(r => r.code === selectedRole.value)
+  const found = memberRoles.find(r => r.code === selectedRole.value)
   return found?.value ?? ''
 })
 
@@ -283,138 +286,131 @@ async function handleSubmit() {
   }
 }
 
-onMounted(async () => {
-  const [ roles ] = await Promise.all([codeListService.getMemberRole()])
-  memberRoles.value = roles.data
-})
 </script>
 
 <template>
-  <TabNav />
-  <div class="form-wrap">
-    <div class="input-content radio-group radio-tab">
-      <label class="radio-label" v-for="memberRole in memberRoles" :key="memberRole.code">
-        <input type="radio" name="memberRole" :value="memberRole.code" v-model="selectedRole" @change="handleRoleChange" />
-        <span>{{ memberRole.value }}</span>
-      </label>
-    </div>
-
-    <div class="content-wrap">
-      <h3><font-awesome-icon icon="fa-solid fa-file-excel" /> {{ roleLabel }} 엑셀 양식 다운로드</h3>
-      <div class="template-download-row">
-        <span class="template-hint">{{ roleLabel }} 데이터 입력용 엑셀 양식을 다운로드하세요.</span>
-        <button class="btn btn-default" @click="handleDownloadTemplate">
-          <font-awesome-icon icon="fa-solid fa-download" /> {{ roleLabel }} 엑셀 양식 다운로드
-        </button>
+  <div>
+    <div class="nav-row d-flex ai-center jc-space-b">
+      <TabNav />
+      <div class="radio-group radio-tab">
+        <label class="radio-label" v-for="memberRole in memberRoles" :key="memberRole.code">
+          <input type="radio" name="memberRole" :value="memberRole.code" v-model="selectedRole" @change="handleRoleChange" />
+          <span>{{ memberRole.value }}</span>
+        </label>
       </div>
     </div>
 
-    <div class="content-wrap">
-      <h3><font-awesome-icon icon="fa-solid fa-circle-info" /> {{ roleLabel }} 엑셀 파일 업로드</h3>
-
-      <div v-if="!uploadedFile"
-        class="dropzone"
-        :class="{ 'dropzone--over': isDragOver }"
-        @dragover.prevent="isDragOver = true"
-        @dragleave.prevent="isDragOver = false"
-        @drop.prevent="handleDrop"
-        @click="triggerFileInput"
-      >
-        <p class="dropzone__text">데이터가 입력된 엑셀 파일을 업로드 해주세요.</p>
-        <button type="button" class="btn btn-default" @click.stop="triggerFileInput">
-          <font-awesome-icon icon="fa-solid fa-upload" /> 파일 선택
-        </button>
-        <input ref="fileInputRef" type="file" accept=".xlsx" class="hidden-input" @change="handleFileChange" />
+    <div class="form-wrap">
+      <div class="content-wrap">
+        <h3><font-awesome-icon icon="fa-solid fa-file-excel" /> {{ roleLabel }} 엑셀 양식 다운로드</h3>
+        <div class="d-flex ai-center jc-space-b" style="padding: 12px 20px">
+          <span class="template-hint">{{ roleLabel }} 데이터 입력용 엑셀 양식을 다운로드하세요.</span>
+          <button class="btn btn-default" @click="handleDownloadTemplate">
+            <font-awesome-icon icon="fa-solid fa-download" /> {{ roleLabel }} 엑셀 양식 다운로드
+          </button>
+        </div>
       </div>
 
-      <div v-else class="preview-section">
-        <div class="preview-header">
-          <span class="preview-filename">
-            <font-awesome-icon icon="fa-solid fa-file-excel" /> {{ uploadedFile.name }}
-            <span class="preview-count">{{ totalRows }}건</span>
-          </span>
-          <button class="btn btn-default btn-sm" @click="handleFileReset">다시 선택</button>
+      <div class="content-wrap">
+        <h3><font-awesome-icon icon="fa-solid fa-circle-info" /> {{ roleLabel }} 엑셀 파일 업로드</h3>
+
+        <div style="padding: 16px 20px">
+        <div v-if="!uploadedFile"
+          class="dropzone"
+          :class="{ 'dropzone--over': isDragOver }"
+          @dragover.prevent="isDragOver = true"
+          @dragleave.prevent="isDragOver = false"
+          @drop.prevent="handleDrop"
+          @click="triggerFileInput"
+        >
+          <p class="dropzone__text">데이터가 입력된 엑셀 파일을 업로드 해주세요.</p>
+          <button type="button" class="btn btn-default" @click.stop="triggerFileInput">
+            <font-awesome-icon icon="fa-solid fa-upload" /> 파일 선택
+          </button>
+          <input ref="fileInputRef" type="file" accept=".xlsx" class="hidden" @change="handleFileChange" />
         </div>
 
-        <div v-if="totalRows === 0" class="no-data-warning">
-          <font-awesome-icon icon="fa-solid fa-triangle-exclamation" />
-          <div>
-            <p>인식된 데이터가 없습니다.</p>
-            <p>엑셀 1행의 헤더가 양식과 일치하는지 확인하고 다시 업로드해주세요.</p>
+        <div v-else class="preview-section">
+          <div class="d-flex ai-center jc-space-b">
+            <span class="preview-filename">
+              <font-awesome-icon icon="fa-solid fa-file-excel" /> {{ uploadedFile.name }}
+              <span class="preview-count">{{ totalRows }}건</span>
+            </span>
+            <button class="btn btn-default btn-inline" @click="handleFileReset">다시 선택</button>
           </div>
-        </div>
 
-        <template v-else>
-          <div v-if="hasSampleRows" class="sample-warning">
+          <div v-if="totalRows === 0" class="no-data-warning">
             <font-awesome-icon icon="fa-solid fa-triangle-exclamation" />
             <div>
-              <p>샘플 데이터 행이 포함되어 있습니다.</p>
-              <p>노란색으로 표시된 샘플 행을 삭제한 후 재업로드해주세요.</p>
+              <p>인식된 데이터가 없습니다.</p>
+              <p>엑셀 1행의 헤더가 양식과 일치하는지 확인하고 다시 업로드해주세요.</p>
             </div>
           </div>
 
-          <p v-if="errorSummary" class="error-summary">
-            <font-awesome-icon icon="fa-solid fa-triangle-exclamation" />
-            오류 {{ errorRows }}건 — 오류 행을 수정한 후 다시 업로드해주세요.
+          <template v-else>
+            <div v-if="hasSampleRows" class="sample-warning">
+              <font-awesome-icon icon="fa-solid fa-triangle-exclamation" />
+              <div>
+                <p>샘플 데이터 행이 포함되어 있습니다.</p>
+                <p>노란색으로 표시된 샘플 행을 삭제한 후 재업로드해주세요.</p>
+              </div>
+            </div>
+
+            <p v-if="errorSummary" class="error-summary">
+              <font-awesome-icon icon="fa-solid fa-triangle-exclamation" />
+              오류 {{ errorRows }}건 — 오류 행을 수정한 후 다시 업로드해주세요.
+            </p>
+
+            <div class="tbl-scroll">
+              <table class="data-tbl">
+                <thead>
+                  <tr>
+                    <th class="col-row-num">행</th>
+                    <th v-for="col in tableColumns" :key="col">{{ col }}</th>
+                    <th v-if="hasFailReasons" class="col-error-reason">오류 사유</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="(row, index) in previewRows"
+                    :key="index"
+                    :class="{ 'row--error': row.hasError, 'row--sample': row.isSample }"
+                  >
+                    <td class="col-row-num">{{ index + 1 }}</td>
+                    <td v-for="col in tableColumnKeys" :key="col">{{ row[col] ?? '' }}</td>
+                    <td v-if="hasFailReasons" class="col-error-reason">{{ row.failReason ?? '' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </template>
+        </div>
+
+        <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+
+        <div v-if="failedRowList.length > 0" class="result-box rejected">
+          <p class="result-title">
+            <font-awesome-icon icon="fa-solid fa-triangle-exclamation" /> 등록 실패 사유
           </p>
-
-          <div class="table-wrapper">
-            <table class="preview-table">
-              <thead>
-                <tr>
-                  <th class="col-row-num">행</th>
-                  <th v-for="col in tableColumns" :key="col">{{ col }}</th>
-                  <th v-if="hasFailReasons" class="col-error-reason">오류 사유</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="(row, index) in previewRows"
-                  :key="index"
-                  :class="{ 'row--error': row.hasError, 'row--sample': row.isSample }"
-                >
-                  <td class="col-row-num">{{ index + 1 }}</td>
-                  <td v-for="col in tableColumnKeys" :key="col">{{ row[col] ?? '' }}</td>
-                  <td v-if="hasFailReasons" class="col-error-reason">{{ row.failReason ?? '' }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </template>
-      </div>
-
-      <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
-
-      <div v-if="failedRowList.length > 0" class="fail-list">
-        <p class="fail-list__title">
-          <font-awesome-icon icon="fa-solid fa-triangle-exclamation" /> 등록 실패 사유
-        </p>
-        <ul>
-          <li v-for="item in failedRowList" :key="item.rowNum">
-            <span class="fail-row-num">{{ item.rowNum }}행</span> {{ item.reason }}
-          </li>
-        </ul>
+          <ul>
+            <li v-for="item in failedRowList" :key="item.rowNum">
+              <span class="fail-row-num">{{ item.rowNum }}행</span> {{ item.reason }}
+            </li>
+          </ul>
+        </div>
+        </div><!-- /padding wrapper -->
       </div>
     </div>
-  </div>
 
-  <div class="btn-row g10">
-    <div class="submit-wrap">
+    <div class="page-footer">
       <button
         class="btn btn-submit"
+        style="margin-left: auto"
         :disabled="!uploadedFile || isLoading || errorSummary || hasSampleRows || totalRows === 0"
         @click="handleSubmit"
       >
         <font-awesome-icon icon="fa-solid fa-circle-check" /> {{ isLoading ? '등록 중...' : '등록' }}
       </button>
-      <!-- <p v-if="hasSampleRows" class="submit-disabled-hint">
-        <font-awesome-icon icon="fa-solid fa-triangle-exclamation" />
-        샘플 행을 삭제한 후 재업로드해주세요.
-      </p>
-      <p v-else-if="errorSummary" class="submit-disabled-hint">
-        <font-awesome-icon icon="fa-solid fa-triangle-exclamation" />
-        데이터 오류가 있습니다. 파일을 수정 후 다시 업로드해주세요.
-      </p> -->
     </div>
   </div>
 </template>
@@ -422,17 +418,14 @@ onMounted(async () => {
 
 
 <style scoped lang="scss">
-// ───── 템플릿 다운로드 ─────
-.template-download-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 0 4px;
+.nav-row {
+  margin-bottom: 12px;
+  :deep(.tab-nav) { margin-bottom: 0; }
 }
 
 .template-hint {
   font-size: 14px;
-  color: var(--color-text-muted);
+  color: $font-color-light;
 }
 
 // ───── 드롭존 ─────
@@ -443,25 +436,21 @@ onMounted(async () => {
   justify-content: center;
   gap: 16px;
   height: 180px;
-  border: 2px dashed var(--color-border);
+  border: 2px dashed $border-color;
   border-radius: 8px;
   cursor: pointer;
   transition: border-color 0.2s, background-color 0.2s;
 
   &--over {
-    border-color: var(--color-primary);
-    background-color: var(--color-bg);
+    border-color: $green-600;
+    background-color: $default-bg;
   }
 }
 
 .dropzone__text {
   font-size: 14px;
-  color: var(--color-text-muted);
+  color: $font-color-light;
   margin: 0;
-}
-
-.hidden-input {
-  display: none;
 }
 
 // ───── 미리보기 ─────
@@ -471,16 +460,10 @@ onMounted(async () => {
   gap: 12px;
 }
 
-.preview-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
 .preview-filename {
   font-size: 14px;
   font-weight: 600;
-  color: var(--color-text);
+  color: $font-color;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -489,12 +472,12 @@ onMounted(async () => {
 .preview-count {
   font-size: 13px;
   font-weight: 400;
-  color: var(--color-text-muted);
+  color: $font-color-light;
 }
 
 .error-summary {
   font-size: 13px;
-  color: #d32f2f;
+  color: $error;
   margin: 0;
   display: flex;
   align-items: center;
@@ -530,133 +513,37 @@ onMounted(async () => {
   color: #b45309;
   font-size: 14px;
 
-  svg {
-    margin-top: 2px;
-    flex-shrink: 0;
-  }
-
-  p {
-    margin: 0;
-    &:first-child { font-weight: 600; }
-    &:last-child { font-size: 13px; margin-top: 4px; color: #92400e; }
-  }
+  svg { margin-top: 2px; flex-shrink: 0; }
+  p { margin: 0; }
+  p:first-child { font-weight: 600; }
+  p:last-child { font-size: 13px; margin-top: 4px; color: #92400e; }
 }
 
 .error-message {
   font-size: 13px;
-  color: #d32f2f;
+  color: $error;
   margin: 8px 0 0;
-}
-
-.fail-list {
-  margin-top: 12px;
-  padding: 12px 16px;
-  border: 1px solid #f5c2c2;
-  border-radius: 6px;
-  background: #fff8f8;
-
-  &__title {
-    font-size: 13px;
-    font-weight: 600;
-    color: #d32f2f;
-    margin: 0 0 8px;
-  }
-
-  ul {
-    margin: 0;
-    padding-left: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  li {
-    font-size: 13px;
-    color: var(--color-text);
-  }
 }
 
 .fail-row-num {
   font-weight: 600;
-  color: #d32f2f;
+  color: $error;
   margin-right: 6px;
 }
 
-// ───── 테이블 ─────
-.table-wrapper {
-  overflow-x: auto;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
+// ───── 테이블 (배치등록 전용 컬럼) ─────
+.data-tbl { min-width: 800px; }
+
+.col-row-num {
+  width: 48px;
+  min-width: 48px;
+  text-align: center;
+  color: $font-color-light;
+  font-weight: 400;
 }
 
-.preview-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-  min-width: 800px;
-
-  th, td {
-    padding: 10px 12px;
-    text-align: left;
-    border-bottom: 1px solid var(--color-border);
-    white-space: nowrap;
-  }
-
-  th {
-    background-color: var(--color-bg);
-    font-weight: 600;
-    color: var(--color-text);
-  }
-
-  .col-row-num {
-    width: 48px;
-    min-width: 48px;
-    text-align: center;
-    color: var(--color-text-muted);
-    font-weight: 400;
-  }
-
-  tr.row--error td {
-    background-color: #fde8e8;
-  }
-
-  tr.row--sample td {
-    background-color: #fefce8;
-    color: var(--color-text-muted);
-    font-style: italic;
-  }
-
-  .col-error-reason {
-    color: #d32f2f;
-    min-width: 160px;
-  }
-
-  .empty-cell {
-    text-align: center;
-    color: var(--color-text-muted);
-    padding: 32px;
-  }
-}
-
-.submit-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-}
-
-.submit-disabled-hint {
-  font-size: 12px;
-  color: #d32f2f;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.btn-sm {
-  height: 32px;
-  font-size: 13px;
-  padding: 0 12px;
+.col-error-reason {
+  color: $error;
+  min-width: 160px;
 }
 </style>

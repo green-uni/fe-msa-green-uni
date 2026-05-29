@@ -2,10 +2,13 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import GradeService from '@/services/gradeService'
+import Pagination from '@/components/common/Pagination.vue'
 
-const router     = useRouter()
-const isLoading  = ref(true)
-const appealList = ref([])
+const router      = useRouter()
+const isLoading   = ref(true)
+const appealList  = ref([])
+const currentPage = ref(1)
+const maxPage     = ref(1)
 
 const statusLabel = (s) => ({ PENDING: '검토 중', APPROVED: '승인', REJECTED: '반려' }[s] ?? s)
 const statusClass = (s) => ({ PENDING: 'badge-pending', APPROVED: 'badge-approved', REJECTED: 'badge-rejected' }[s] ?? '')
@@ -13,14 +16,20 @@ const statusClass = (s) => ({ PENDING: 'badge-pending', APPROVED: 'badge-approve
 const formatDate = (dt) => dt ? new Date(dt).toLocaleDateString('ko-KR',
     { year: 'numeric', month: '2-digit', day: '2-digit' }) : '-'
 
-onMounted(async () => {
+const fetchList = async (page = 1) => {
+    isLoading.value = true
     try {
-        appealList.value = await GradeService.getProfessorAppealList()
+        const res = await GradeService.getProfessorAppealList({ page, size: 10 })
+        appealList.value  = res.content ?? []
+        maxPage.value     = res.totalPages ?? 1
+        currentPage.value = page
     } catch {
     } finally {
         isLoading.value = false
     }
-})
+}
+
+onMounted(() => fetchList(1))
 </script>
 
 <template>
@@ -28,31 +37,37 @@ onMounted(async () => {
         <div v-if="isLoading" class="empty-area">조회 중...</div>
         <template v-else>
             <div v-if="!appealList.length" class="empty-area">이의신청 내역이 없습니다.</div>
-            <div v-else class="list">
-                <article
-                    v-for="item in appealList"
-                    :key="item.courseId"
-                    class="appeal-card"
-                    @click="router.push(`/professor/grades/appeals/${item.courseId}`)">
-                    <div class="card-header">
-                        <div class="lecture-info">
-                            <span class="lecture-name">{{ item.lectureName }}</span>
-                            <span class="lecture-term">{{ item.lectureYear }}년 {{ item.lectureSemester }}학기</span>
+            <template v-else>
+                <div class="list">
+                    <article
+                        v-for="item in appealList"
+                        :key="item.courseId"
+                        class="appeal-card"
+                        @click="router.push(`/professor/grades/appeals/${item.courseId}`)">
+                        <div class="card-header">
+                            <div class="lecture-info">
+                                <span class="lecture-name">{{ item.lectureName }}</span>
+                                <span class="lecture-term">{{ item.lectureYear }}년 {{ item.lectureSemester }}학기</span>
+                            </div>
+                            <span :class="['status-badge', statusClass(item.appealStatus)]">
+                                {{ statusLabel(item.appealStatus) }}
+                            </span>
                         </div>
-                        <span :class="['status-badge', statusClass(item.appealStatus)]">
-                            {{ statusLabel(item.appealStatus) }}
-                        </span>
-                    </div>
-                    <div class="card-body">
-                        <span class="student-info">{{ item.studentName }} ({{ item.studentCode }})</span>
-                        <p class="reason-text">{{ item.reason }}</p>
-                    </div>
-                    <div class="card-footer">
-                        <span class="date-info">신청일: {{ formatDate(item.createdAt) }}</span>
-                        <span class="arrow">상세보기 →</span>
-                    </div>
-                </article>
-            </div>
+                        <div class="card-body">
+                            <span class="student-info">{{ item.studentName }} ({{ item.studentCode }})</span>
+                            <p class="reason-text">{{ item.reason }}</p>
+                        </div>
+                        <div class="card-footer">
+                            <span class="date-info">신청일: {{ formatDate(item.createdAt) }}</span>
+                            <span class="arrow">상세보기 →</span>
+                        </div>
+                    </article>
+                </div>
+                <Pagination
+                    :currentPage="currentPage"
+                    :maxPage="maxPage"
+                    @goToPage="fetchList" />
+            </template>
         </template>
     </div>
 </template>

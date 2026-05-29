@@ -72,7 +72,7 @@ const props = defineProps({
 
     <div class="input-wrap">
       <div class="input-label">기타</div>
-      <div class="input-content d-flex g10">
+      <div class="input-content check-group d-flex g10">
         <label>
           <input type="checkbox" v-model="props.student.isTransfer"> 편입생
         </label>
