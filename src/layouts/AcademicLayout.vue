@@ -25,7 +25,7 @@ const isTransitioning = computed(() =>
 </script>
 <template>
   <div :class="showLayout ? 'all-wrap' : 'intro'">
-    <!-- 로그인 전 왼쪽 배너 -->
+    <!-- [팀원 추가] 로그인 전 왼쪽 배너 -->
     <section class="intro-banner" aria-hidden="true" v-if="!showLayout">
       <div class="intro-banner-content">
         <p class="sub">GREEN UNIVERSITY · 통합 학사시스템</p>

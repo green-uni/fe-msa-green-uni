@@ -330,11 +330,11 @@ onMounted(async () => {
 
     <!-- 수동폐강 입력박스 -->
     <div v-if="showCancelBox" class="action-box cancel-box">
-      <p class="action-box-title">수동폐강</p>
-      <textarea v-model="cancelReason" class="action-textarea" placeholder="폐강 사유를 30자 이상 입력해주세요." rows="3" />
+      <p class="action-box-title">폐강 사유</p>
+      <textarea v-model="cancelReason" class="action-textarea" rows="3" />
       <div class="action-box-footer">
         <span class="char-count" :class="{ valid: cancelReason.trim().length >= 30 }">
-          {{ cancelReason.trim().length }} / 30자 이상
+          {{ cancelReason.trim().length }} / 255자 (30자 이상 작성필수)
         </span>
         <div class="action-box-btns">
           <button class="btn btn-default" @click="showCancelBox = false">취소</button>
@@ -553,11 +553,11 @@ onMounted(async () => {
 
 <style scoped>
 .page-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.action-group { display: flex; gap: 8px; align-items: center; }
+.action-group { display: flex; gap: 8px; align-items: center;}
 
 /* 더보기 드롭다운 */
 .more-menu-wrap { position: relative; }
-.more-btn { font-size: 18px; font-weight: 700; letter-spacing: 2px; padding: 4px 10px; background: none; border: none; }
+.more-btn { font-size: 18px; font-weight: 700; letter-spacing: 2px; padding: 4px 10px; background: none; border: none; cursor: pointer; }
 .more-dropdown {
   position: absolute;
   top: calc(100% + 6px);

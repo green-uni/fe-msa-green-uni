@@ -7,6 +7,7 @@ import evaluationService from '@/services/evaluationService';
 import CardListDetail from '@/components/common/CardListDetail.vue';
 import Pagination from '@/components/common/Pagination.vue';
 
+const yearOptions = ref([]);
 const route = useRoute();
 const authStore = useAuthStore();
 const modal = useModalStore();
@@ -72,9 +73,32 @@ const state = reactive({
 });
 
 const selectedItem = ref(null);
-const selectedDetail = ref(null);
+const selectedDetail = ref({ score: 0 })
 
 const maxPage = computed(() => Math.ceil(state.totalCount / PAGE_SIZE) || 1);
+
+const fetchYearOptions = async () => {
+  const curYear = getCurrentTerm().year;
+  try {
+    let res;
+    if (role.value === 'STUDENT') {
+      res = await evaluationService.getStudentEvalYears();
+    } else {
+      res = await evaluationService.getProfessorEvalYears();
+    }
+    const years = res.data ?? [];
+    if (!years.includes(curYear)) years.unshift(curYear);
+    yearOptions.value = years;
+  } catch (err) {
+    console.error('연도 옵션 로드 실패:', err);
+    yearOptions.value = [curYear];
+  }
+};
+
+onMounted(() => {
+  fetchYearOptions();
+  fetchList();
+});
 
 const fetchList = async () => {
   state.isLoading = true;
@@ -86,6 +110,7 @@ const fetchList = async () => {
       semester: filter.semester || undefined,
       page: state.currentPage,
       size: PAGE_SIZE,
+      startIdx: (state.currentPage - 1) * PAGE_SIZE,
     };
     let res;
     if (role.value === 'STUDENT') {
@@ -93,7 +118,6 @@ const fetchList = async () => {
     } else {
       res = await evaluationService.getProfessorEvalList(params);
     }
-    state.list = res.data ?? [];
     state.totalCount = state.list.length;
   } catch (e) {
     console.error(e);
@@ -111,11 +135,11 @@ const onFilterChange = () => {
 const selectItem = async (item) => {
   if (selectedItem.value?.lectureId === item.lectureId) {
     selectedItem.value = null;
-    selectedDetail.value = null;
+    selectedDetail.value = { score: 0 };
     return;
   }
   selectedItem.value = item;
-  selectedDetail.value = null;
+  selectedDetail.value = { score: 0 };
   try {
     let res;
     if (role.value === 'STUDENT') {
@@ -123,9 +147,9 @@ const selectItem = async (item) => {
     } else {
       res = await evaluationService.getProfessorEvalDetail(item.lectureId);
     }
-    selectedDetail.value = res.data;
+    selectedDetail.value = res.data ?? { score: 0 };
   } catch (e) {
-    selectedDetail.value = null;
+    selectedDetail.value = { score: 0 };
   }
 };
 
@@ -190,7 +214,6 @@ const goToPage = (page) => {
   fetchList();
 };
 
-onMounted(fetchList);
 </script>
 
 <template>
@@ -198,21 +221,21 @@ onMounted(fetchList);
     <div class="filter-header">
       <div class="filter-group">
         <div class="filter-item">
+          <div class="input-label">연도</div>
+          <div class="input-content">
+            <select v-model="filter.year" @change="onFilterChange">
+              <option value="">전체</option>
+              <option v-for="y in yearOptions" :key="y" :value="y">{{ y }}년</option>
+            </select>
+          </div>
+        </div>
+                <div class="filter-item">
           <div class="input-label">학기</div>
           <div class="input-content">
             <select v-model="filter.semester" @change="onFilterChange">
               <option value="">전체</option>
               <option value="1">1학기</option>
               <option value="2">2학기</option>
-            </select>
-          </div>
-        </div>
-        <div class="filter-item">
-          <div class="input-label">연도</div>
-          <div class="input-content">
-            <select v-model="filter.year" @change="onFilterChange">
-              <option value="">전체</option>
-              <option v-for="y in [2026, 2025, 2024]" :key="y" :value="y">{{ y }}년</option>
             </select>
           </div>
         </div>
@@ -328,8 +351,8 @@ onMounted(fetchList);
               <span class="label">강의 만족도</span>
               <div class="star-wrap readonly">
                 <span v-for="n in 5" :key="n" class="star-container">
-                  <span class="star-half left" :class="{ active: selectedDetail.score >= n - 0.5 }">★</span>
-                  <span class="star-half right" :class="{ active: selectedDetail.score >= n }">★</span>
+                  <span class="star-half left" :class="{ active: selectedDetail?.score >= n - 0.5 }">★</span>
+                  <span class="star-half right" :class="{ active: selectedDetail?.score >= n }">★</span>
                 </span>
                 <span class="score-text">{{ selectedDetail.score }} / 5.0</span>
               </div>

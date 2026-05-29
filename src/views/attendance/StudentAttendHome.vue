@@ -232,6 +232,22 @@ function goToQrScan()   { router.push('/student/attendances/scan') }
 
 .header-left { display: flex; flex-direction: column; gap: 4px; }
 
+.btn-logout {
+  background: none;
+  border: 1px solid var(--line-color);
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: var(--font-color-light);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-xs);
+  flex-shrink: 0;
+  &:hover { color: var(--font-color); border-color: var(--font-color-light); }
+  &:active { opacity: 0.7; }
+}
+
 .header-title {
   display: inline-flex;
   align-items: center;
