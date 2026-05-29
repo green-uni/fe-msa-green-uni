@@ -93,18 +93,18 @@ class MemberService {
   //////////////////////// 관리자 ////////////////////////
 
   // 학생 목록 조회
-  async findStudents() {
-    const res = await axios.get(`${this.#adminPath}/students`)
+  async findStudents(params = {}) {
+    const res = await axios.get(`${this.#adminPath}/students`, { params })
     return res.data;
   }
   // 교수 목록 조회
-  async findProfessors() {
-    const res = await axios.get(`${this.#adminPath}/professors`)
+  async findProfessors(params = {}) {
+    const res = await axios.get(`${this.#adminPath}/professors`, { params })
     return res.data;
   }
   // 관리자 목록 조회
-  async findAdmins() {
-    const res = await axios.get(`${this.#adminPath}/admins`)
+  async findAdmins(params = {}) {
+    const res = await axios.get(`${this.#adminPath}/admins`, { params })
     return res.data;
   }
 
@@ -219,8 +219,8 @@ class MemberService {
   }
 
   // 전공변경 신청서 전체 조회
-  async findAllMajorRequests() {
-    const res = await axios.get(`${this.#adminPath}/requests/major`)
+  async findAllMajorRequests(params = {}) {
+    const res = await axios.get(`${this.#adminPath}/requests/major`, { params })
     return res.data;
   }
   // 전공변경 신청서 단건 조회
@@ -244,8 +244,8 @@ class MemberService {
   }
 
   // 학적 변동 신청서 전체 조회 (관리자)
-  async findAllStatusRequests() {
-    const res = await axios.get(`${this.#adminPath}/requests/status`)
+  async findAllStatusRequests(params = {}) {
+    const res = await axios.get(`${this.#adminPath}/requests/status`, { params })
     return res.data;
   }
   // 대시보드 - 계정 현황 카운트
@@ -257,9 +257,9 @@ class MemberService {
   // 대시보드 - 전공변경 신청 대기 목록 (최대 3건)
   async getDashboardMajorRequests() {
     const res = await axios.get(`${this.#adminPath}/requests/major`, {
-      params: { status: 'PENDING', size: 3 }
+      params: { status: 'PENDING', size: 3, page: 1 }
     })
-    return res.data
+    return { data: res.data.content ?? [] }
   }
 
   // 대시보드 - 학생 본인 신청서 목록 (전공+학적 통합, 최대 3건)
@@ -273,9 +273,9 @@ class MemberService {
   // 대시보드 - 학적변경 신청 대기 목록 (최대 3건, 휴학)
   async getDashboardStatusRequests() {
     const res = await axios.get(`${this.#adminPath}/requests/status`, {
-      params: { status: 'PENDING', type: 'ABSENCE', size: 3 }
+      params: { status: 'PENDING', type: 'ABSENCE', size: 3, page: 1 }
     })
-    return res.data
+    return { data: res.data.content ?? [] }
   }
 
   // 학적 변동 신청서 단건 조회 (관리자)

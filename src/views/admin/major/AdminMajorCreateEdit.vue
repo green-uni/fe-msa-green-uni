@@ -215,6 +215,15 @@ watch(() => form.active, async (newVal) => {
     }
   }
 })
+
+// ↓ [추가] 화면 표시용 교수 리스트 정의 ('이름(코드)' 형태)
+const displayProfessorList = computed(() => {
+  return professorList.value.map(prof => ({
+    ...prof,
+    // SearchInput 검색 및 표시용 라벨을 새로 생성합니다.
+    displayName: `${prof.name} (${prof.memberCode})`
+  }))
+})
 </script>
 
 <template>
@@ -261,15 +270,15 @@ watch(() => form.active, async (newVal) => {
         <div class="input-wrap">
           <label class="input-label">학과장명</label>
           <div class="input-content">
-            <SearchInput
-              v-model="professorKeyword"
-              :list="professorList"
-              label-key="name"
-              value-key="memberCode"
-              placeholder="교수명을 입력하세요"
-              :show-on-focus="true"
-              @select="onSelectProfessor"
-            />
+          <SearchInput
+            v-model="professorKeyword"
+            :list="displayProfessorList"
+            label-key="displayName"
+            value-key="memberCode"
+            placeholder="교수명을 입력하세요"
+            :show-on-focus="true"
+            @select="onSelectProfessor"
+          />
           </div>
         </div>
 

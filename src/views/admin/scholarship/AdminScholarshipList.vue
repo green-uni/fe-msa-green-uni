@@ -132,7 +132,7 @@ onMounted(() => {
   <div>
     <FilterBar 
       v-model:searchQuery="searchInput" 
-      :hasFilter="true"
+      :hasFilter="false"
       @search="onSearch" 
       @reset="resetFilter"
     >
@@ -183,19 +183,6 @@ onMounted(() => {
           </select>
         </div>
       </div>
-
-      <div class="filter-item">
-        <div class="input-label">학년</div>
-        <div class="input-content">
-          <select v-model="filter.academicYear" :disabled="!searched">
-            <option value="">전체</option>
-            <option value="1">1학년</option>
-            <option value="2">2학년</option>
-            <option value="3">3학년</option>
-            <option value="4">4학년</option>
-          </select>
-        </div>
-      </div>
     </FilterBar>
 
     <p v-if="!searched" class="guide-text">연도와 학기를 선택한 후 조회하세요.</p>
@@ -204,10 +191,10 @@ onMounted(() => {
       <div><p>전체: {{ displayCount }}명</p></div>
 
       <DataTable
-        :columns="['학번', '이름', '학과', '학년', '유형', '금액', '지급일']"
+        :columns="['학번', '이름', '학과', '유형', '금액', '지급일']"
         :rows="filteredScholarships"  
         :isLoading="isLoading"
-        gridCols="120px 1fr 1fr 60px 150px 1fr 120px"
+        gridCols="120px 1fr 1fr 150px 1fr 120px"
         emptyMessage="해당 학기의 장학 수혜 내역이 없습니다."
       >
         <template v-if="!isLoading && filteredScholarships.length > 0">
@@ -218,8 +205,7 @@ onMounted(() => {
           >
             <div>{{ item.memberCode }}</div>
             <div>{{ item.studentName }}</div>
-            <div>{{ item.deptName }}</div> 
-            <div>{{ item.academicYear }}학년</div>
+            <div>{{ item.deptName }}</div>
             <div>
               <span class="badge" :class="badgeClass(item.scholarshipType)">
                 {{ item.scholarshipType }}

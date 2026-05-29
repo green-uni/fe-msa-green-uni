@@ -8,6 +8,15 @@ axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL
 axios.defaults.withCredentials = true
 let reissuePromise = null
 
+// 에러 페이지로 보낼 상태 코드 정의
+const ERROR_PAGE_ROUTES = {
+  403: 'Forbidden',
+  404: 'NotFound',
+  500: 'ServerError',
+  502: 'ServerError',
+  503: 'Maintenance',
+}
+
 // 인터셉터
 axios.interceptors.response.use(
   (res) => res, // 정상적 통신이라면 그대로 사용
@@ -39,25 +48,31 @@ axios.interceptors.response.use(
         // 위 두가지 경우가 아닐 경우 에러메세지를 저장하고 띄우겠다.
         // _skipModal: true 설정 시 모달 생략 — 자체 에러 UI가 있는 화면(QR 스캔 등) 중복 팝업 방지
         if (!err.config?._skipModal) {
-          // [개발용] 배포 시 삭제 후 아래 [배포용] 주석 해제
-          const message =
-            err.response.data?.message ||
-            err.response.data?.result ||
-            `${err.response.status} 오류가 발생했습니다.`
-          // [배포용]
-          // const STATUS_MESSAGES = {
-          //   400: '잘못된 요청입니다.',
-          //   401: '로그인이 필요합니다.',
-          //   403: '접근 권한이 없습니다.',
-          //   404: '요청한 리소스를 찾을 수 없습니다.',
-          //   500: '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
-          // }
-          // const message = err.response.data?.message || err.response.data?.result
-          //               || STATUS_MESSAGES[err.response.status]
-          //               || `${err.response.status} 오류가 발생했습니다.`;
+          // ⭐️ 수정 [2] — 블로킹 에러(403/500/502/503)는 모달 대신 에러페이지로 이동
+          // 아래 if 블록만 새로 추가하고, 기존 모달 로직은 else 안에 그대로 둠
+          if (ERROR_PAGE_ROUTES[err.response.status] && !err.config?._skipErrorPage) {
+            router.replace({ name: ERROR_PAGE_ROUTES[err.response.status] })
+          } else {
+            // [개발용] 배포 시 삭제 후 아래 [배포용] 주석 해제
+            const message =
+              err.response.data?.message ||
+              err.response.data?.result ||
+              `${err.response.status} 오류가 발생했습니다.`
+            // [배포용]
+            // const STATUS_MESSAGES = {
+            //   400: '잘못된 요청입니다.',
+            //   401: '로그인이 필요합니다.',
+            //   403: '접근 권한이 없습니다.',
+            //   404: '요청한 리소스를 찾을 수 없습니다.',
+            //   500: '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+            // }
+            // const message = err.response.data?.message || err.response.data?.result
+            //               || STATUS_MESSAGES[err.response.status]
+            //               || `${err.response.status} 오류가 발생했습니다.`;
 
-          const modalStore = useModalStore()
-          modalStore.showAlert(message, 'error')
+            const modalStore = useModalStore()
+            modalStore.showAlert(message, 'error')
+          }
         }
       }
     }

@@ -31,7 +31,7 @@ router.beforeEach(async (to, _from, next) => {
     return
   }
 
-  if (!isLogin && !publicPages.includes(to.path)) {
+  if (!isLogin && !publicPages.includes(to.path) && !to.meta.public) {
     next(isMobileDevice ? '/student/login' : '/login')
     return
   }
@@ -42,7 +42,7 @@ router.beforeEach(async (to, _from, next) => {
       return
     }
     // ADMIN이 일반 경로 접근 시 관리자 홈으로 리다이렉트 (비밀번호 변경 제외)
-    if (isAdminRole && !isAdminPath && to.path !== '/members/my/password') {
+    if (isAdminRole && !isAdminPath && !to.meta.public && to.path !== '/members/my/password') {
       next('/admin/members/dashboard')
       return
     }
