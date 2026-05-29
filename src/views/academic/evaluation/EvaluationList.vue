@@ -118,6 +118,7 @@ const fetchList = async () => {
     } else {
       res = await evaluationService.getProfessorEvalList(params);
     }
+    state.list = res.data ?? [];
     state.totalCount = state.list.length;
   } catch (e) {
     console.error(e);
