@@ -22,14 +22,14 @@ const formatDate = (dateStr) => dateStr?.slice(0, 10) ?? ''
     <section class="notice">
       <header class="notice__head">
         <h2>공지사항</h2>
-        <a href="#" class="link-muted">더보기 +</a>
+        <a href="#" class="link-muted" @click.prevent="router.push('/public/announcements')">더보기 +</a>
       </header>
       <ul class="notice__list">
         <li v-if="annoList.length === 0">
           <span style="color:#aaa; font-size:0.85rem;">공지사항이 없습니다.</span>
         </li>
         <li v-for="anno in annoList" :key="anno.annoId">
-          <a href="#" @click.prevent="router.push(`/announcements/${anno.annoId}`)">
+          <a href="#" @click.prevent="router.push(`/public/announcements/${anno.annoId}`)">
             <span class="dot"></span>{{ anno.title }}
           </a>
           <time>{{ formatDate(anno.createdAt) }}</time>

@@ -1,4 +1,5 @@
-const url = 'announcements'
+const url       = 'announcements'
+const publicUrl = 'public/announcements'
 
 export const announcementRoutes = [
     // 학생/교수/관리자 공지사항 목록
@@ -22,6 +23,19 @@ export const announcementRoutes = [
             showInNav: false,
             activeMenu: url,
         },
+    },
+]
+
+export const publicAnnouncementRoutes = [
+    {
+        path: publicUrl,
+        component: () => import('@/views/public/announcement/PublicAnnouncementList.vue'),
+        meta: { title: '공지사항', public: true },
+    },
+    {
+        path: `${publicUrl}/:annoId`,
+        component: () => import('@/views/public/announcement/PublicAnnouncementDetail.vue'),
+        meta: { title: '공지사항 상세', public: true },
     },
 ]
 
