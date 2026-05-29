@@ -2,8 +2,8 @@
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useAuthStore } from '@/stores/authentication'
-import ProfessorFields from '@/components/member/ProfessorFields.vue'
-import CommonFields from '@/components/member/CommonFields.vue'
+import ProfessorFields from '@/components/member/fields/ProfessorFields.vue'
+import CommonFields from '@/components/member/fields/CommonFields.vue'
 import ProfileImg from '@/components/common/ProfileImg.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import MemberService from '@/services/memberService'
@@ -80,8 +80,8 @@ const admin = reactive({
 const original = ref({})
 
 const EMAIL_RE = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
-const DATE_RE  = /^\d{4}-\d{2}-\d{2}$/
-const TEL_RE   = /^0\d{9,10}$/
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+const TEL_RE = /^0\d{9,10}$/
 
 const validate = () => {
   const errors = []
@@ -105,9 +105,9 @@ const submit = async () => {
   if (isLoading.value) return
 
   // 현재값 합치기
-  const current = targetRole.value === 'STUDENT'   ? { ...common, ...student }
-              : targetRole.value === 'PROFESSOR' ? { ...common, ...professor }
-              : { ...common, ...admin }
+  const current = targetRole.value === 'STUDENT' ? { ...common, ...student }
+    : targetRole.value === 'PROFESSOR' ? { ...common, ...professor }
+      : { ...common, ...admin }
 
   // 변경된 필드만 추출
   const changed = {}
@@ -144,9 +144,9 @@ const submit = async () => {
 onBeforeRouteLeave(async (_to, _from, next) => {
   if (!original.value || Object.keys(original.value).length === 0) { next(); return }
 
-  const current = targetRole.value === 'STUDENT'   ? { ...common, ...student }
-              : targetRole.value === 'PROFESSOR' ? { ...common, ...professor }
-              : { ...common, ...admin }
+  const current = targetRole.value === 'STUDENT' ? { ...common, ...student }
+    : targetRole.value === 'PROFESSOR' ? { ...common, ...professor }
+      : { ...common, ...admin }
   delete current.majorName
 
   const hasChanges = Object.keys(current).some(key => current[key] !== original.value[key]) || !!pic.value
@@ -210,8 +210,8 @@ onMounted(async () => {
     student.isMultiChild = data.isMultiChild
     student.isVeteran = data.isVeteran
     student.majorName = data.mainMajorName
-  student.entryDate = data.entryDate,
-  student.exitDate = data.exitDate
+    student.entryDate = data.entryDate,
+      student.exitDate = data.exitDate
   } else if (targetRole.value === 'PROFESSOR') {
     professor.degree = data.degree
     professor.position = data.position
@@ -220,12 +220,12 @@ onMounted(async () => {
     professor.labTel = data.labTel
     professor.status = data.status
     professor.majorName = data.majorName
-  professor.entryDate = data.entryDate,
-  professor.exitDate = data.exitDate
+    professor.entryDate = data.entryDate,
+      professor.exitDate = data.exitDate
   } else if (targetRole.value === 'ADMIN') {
     admin.status = data.status
-  admin.entryDate = data.entryDate,
-  admin.exitDate = data.exitDate
+    admin.entryDate = data.entryDate,
+      admin.exitDate = data.exitDate
   }
 
   if (targetRole.value === 'STUDENT') {
@@ -259,16 +259,9 @@ onMounted(async () => {
         <!--form-grid-->
         <div class="content-wrap d-flex direct-col d-flex-grow1" v-if="targetRole === 'PROFESSOR'">
           <h3><font-awesome-icon icon="fa-solid fa-circle-info" />학적 정보</h3>
-            <ProfessorFields
-              v-if="targetRole === 'PROFESSOR'"
-              :professor="professor"
-              :majorList="majorList"
-              :statusList="professorStatusList"
-              :positionList="professorPositionList"
-              :degreeList="professorDegreeList"
-              :buildingList="buildingList"
-              :mode="editMode"
-            />
+          <ProfessorFields v-if="targetRole === 'PROFESSOR'" :professor="professor" :majorList="majorList"
+            :statusList="professorStatusList" :positionList="professorPositionList" :degreeList="professorDegreeList"
+            :buildingList="buildingList" :mode="editMode" />
         </div>
         <!-- content-wrap-->
       </div>
@@ -293,6 +286,7 @@ onMounted(async () => {
   flex-direction: column;
   align-self: flex-start;
 }
+
 .pf-profile .pf-profile-pic {
   padding: var(--size-df);
 }

@@ -4,8 +4,8 @@ import { useAuthStore } from '@/stores/authentication';
 import { onMounted, reactive, computed, ref } from 'vue';
 import ProfileImg from '@/components/common/ProfileImg.vue';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
-import StatusHistoryList from '@/components/member/StatusHistoryList.vue';
-import MajorHistoryList from '@/components/member/MajorHistoryList.vue';
+import StatusHistoryList from '@/components/member/history-list/StatusHistoryList.vue';
+import MajorHistoryList from '@/components/member/history-list/MajorHistoryList.vue';
 import { useRouter, useRoute } from 'vue-router';
 import { formatTel } from '@/utils/phoneNumber'
 import { STATUS_LABEL, POSITION_LABEL, DEGREE_LABEL, BUILDING_LABEL } from '@/utils/constants.js'

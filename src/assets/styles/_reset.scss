@@ -24,7 +24,7 @@ time, mark, audio, video {
 	font: inherit;
 	vertical-align: baseline;
   box-sizing: border-box;
-  font-family: 'Pretendard';
+  font-family: $font-sans;
 }
 /* HTML5 display-role reset for older browsers */
 article, aside, details, figcaption, figure,
@@ -38,7 +38,6 @@ html{
 body {
   min-height: 100vh;
 	line-height: 1;
-  min-height: 100vh;
 }
 ol, ul {
 	list-style: none;
@@ -61,22 +60,12 @@ button, input, select, textarea{
   white-space: nowrap;
   outline: none;
 }
-select {
-  border: 1px solid $input-border-color;
-  border-radius: 4px;
-  background: #fcfcfc;
-  color: $font-color;
-  padding: 7px 10px;
-  cursor: pointer;
-  transition: border-color 0.2s;
+input:not([type='radio']), textarea, select {
+  border: 1px solid $bold-border-color; border-radius: 4px; padding: 6px 8px; outline: none; transition: border-color 0.2s; background: #fafafa; color: $font-color; font-size: 0.95em;
 }
 input:focus,
 textarea:focus,
-select:focus {
-  border-color: $green-600;
-  box-shadow: 0 0 0 3px color-mix(in srgb, transparent 85%, $green-600 15%);
-}
-
+select:focus { border-color: $green-600; box-shadow: 0 0 0 3px color-mix(in srgb, transparent 85%, #{$green-600} 15%); background: #fff; }
 button:focus-visible {
   outline: 2px solid $green-600;
   outline-offset: 2px;

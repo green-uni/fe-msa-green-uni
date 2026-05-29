@@ -10,7 +10,7 @@ defineEmits(['select'])
 </script>
 
 <template>
-  <div class="cdl-layout">
+  <div class="cdl">
     <!-- 왼쪽: 카드 목록 -->
     <div class="cdl-list">
       <p v-if="isLoading" class="cdl-empty">불러오는 중...</p>
@@ -41,55 +41,26 @@ defineEmits(['select'])
 </template>
 
 <style scoped lang="scss">
-.cdl-layout {
-  display: flex;
-  gap: 20px;
-  align-items: flex-start;
-}
-
-.cdl-list {
-  flex: 0 0 460px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.cdl-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  cursor: pointer;
-  background: #fff;
-
+.cdl {
+  display: flex; gap: 20px; align-items: flex-start;
+  &-list { flex: 0 0 460px; display: flex; flex-direction: column; gap: 5px; }
+  &-card { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border: 1px solid $border-color; border-radius: 6px; cursor: pointer; background: #fff;
   &:hover,
-  &.active {
-    background: var(--hover-bg-color, #f5f5f5);
+  &.active { background: $hover-bg-color; }
+  }  
+  &-empty { color: $font-color-light; font-size: 14px; text-align: center; padding: 40px 0;}
+  &-footer { margin-top: 4px;}
+  &-detail { flex: 1; position: relative; border: 1px solid #ddd; border-radius: 8px; padding: 20px; display: flex; flex-direction: column;  gap: 12px; background: #fff;}
+
+  :slotted(.card-title){font-size: 1.1em;font-weight: 600;}
+  :slotted(.card-detail){
+    font-size: 0.9em;color: $font-color-light;
+    span:not(:first-child){margin-left: 7px;padding-left: 7px;position: relative;
+      &:before{content:'';width: 1px;height: 100%; position: absolute;left: 0;top: 0;background: #ccc;}
+    }
   }
-}
-
-.cdl-empty {
-  color: #999;
-  font-size: 14px;
-  text-align: center;
-  padding: 40px 0;
-}
-
-.cdl-footer {
-  margin-top: 4px;
-}
-
-.cdl-detail {
-  flex: 1;
-  position: relative;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  background: #fff;
+  :slotted(.badge){
+    color: $font-color-light;font-size: 0.85em;
+  }
 }
 </style>

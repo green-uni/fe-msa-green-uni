@@ -6,10 +6,11 @@ import { useModalStore } from '@/stores/modal'
 
 const router      = useRouter()
 const modal       = useModalStore()
-const isLoading   = ref(true)
-const studentInfo = ref(null)
-const gradeList   = ref([])
-const summary     = ref(null)
+const isLoading    = ref(true)
+const studentInfo  = ref(null)
+const gradeList    = ref([])
+const summary      = ref(null)
+const appealPeriod = ref(false)
 
 // 학년도·학기별 그룹핑 (최신순)
 const groupedGrades = computed(() => {
@@ -36,9 +37,10 @@ const gradeClass = (letter) => {
 onMounted(async () => {
     try {
         const res       = await GradeService.getStudentGradeAll()
-        studentInfo.value = res.studentInfo
-        gradeList.value   = res.gradeList ?? []
-        summary.value     = res.summary
+        studentInfo.value  = res.studentInfo
+        gradeList.value    = res.gradeList ?? []
+        summary.value      = res.summary
+        appealPeriod.value = res.appealPeriod ?? false
     } catch {
         // 에러 모달은 httpRequester 인터셉터가 처리
     } finally {
@@ -111,7 +113,7 @@ onMounted(async () => {
                                     <th>등급</th>
                                     <th>평점</th>
                                     <th>강의 석차</th>
-                                    <th>이의신청</th>
+                                    <th v-if="appealPeriod">이의신청</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -143,17 +145,13 @@ onMounted(async () => {
                                         </span>
                                         <span v-else class="no-data">-</span>
                                     </td>
-                                    <td>
+                                    <td v-if="appealPeriod">
                                         <!-- 성적 미입력: 버튼 없음 -->
                                         <span v-if="!g.lectureGrade" class="no-data">-</span>
                                         <!-- 승인됨: 비활성 -->
                                         <span v-else-if="g.appealStatus === 'APPROVED'">승인</span>
                                         <!-- 검토 중: 클릭 시 안내 모달 -->
-                                        <button v-else-if="g.appealStatus === 'PENDING'"
-                                                class="appeal-badge pending btn-pending"
-                                                @click="modal.showAlert('이미 신청한 이의내역이 존재합니다.\n담당교수님에게 문의하여 주세요.', 'info')">
-                                            검토 중
-                                        </button>
+                                        <span v-else-if="g.appealStatus === 'PENDING'">검토 중</span>
                                         <!-- 반려: 재신청 버튼 -->
                                         <button v-else-if="g.appealStatus === 'REJECTED'"
                                                 class="btn-appeal rejected"
@@ -360,11 +358,5 @@ onMounted(async () => {
     border-radius: 4px;
     font-size: 12px;
     font-weight: 600;
-}
-.appeal-badge.pending  { background: #fff9c4; color: #e65100; }
-.btn-pending {
-    border: none;
-    cursor: pointer;
-    &:hover { opacity: 0.75; }
 }
 </style>

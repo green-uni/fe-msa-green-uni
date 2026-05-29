@@ -1,0 +1,263 @@
+@use './variables' as *;
+
+/* === Info 카드 === */
+
+/* 좌우 분할 컨테이너 */
+.info-container { display: flex; align-items: flex-start; }
+.info-card { flex-shrink: 0; width: var(--flex-width); }
+
+/* 흰 카드 공통 */
+.content-wrap {
+  background: #fff;
+  border-radius: $radius-sm;
+  box-shadow: $shadow-1;
+  padding: 1.5rem;
+}
+.content-wrap.info-content { flex-grow: 1; }
+
+/* 카드 상단 타이틀 블록 */
+.info-title {
+  word-break: keep-all;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
+  h2 { font-size: 1.5em; font-weight: 700; line-height: 1.2; }
+  .info-detail { font-size: 0.85em; color: #999; }
+}
+
+.info-img { width: 100%; }
+
+.info-wrap {
+  dl {
+    display: flex; flex-direction: column; gap: 5px;
+    dt { color: $font-color-bold; font-weight: bold; font-size: 0.85em; }
+  }
+  h3 { width: 100%; }
+}
+
+/* === 신청서/상세 페이지 공통 카드 패턴 === */
+.detail-wrap { position: relative; min-height: 300px; }
+
+.card {
+  background: #fff;
+  border: 1px solid $border-color;
+  border-radius: $radius-sm;
+  padding: 18px 20px;
+  margin-bottom: 14px;
+}
+.card-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-weight: 700;
+  color: $font-color-bold;
+  margin-bottom: 14px;
+  font-size: 1.1em;
+}
+
+.info-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px 28px; }
+.info-item { display: flex; gap: 8px; align-items: baseline; }
+.info-key  { color: $font-color-light; width: 80px; flex-shrink: 0; }
+.info-val  { color: $font-color; font-weight: 500; }
+
+.req-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: $border-color;
+  border: 1px solid $border-color;
+  border-radius: $radius-sm;
+  overflow: hidden;
+}
+.req-row {
+  display: flex;
+  align-items: stretch;
+  background: #fff;
+  &.full { grid-column: 1 / -1; }
+  dt {
+    background: #f5f5f5;
+    color: $font-color-light;
+    font-size: 0.9em;
+    width: 100px;
+    flex-shrink: 0;
+    text-align: right;
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+  dd {
+    color: $font-color;
+    flex: 1;
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+  }
+}
+
+.panel-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+/* 좌측 카드 가로 행 (info-wrap 안에서만 사용) */
+.info-wrap .info-row {
+  flex-direction: row;
+  align-items: center;
+  gap: 15px;
+  padding: 10px 0;
+  &:not(:first-child) { border-top: 1px solid $border-color; }
+  dt { text-align: right; min-width: 5em; white-space: nowrap; }
+  dd { flex: 1; }
+}
+
+.file-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: $green-600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-size: 0.85em;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.empty-text { color: #aaa; font-size: 0.85em; }
+
+.result-box {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  &.rejected { background: #fff8f8; border: 1px solid #ffcdd2; }
+  .result-title { font-weight: 700; color: #c62828; }
+  .result-body  { color: #444; line-height: 1.6; }
+}
+
+/* === 상세 페이지 헤더/푸터 === */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.page-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+.action-group { display: flex; gap: 8px; align-items: center; }
+
+/* 더보기 드롭다운 */
+.more-menu-wrap { position: relative; }
+.more-btn {
+  font-size: 18px; font-weight: 700; letter-spacing: 2px;
+  padding: 4px 10px; background: none; border: none; cursor: pointer;
+}
+.more-dropdown {
+  position: absolute; top: calc(100% + 6px); right: 0;
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10); min-width: 120px; z-index: 100; overflow: hidden;
+  button {
+    display: block; width: 100%; padding: 10px 16px; text-align: left;
+    background: none; border: none; font-size: 0.85em; cursor: pointer; color: #334155;
+    &:hover { background: #f1f5f9; }
+  }
+}
+
+/* action-box 내부 — 타이틀 / 푸터 / 글자수 카운터 */
+.action-box-title { font-weight: 700; font-size: 0.85em; margin: 0; color: #334155; }
+.action-box-footer { display: flex; justify-content: space-between; align-items: center; }
+.char-count { font-size: 0.75em; color: #aaa; }
+.char-count.valid { color: #334155; font-weight: 600; }
+
+/* result-box 타임스탬프 */
+.result-at { color: #94a3b8; font-size: 0.75em; text-align: right; margin-top: 4px; }
+
+/* 승인/반려 입력 박스 */
+.action-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 16px;
+  border-radius: 8px;
+  background: #f8f8f7;
+  border: 1px solid $border-color;
+  &.approve {
+    background: #f8fcfa;
+    border-color: $green-600;
+    .action-textarea:focus { outline: none; border-color: $green-600; }
+  }
+  &.reject {
+    background: #fff8f8;
+    border-color: #ffcdd2;
+    .action-textarea:focus { outline: none; border-color: #c62828; }
+  }
+}
+.action-textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid $border-color;
+  border-radius: 6px;
+  resize: vertical;
+  font-size: 0.85em;
+  font-family: inherit;
+  line-height: 1.5;
+}
+.action-buttons { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* 신청서 공통 */
+.reason-text { white-space: pre-wrap; line-height: 1.6; }
+.history-btn { font-size: 0.8em; padding: 4px 12px; font-weight: 400; }
+
+/* === Badge === */
+
+/* 상세용 뱃지 — tint 배경 + 텍스트 */
+%badge-base {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.badge-pending  { @extend %badge-base; background: #f0f0f0; color: #888; }
+.badge-approved,
+.badge-running  { @extend %badge-base; background: rgba($green-600, 0.12); color: $green-600; }
+.badge-rejected { @extend %badge-base; background: #fff0f0; color: #d32f2f; }
+.badge-closed   { @extend %badge-base; background: #f0f0f0; color: #aaa; }
+
+/* 목록용 상태 텍스트 색상 (미사용 클래스는 디자인 확정 후 정리 예정) */
+.text-pending  { }
+.text-approved { color: $green-600 !important; font-weight: bold; }
+.text-rejected { }
+.text-closed   { }
+
+.tbl-wrap .badge,
+.tbl-wrap .status-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* === Notice Panel === */
+.notice-panel {
+  display: flex; flex-direction: column; gap: 10px; font-size: 0.95em;
+  .notice-title { font-weight: 700; color: $font-color-bold; }
+  .notice-desc  { line-height: 1.7; }
+  .notice-table {
+    width: 100%; border-collapse: collapse;
+    th, td { padding: 7px 8px; border: 1px solid $border-color; vertical-align: top; line-height: 1.6; }
+    th { background: #f7f7f7; font-weight: 600; text-align: center; white-space: nowrap; }
+  }
+}

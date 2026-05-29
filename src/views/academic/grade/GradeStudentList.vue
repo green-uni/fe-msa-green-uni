@@ -48,6 +48,11 @@ const summary = computed(() => {
     return { averageGpa: avg.toFixed(2), convertedScore: converted, totalCredits }
 })
 
+// 모든 과목의 강의평가가 완료되었는지 (상세보기 버튼 활성 여부)
+const allEvalCompleted = computed(() =>
+    allGrades.value.length > 0 && allGrades.value.every(g => g.evalCompleted)
+)
+
 const selectSemester = (year, semester) => {
     selectedYear.value     = year
     selectedSemester.value = semester
@@ -137,24 +142,37 @@ onMounted(async () => {
                 <div>{{ g.lectureType }}</div>
                 <div class="text-left">{{ g.lectureName }}</div>
                 <div>{{ g.lectureCredit }}</div>
-                <div>
-                    <span v-if="g.lectureGrade" class="grade-badge">
-                        {{ g.lectureGrade }}
-                    </span>
-                    <span v-else class="no-grade">미입력</span>
-                </div>
-                <div>
-                    <span v-if="g.lectureRating != null">{{ g.lectureRating.toFixed(2) }}</span>
-                    <span v-else class="no-grade">-</span>
-                </div>
+                <!-- 강의평가 미완료: 두 칸 병합 버튼 -->
+                <template v-if="!g.evalCompleted">
+                    <div class="eval-btn-cell">
+                        <button class="btn-eval" @click="router.push('/evaluations')">강의평가하러가기</button>
+                    </div>
+                </template>
+                <!-- 강의평가 완료: 등급 + 평점 정상 표시 -->
+                <template v-else>
+                    <div>
+                        <span v-if="g.lectureGrade" class="grade-badge">{{ g.lectureGrade }}</span>
+                        <span v-else class="no-grade">미입력</span>
+                    </div>
+                    <div>
+                        <span v-if="g.lectureRating != null">{{ g.lectureRating.toFixed(2) }}</span>
+                        <span v-else class="no-grade">-</span>
+                    </div>
+                </template>
             </article>
         </DataTable>
 
         <!-- 성적 상세보기 버튼 -->
         <div class="detail-btn-wrap">
-            <button class="btn-detail" @click="router.push('/grades/detail')">
+            <button
+                class="btn-detail"
+                :disabled="!allEvalCompleted"
+                @click="router.push('/grades/detail')">
                 성적 상세보기 →
             </button>
+            <p v-if="!allEvalCompleted && allGrades.length > 0" class="eval-notice">
+                모든 강의평가를 완료해야 성적 상세보기가 가능합니다.
+            </p>
         </div>
 
     </div>
@@ -215,6 +233,38 @@ onMounted(async () => {
     display: inline-block;
     width: 2.2em;
     text-align: center;
+}
+
+/* 상세보기 버튼 비활성 */
+.btn-detail:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+.eval-notice {
+    margin-top: 8px;
+    font-size: var(--text-xs);
+    color: var(--font-color-light);
+    text-align: right;
+}
+
+/* 강의평가 미완료: 두 칸 병합 버튼 셀 */
+.eval-btn-cell {
+    grid-column: span 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn-eval {
+    padding: 5px 16px;
+    background: var(--main-color);
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    font-size: var(--text-xs);
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    &:hover { opacity: 0.85; }
 }
 
 /* ── 테이블 행 ── */

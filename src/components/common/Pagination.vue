@@ -65,39 +65,11 @@ const goTo = (page) => {
   </div>
 </template>
 
-<style scoped>
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 4px;
-  margin-top: 20px;
-}
-.page-btn {
-  min-width: 32px;
-  height: 32px;
-  padding: 0 8px;
-  border: 1px solid var(--line-color);
-  border-radius: 4px;
-  background: #fff;
-  color: var(--font-color);
-  cursor: pointer;
-  font-size: var(--text-sm);
-  transition: all 0.2s;
-}
-.page-btn:hover:not(:disabled):not(.active) {
-  border-color: var(--main-color);
-  color: var(--main-color);
-}
-.page-btn.active {
-  background: var(--main-color);
-  color: #fff;
-  border-color: var(--main-color);
-  font-weight: 700;
-}
-.page-btn:disabled {
-  color: #ccc;
-  cursor: default;
-  border-color: #eee;
+<style scoped lang="scss">
+.pagination { display: flex; justify-content: center; align-items: center; gap: 4px; margin-top: 20px;}
+.page-btn { min-width: 27px; height: 27px; padding: 0 5px; border: 1px solid $border-color; font-size: 0.9em; border-radius: 4px; background: #fff; color: $font-color-light; cursor: pointer;  transition: all 0.2s;
+  &:hover:not(:disabled):not(.active) { background: $default-hover-bg-color; color: $font-color; }
+  &.active {  background: $green-600;  color: #fff;  border-color: $green-600;  font-weight: 700;}
+  &:disabled { color: #ccc; cursor: default; border-color: #eee; }
 }
 </style>

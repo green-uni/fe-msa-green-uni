@@ -3,6 +3,8 @@ import { reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import majorService from '@/services/majorService'
 import { useModalStore } from '@/stores/modal'
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
+import { BUILDING_LABEL } from '@/utils/constants'
 
 const route  = useRoute()
 const router = useRouter()
@@ -11,42 +13,15 @@ const modal  = useModalStore()
 const majorId = computed(() => route.params.majorId)
 
 const state = reactive({
-  detail:      null,
-  collegeList: [],
-  isLoading:   false,
+  detail:    null,
+  isLoading: false,
 })
-
-const BUILDING_LABEL = {
-  BUSINESS:    '경영관',
-  ENGINEERING: '공학관',
-  HUMANITIES:  '인문관',
-  ARTS:        '예술관',
-  LIBERAL:     '교양관',
-  SCIENCE:     '이과관',
-}
-
-function getBuildingLabel(val) {
-  return BUILDING_LABEL[val] ?? val ?? '-'
-}
-
-const STATUS_MAP = {
-  '정상': { label: '정상', cls: 'badge-running' },
-  '폐지': { label: '폐지', cls: 'badge-closed'  },
-}
-
-function getStatusBadge(active) {
-  return STATUS_MAP[active] ?? { label: active ?? '-', cls: 'badge-closed' }
-}
 
 async function fetchDetail() {
   state.isLoading = true
   try {
-    const [detailRes, collegesRes] = await Promise.all([
-      majorService.getMajor(majorId.value),
-      majorService.getCollegeList(),
-    ])
-    state.detail      = detailRes.data?.data ?? null
-    state.collegeList = collegesRes.data?.data ?? []
+    const res = await majorService.getMajor(majorId.value)
+    state.detail = res.data?.data ?? null
   } catch {
     await modal.showAlert('학과 정보를 불러오지 못했습니다.', 'error')
   } finally {
@@ -66,170 +41,84 @@ onMounted(fetchDetail)
 </script>
 
 <template>
-  <div>
+  <div class="detail-wrap">
+    <LoadingSpinner v-if="state.isLoading" />
 
-    <div v-if="state.isLoading" class="loading-area">불러오는 중...</div>
+    <template v-if="!state.isLoading && state.detail">
 
-    <template v-else-if="state.detail">
-      <div class="form-card">
-        <div class="form-grid">
-
-          <div class="input-wrap">
-            <label class="input-label">학과명</label>
-            <div class="input-content">
-              <span class="detail-value">{{ state.detail.name ?? '-' }}</span>
-            </div>
+      <!-- Card 1: 학과 기본 정보 -->
+      <section class="card">
+        <div class="card-label">
+          <span>
+            {{ state.detail.name }}
+            <span :class="state.detail.active === '정상' ? 'badge-running' : 'badge-closed'">
+              {{ state.detail.active ?? '-' }}
+            </span>
+          </span>
+        </div>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-key">소속대학</span>
+            <span class="info-val">{{ state.detail.college ?? '-' }}</span>
           </div>
-
-          <div class="input-wrap">
-            <label class="input-label">소속대학</label>
-            <div class="input-content">
-              <span class="detail-value">{{ state.detail.college ?? '-' }}</span>
-            </div>
+          <div class="info-item">
+            <span class="info-key">학과장명</span>
+            <span class="info-val">{{ state.detail.professorName ?? '-' }}</span>
           </div>
-
-          <div class="input-wrap">
-            <label class="input-label">학과구분</label>
-            <div class="input-content">
-              <span
-                class="status-badge"
-                :class="getStatusBadge(state.detail.active).cls"
-              >
-                {{ getStatusBadge(state.detail.active).label }}
-              </span>
-            </div>
+          <div class="info-item">
+            <span class="info-key">수업연한</span>
+            <span class="info-val">{{ state.detail.courseDuration ? `${state.detail.courseDuration}년` : '-' }}</span>
           </div>
-
-          <div class="input-wrap">
-            <label class="input-label">학과장명</label>
-            <div class="input-content">
-              <span class="detail-value">{{ state.detail.professorName ?? '-' }}</span>
-            </div>
+          <div class="info-item">
+            <span class="info-key">사무실</span>
+            <span class="info-val">
+              {{ state.detail.majorBuilding
+                  ? `${BUILDING_LABEL[state.detail.majorBuilding] ?? state.detail.majorBuilding} ${state.detail.room ?? ''}`
+                  : '-' }}
+            </span>
           </div>
-
-          <div class="input-wrap">
-            <label class="input-label">수업연한</label>
-            <div class="input-content">
-              <span class="detail-value">
-                {{ state.detail.courseDuration ? `${state.detail.courseDuration}년` : '-' }}
-              </span>
-            </div>
+          <div class="info-item">
+            <span class="info-key">전화번호</span>
+            <span class="info-val">{{ state.detail.tel ?? '-' }}</span>
           </div>
-
-          <div class="input-wrap multi-input-wrap">
-            <label class="input-label">사무실</label>
-            <div class="input-content">
-              <span class="detail-value">
-                {{ state.detail.majorBuilding
-                    ? `${getBuildingLabel(state.detail.majorBuilding)} ${state.detail.room ?? ''}`
-                    : '-' }}
-              </span>
-            </div>
-            
-            <label class="input-label">전화번호</label>
-            <div class="input-content">
-              <span class="detail-value">{{ state.detail.tel ?? '-' }}</span>
-            </div>
+          <div class="info-item">
+            <span class="info-key">입학정원</span>
+            <span class="info-val">{{ state.detail.capacity != null ? `${state.detail.capacity}명` : '-' }}</span>
           </div>
-
-          <div class="input-wrap">
-            <label class="input-label">입학정원</label>
-            <div class="input-content">
-              <span class="detail-value">
-                {{ state.detail.capacity != null ? `${state.detail.capacity}명` : '-' }}
-              </span>
-            </div>
+          <div class="info-item">
+            <span class="info-key">개설일</span>
+            <span class="info-val">{{ state.detail.foundedDate ?? '-' }}</span>
           </div>
-
-          <div class="input-wrap">
-            <label class="input-label">개설일</label>
-            <div class="input-content">
-              <span class="detail-value">{{ state.detail.foundedDate ?? '-' }}</span>
-            </div>
+          <div class="info-item" v-if="state.detail.closedDate">
+            <span class="info-key">폐지일</span>
+            <span class="info-val">{{ state.detail.closedDate }}</span>
           </div>
+        </div>
+      </section>
 
-          <div class="input-wrap">
-            <label class="input-label">폐지일</label>
-            <div class="input-content">
-              <span class="detail-value">{{ state.detail.closedDate ?? '-' }}</span>
-            </div>
+      <!-- Card 2: 학과 소개 -->
+      <section class="card">
+        <div class="card-label">학과 소개</div>
+        <dl class="req-list">
+          <div class="req-row full">
+            <dt>학과정보</dt>
+            <dd class="reason-text">{{ state.detail.info || '-' }}</dd>
           </div>
+        </dl>
+      </section>
 
-          <div class="input-wrap input-grid-full">
-            <label class="input-label">학과정보</label>
-            <div class="input-content">
-              <span class="detail-value info-text">{{ state.detail.info || '-' }}</span>
-            </div>
-          </div>
-
+      <!-- 페이지 푸터 -->
+      <div class="page-footer">
+        <button class="btn btn-default" @click="goBack">
+          <font-awesome-icon icon="fa-solid fa-list" /> 목록
+        </button>
+        <div class="action-group">
+          <button class="btn btn-primary" @click="goToEdit">
+            <font-awesome-icon icon="fa-solid fa-pen" /> 수정
+          </button>
         </div>
       </div>
 
-      <div class="footer-btn-area">
-        <button class="btn btn-line" @click="goBack">
-          <font-awesome-icon icon="fa-solid fa-arrow-left" style="margin-right:4px;" />목록
-        </button>
-        <button class="btn btn-submit" @click="goToEdit">
-          <font-awesome-icon icon="fa-solid fa-pen" style="margin-right:4px;" />수정
-        </button>
-      </div>
     </template>
   </div>
 </template>
-
-<style scoped lang="scss">
-.page-title {
-  font-size: var(--text-xl); font-weight: 600; display: flex; align-items: center; gap: 8px;
-  .title-icon { color: var(--main-color); font-size: 0.8em; }
-}
-.breadcrumb { font-size: var(--text-sm); color: var(--font-color-light); }
-
-.loading-area {
-  text-align: center; padding: 60px 0; color: var(--font-color-light);
-}
-
-.form-card {
-  background: #fff; border: 1px solid var(--line-color);
-  border-radius: var(--bdrs-df); margin-bottom: 20px;
-}
-.form-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  row-gap: 28px; column-gap: 20px; padding: 28px 32px;
-}
-.input-grid-full { grid-column: 1 / -1; }
-
-.input-wrap {
-  display: grid;
-  grid-template-columns: 70px 1fr;
-  align-items: center;
-  gap: 12px;
-
-  /* 한 줄에 라벨-컨텐츠 세트가 2개 들어가는 특수 케이스 */
-  &.multi-input-wrap {
-    grid-template-columns: 70px 1fr 70px 1fr; /* [라벨 70px - 컨텐츠] [라벨 70px - 컨텐츠] */
-    column-gap: 20px; /* 사무실 영역과 전화번호 영역 사이의 간격 */
-  }
-}
-.input-label {
-  text-align: right; font-weight: bold; font-size: var(--text-sm);
-  white-space: nowrap; word-break: keep-all; line-height: 1.3;
-}
-.input-content {
-  width: 100%;
-}
-
-.detail-value {
-  font-size: var(--text-sm); color: var(--font-color);
-  padding: 8px 10px; display: block;
-  border-bottom: 1px solid var(--line-color);
-  min-height: 36px; line-height: 1.5;
-
-  &.info-text {
-    white-space: pre-wrap; min-height: 80px;
-  }
-}
-
-.footer-btn-area {
-  display: flex; justify-content: center; gap: 10px; margin-top: 10px;
-}
-</style>
