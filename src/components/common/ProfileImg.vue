@@ -67,12 +67,13 @@ const handlePicChanged = (e) => {
 
 <style scoped lang="scss">
 .pf-profile-pic {
+  align-items: center;
   input[type="file"] { display: none;}
   .btn { text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px;}
 }
 
-.pic-hint { font-size: 0.78rem; color: var(--text-muted, #999); text-align: center;
-  &.error { color: var(--color-danger, #e53e3e); font-weight: 500; }
+.pic-hint { font-size: 0.78rem; color: $font-color-light; text-align: center;
+  &.error { color: $error; font-weight: 500; }
 }
 
 .pic-box { max-width: 230px; width: 100%; aspect-ratio: 3 / 4; border: 1px solid #ddd; background-color: var(--hover-bg-color); display: flex;  justify-content: center; align-items: center; border-radius: 5px; overflow: hidden;

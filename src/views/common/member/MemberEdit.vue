@@ -286,8 +286,4 @@ onMounted(async () => {
   flex-direction: column;
   align-self: flex-start;
 }
-
-.pf-profile .pf-profile-pic {
-  padding: var(--size-df);
-}
 </style>
