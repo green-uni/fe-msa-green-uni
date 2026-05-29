@@ -515,16 +515,18 @@ onMounted(async () => {
 .char-count.valid { color: #334155; font-weight: 600; }
 
 /* 교수 변경 폼 */
-.professor-form { display: flex; flex-direction: column; gap: 10px; }
-.professor-form-row { display: flex; gap: 16px; }
-.professor-field { display: flex; flex-direction: column; gap: 4px; flex: 1; }
-.pf-label { font-size: 0.75em; color: #666; font-weight: 500; }
 .professor-field :deep(input),
 .professor-field .pf-input {
-  border: 1px solid $border-color; border-radius: 4px; padding: 8px 10px;
-  width: 100%; background: #fcfcfc; box-sizing: border-box;
-  appearance: none; -webkit-appearance: none;
-  font-size: 0.85em; font-family: inherit;
+  border: 1px solid var(--table-border-color);
+  border-radius: 4px;
+  padding: 8px 10px;
+  width: 100%;
+  background: #fcfcfc;
+  color: var(--color-font);
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+  font-size: var(--text-sm);
+  font-family: inherit;
 }
-.professor-field .pf-input:disabled { background: #f5f5f5; color: #ccc; }
 </style>
