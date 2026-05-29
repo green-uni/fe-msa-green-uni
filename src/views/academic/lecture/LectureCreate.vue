@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/authentication';
 import SearchInput from '@/components/util/SearchInput.vue';
 import { useModalStore } from '@/stores/modal';
 import CalendarDate from '@/components/util/CalendarDate.vue';
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import ScheduleService from '@/services/scheduleService';
 
 const modal = useModalStore();
@@ -354,9 +355,11 @@ onBeforeRouteLeave(async (to, from, next) => {
 </script>
 
 <template>
-  <div class="container">
+  <div>
     <div v-if="!isPeriod" class="empty-period">강의개설 기간이 아닙니다.</div>
-    <div class="form-wrap" v-else>
+    <template v-else>
+    <div class="form-wrap" style="position: relative; min-height: 200px;">
+      <LoadingSpinner v-if="!isMounted" :overlay="true" size="md" />
 
       <!-- 교수 정보 (개설 모드만 노출) -->
       <div class="content-wrap" v-if="!isEdit">
@@ -515,7 +518,7 @@ onBeforeRouteLeave(async (to, from, next) => {
                 </button>
                 <button
                   v-if="idx === state.data.timeSlots.length - 1"
-                  class="btn btn-line" @click="addTimeSlot"
+                  class="btn btn-default" @click="addTimeSlot"
                   style="padding:8px; flex-shrink:0;"
                 >
                   <font-awesome-icon icon="fa-solid fa-plus" />
@@ -560,7 +563,7 @@ onBeforeRouteLeave(async (to, from, next) => {
                 </button>
                 <button
                   v-if="idx === state.data.rooms.length - 1"
-                  class="btn btn-line" @click="addRoom"
+                  class="btn btn-default" @click="addRoom"
                   style="padding:8px; flex-shrink:0;"
                 >
                   <font-awesome-icon icon="fa-solid fa-plus" />
@@ -597,13 +600,17 @@ onBeforeRouteLeave(async (to, from, next) => {
         </div>
       </div>
 
-      <div class="btn-row">
+    </div>
+    <div class="page-footer">
+      <button class="btn btn-default" @click="router.go(-1)">← 돌아가기</button>
+      <div class="action-group">
         <button class="btn btn-submit" @click="submitLecture" :disabled="isSubmitting">
           <font-awesome-icon icon="fa-solid fa-circle-check" /> {{ isEdit ? '수정하기' : '개설신청' }}
         </button>
       </div>
     </div>
-  </div>
+  </template>
+</div>
 </template>
 
 <style scoped>
