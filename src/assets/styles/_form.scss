@@ -9,10 +9,21 @@
 .form-grid {
   display: grid;
   grid-template-columns: var(--grid-cols);
-  row-gap: 30px;
+  row-gap: 15px;
   padding: var(--size-df);
 }
 .form-wrap .content-wrap { padding: 0; gap: 0; }
+.form-wrap .content-wrap h3 {
+  font-weight: 700;
+  font-size: 1.05em;
+  color: $font-color-bold;
+  padding: 13px 20px;
+  border-bottom: 1px solid $border-color;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
 .form-wrap .input-label  { white-space: normal; }
 
 /* === Input 디자인 === */
@@ -32,14 +43,39 @@
     &:not(.radio-label) { width: 100%; }
     &.w200 { width: 200px; }
   }
-  input:not([type='radio']), textarea, select { width: 100%; }
+  input:not([type='radio']):not([type='checkbox']), textarea, select { width: 100%; }
   textarea { min-height: 200px; }
   input:disabled { background: #f5f5f5; color: #ccc; }
+
+  /* 체크박스 그룹 — label이 full-width로 늘어나지 않도록 */
+  &.check-group {
+    label {
+      width: auto;
+      align-items: center;
+      white-space: nowrap;
+      gap: 6px;
+    }
+  }
 }
 
 .input-grid2     { grid-column: span 2; }
 .input-grid3     { grid-column: span 3; }
 .input-grid-full { grid-column: 1 / -1; }
+
+/* 체크박스 */
+input[type='checkbox'] {
+  width: 16px; height: 16px;
+  accent-color: $green-600;
+  cursor: pointer; flex-shrink: 0;
+}
+
+/* 파일 첨부 행 (파일명 input + 버튼) */
+.file-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  input[type='text'] { flex: 1; }
+}
 
 /* 인풋 내부 아이콘 버튼 */
 .btn.in-input {
@@ -63,11 +99,22 @@
   &:has(input[type='radio']:checked):after  { display: block; background: $green-600; }
 }
 .radio-tab {
-  justify-content: center; gap: 5px;
+  border: 1px solid $border-color;
+  border-radius: 7px;
+  overflow: hidden;
+  gap: 0;
+
   .radio-label {
-    color: #999; border: 1px solid $border-color;
-    max-width: 200px; width: 100%; background: #fff;
-    border-radius: 50px; justify-content: center; gap: 5px; padding: 8px 5px;
+    padding: 10px 18px;
+    color: $font-color-light;
+    background: #fff;
+    border-left: 1px solid $border-color;
+    font-weight: 500;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s;line-height: 1;
+
+    &:first-child { border-left: none; }
+    &:hover:not(:has(input[type='radio']:checked)) { background: $default-hover-bg-color; color: $font-color; }
     &:has(input[type='radio']:checked) { background: $green-600; color: #fff; border-color: $green-600; }
     input[type='radio'] { display: none; }
     &:before, &:after { display: none; }

@@ -84,3 +84,10 @@
   cursor: not-allowed;
   border-color: #ddd;
 }
+
+/* 인라인 컨텍스트 버튼 (다시 선택, 소형 액션 등) */
+.btn.btn-inline {
+  height: 32px;
+  font-size: 0.85em;
+  padding: 0 12px;
+}

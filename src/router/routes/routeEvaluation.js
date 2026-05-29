@@ -11,4 +11,15 @@ export const evaluationRoutes = [
       auth: ['STUDENT', 'PROFESSOR'],
     },
   },
+  {
+    path: `${url}/:lectureId`,
+    component: () => import('@/views/academic/evaluation/EvaluationDetail.vue'),
+    meta: {
+      title: '강의평가 상세',
+      groupTitle: '강의 관리',
+      navSection: '학사정보',
+      auth: ['STUDENT', 'PROFESSOR'],
+      showInNav: false,
+    },
+  },
 ]
