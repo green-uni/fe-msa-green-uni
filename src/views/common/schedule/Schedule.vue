@@ -233,7 +233,7 @@ fetchSchedules()
     <header class="calendar-header">
       <div class="date-selector">
         <div class="year-picker-wrap" ref="yearPickerRef">
-          <div class="select-box year-clickable" @click="showYearPicker = !showYearPicker">
+          <div class="select-box pointer" @click="showYearPicker = !showYearPicker">
             <span>{{ currentYear }}년</span>
             <font-awesome-icon :icon="['fas', showYearPicker ? 'chevron-up' : 'chevron-down']" class="year-arrow" />
           </div>
@@ -250,7 +250,7 @@ fetchSchedules()
           <button class="nav-btn" @click="goPrev">
             <font-awesome-icon :icon="['fas', 'chevron-left']" />
           </button>
-          <div class="select-box"><span>{{ currentMonth }}월</span></div>
+          <div class="month"><span>{{ currentMonth }}월</span></div>
           <button class="nav-btn" @click="goNext">
             <font-awesome-icon :icon="['fas', 'chevron-right']" />
           </button>
@@ -376,19 +376,19 @@ fetchSchedules()
 /* ===== 헤더 ===== */
 .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: $sm; padding-bottom:$sm; flex-shrink: 0; }
 .date-selector { display: flex; gap: 10px; flex: 1; justify-content: center; margin-left: 100px; align-items: center; }
-.select-box { border: 1px solid $border-color; padding: 6px 16px; border-radius: 20px; display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.select-box { border: 1px solid $border-color; padding: 6px 16px; border-radius: 20px; display: flex; align-items: center; gap: 6px; font-weight: 600; user-select: none; }
+.month{font-weight: 600; padding: 0 $sm;font-size: 1.1em;  }
 
 /* 이전/다음 달 네비게이션 버튼 */
 .nav-btn { border: 1px solid $border-color; background: $default-bg; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;color: $font-color; }
 
 /* ===== 연도 선택 팝업 ===== */
 .year-picker-wrap { position: relative; }
-.year-clickable { cursor: pointer; gap: 6px; user-select: none; }
 .year-arrow { font-size: 11px; color: $font-color-light; }
 .year-popup {
   position: absolute;  top: calc(100% + 6px);  left: 50%;  transform: translateX(-50%);
   background: #fff;  border: 1px solid $border-color;  border-radius: 10px;  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
-  padding: 8px;  display: grid;  grid-template-columns: repeat(3, 1fr);  gap: 4px;
+  padding: $sm;  display: grid;  grid-template-columns: repeat(3, 1fr);  gap: $xs;
   z-index: 100;  min-width: 180px;
   button {
     padding: 7px 0;  border: none;   background: none;   border-radius: 6px;   font-size: 13px;  font-weight: 600;  cursor: pointer;  color: $font-color-light;
@@ -415,9 +415,9 @@ fetchSchedules()
     th:last-child{border-right: none !important;}
     tr:last-child td{ border-bottom: none !important;}
   }
-  .fc-col-header-cell{background-color: $default-bg; font-size: .9em;font-weight: bold; }
-  .fc-h-event .fc-event-main{color: $font-color;}
-  .fc-daygrid-day-number{font-size: 0.9em !important;opacity: .8;}
+  .fc-col-header-cell { background-color: $default-bg; font-size: .9em; font-weight: bold; }
+  .fc-day-today { background-color: rgba($green-600, 0.08) !important; }
+  .fc-daygrid-day-number { font-size: 0.9em !important; opacity: .8; }
   .fc-event { font-weight: 500;font-size: .9em; padding: 2px $sm; margin-bottom: 2px; border-width: 0 0 0 3px !important; box-shadow: 0 2px 2px rgba(0, 0, 0, 0.15); transition: all 0.2s ease;}
 }
 
@@ -430,7 +430,7 @@ fetchSchedules()
 :deep(.active-bar .fc-event-main) { color: #fff !important; }
 
 /* ===== 사이드바 일정 목록 ===== */
-.sidebar-title { font-size: 1.2em; font-weight: 700; color: $font-color-bold; margin-bottom: 16px; }
+.sidebar-title { font-size: 1.2em; font-weight: 700; color: $font-color-bold; margin-bottom: $md; }
 .event-card { padding: $md $sm; border-bottom: 1px solid $border-color; cursor: pointer; transition: all 0.15s;
 &:first-child{border-top: 1px solid $border-color;}
 }
@@ -440,27 +440,27 @@ fetchSchedules()
 .event-time { font-size: 12px; color: $font-color-light; margin-top: 2px; }
 
 /* ===== 등록/수정 폼 ===== */
-.add-form { display: flex; flex-direction: column; gap: 16px; }
-.edit-form { border: 1.5px solid $green-600; border-radius: 8px; padding: 16px; }
+.add-form { display: flex; flex-direction: column; gap: $md; }
+.edit-form { border: 1.5px solid $green-600; border-radius: 8px; padding: $md; }
 .form-select { border: 1px solid $border-color; border-radius: 6px; padding: 8px 12px; font-size: 14px; width: 100%; }
 .form-textarea { border: 1px solid $border-color; border-radius: 6px; padding: 10px; font-size: 14px; color: $font-color; min-height: 80px; resize: none; width: 100%; }
 .form-date-row { display: flex; align-items: center; gap: 12px; }
 .form-date-row label { font-weight: 600; font-size: 13px; width: 60px; color: $font-color-light; flex-shrink: 0; }
 .form-date { border: 1px solid $border-color; border-radius: 6px; padding: 8px 10px; font-size: 14px; flex: 1; }
-.form-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.form-actions { display: flex; justify-content: flex-end; gap: $sm; }
 /* 삭제 버튼은 왼쪽 정렬 */
 .form-actions .btn.btn-danger { margin-right: auto; }
 
 /* ===== 일정추가 버튼 ===== */
-.btn-add-event { width: 100%; margin-top: 16px; }
+.btn-add-event { width: 100%; margin-top: $md; }
 
 /* ===== 연간일정 뷰 ===== */
 .year-list-container { flex: 1; overflow-y: auto; border-top: 1px solid $border-color; }
 .month-section { display: flex; padding: $md 0; border-bottom: 1px solid $border-color; align-items: center; }
 .month-badge { background: $default-bg; border: 1px solid $border-color; padding: 6px 16px; border-radius: 20px; font-weight: 700;  min-width: 70px; margin: 0 $sm;text-align: center; flex-shrink: 0; color: $font-color-bold; }
-.month-content { flex: 1; margin-left: 32px; display: flex; flex-direction: column; gap: 8px; }
+.month-content { flex: 1; margin-left: 32px; display: flex; flex-direction: column; gap: $sm; }
 .year-row { display: flex; align-items: center; gap: 12px; }
-.year-date-block { display: flex; align-items: center; gap: 4px; width: 120px; flex-shrink: 0; }
+.year-date-block { display: flex; align-items: center; gap: $xs; width: 120px; flex-shrink: 0; }
 .year-start, .year-end { font-weight: 600; color: $font-color;  }
 .year-tilde { color: $font-color-light;  }
 .year-title {  color: $font-color-bold; }
