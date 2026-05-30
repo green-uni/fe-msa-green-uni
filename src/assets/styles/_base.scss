@@ -46,7 +46,8 @@ body.pwa-view #app { height: auto; min-height: 100vh; min-height: 100dvh; overfl
 .ai-end     { align-items: end; }
 .ai-center  { align-items: center; }
 
-.tac { text-align: center !important; }
+.tac        { text-align: center !important; }
+.tal  { text-align: left !important; justify-content: flex-start !important; }
 .vam {vertical-align: middle!important;}
 
 /* [추후 삭제 예정] 개발용 스크롤 테스트 클래스 */

@@ -315,21 +315,10 @@ input.tbl-input {
 }
 
 /* === 목록 요약 박스  === */
-.summary-bar {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-.summary-item {
-  flex: 1;
-  background: $default-bg;
-  border: 1px solid $border-color;
-  border-radius: 8px;
-  padding: 12px 16px;
-  text-align: center;
-}
-.summary-label { font-size: 0.8em; color: $font-color-light; margin-bottom: 4px; }
-.summary-value { font-size: 1.2em; font-weight: 700; color: $green-600; }
+.summary-bar { display: flex; gap: 12px; margin-bottom: $md;}
+.summary-item { flex: 1; background: #fff; border: 1px solid $border-color; border-radius: 8px; padding: 12px 16px; text-align: center;}
+.summary-label { font-size: 0.925em; color: $font-color-light; margin-bottom: 4px; }
+.summary-value { font-size: 1.2em;  strong {font-weight: 700;color: $green-600;} }
 
 /* 조회 전 안내 / 검색 유도 문구 */
 .guide-text {
@@ -341,9 +330,7 @@ input.tbl-input {
 
 /* 경고 · 주의 안내 문구 */
 .notice-caution {
-  font-size: 0.85em;
   color: $warning;
-  margin-top: 8px;
 }
 
 /* === Notice Panel === */
