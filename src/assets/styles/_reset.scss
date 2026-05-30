@@ -61,7 +61,7 @@ button, input, select, textarea{
   outline: none;
 }
 input:not([type='radio']), textarea, select {
-  border: 1px solid $bold-border-color; border-radius: 4px; padding: 6px 8px; outline: none; transition: border-color 0.2s; background: #fafafa; color: $font-color; font-size: 0.95em;
+  border: 1px solid $bold-border-color; border-radius: 4px; padding: 6px 8px; outline: none; transition: border-color 0.2s; background: #fafafa; color: $font-color;
 }
 input:focus,
 textarea:focus,

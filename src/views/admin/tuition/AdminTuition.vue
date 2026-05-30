@@ -5,6 +5,7 @@ import MemberService from '@/services/memberService'
 import FilterBar from '@/components/common/FilterBar.vue'
 import DataTable from '@/components/common/DataTable.vue'
 import Pagination from '@/components/common/Pagination.vue'
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import { useModalStore } from '@/stores/modal'
 
 const modal = useModalStore()
@@ -17,8 +18,8 @@ const filter = reactive({
   academicYear: '',
 })
 
-const searchInput = ref('')   // FilterBar v-model:searchQuery와 동기화
-const searchKeyword = ref('') // 실제 필터링에 사용되는 확정 키워드
+const searchInput = ref('')
+const searchKeyword = ref('')
 
 const tabs = [
   { label: '미납', value: 'UNPAID' },
@@ -141,16 +142,18 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
+  <div style="position: relative">
+    <LoadingSpinner v-if="isLoading" :overlay="true" size="md" />
 
     <FilterBar
       v-model:searchQuery="searchInput"
       :hasFilter="false"
       placeholder="이름 또는 학번을 입력하세요"
+      :show-count="true"
+      :count="totalElements"
       @search="onSearch"
       @reset="resetFilter"
     >
-      <!-- 탭: tab-area 클래스로 감싸야 FilterBar :slotted 스타일 적용됨 -->
       <div class="tab-area">
         <button
           v-for="tab in tabs"
@@ -191,13 +194,6 @@ onMounted(() => {
       </div>
     </FilterBar>
 
-    <div class="table-meta">
-      <p class="total-count">전체: <span>{{ totalElements }}</span>개</p>
-      <button v-if="filter.status === 'UNPAID'" class="btn-mail" @click="openMailModal">
-        미납자 메일 발송
-      </button>
-    </div>
-
     <DataTable
       :columns="filter.status === 'PENDING'
         ? ['년도', '학기', '학번', '이름', '학과', '납부금액', '상태', '납부일자', '관리']
@@ -216,18 +212,20 @@ onMounted(() => {
           <div>{{ s.studentName }}</div>
           <div>{{ s.deptName }}</div>
           <div>{{ formatPrice(s.finalAmount) }}</div>
-          <div>
-            <span class="state-text" :class="s.status.toLowerCase()">{{ getStatusLabel(s.status) }}</span>
-          </div>
+          <div>{{ getStatusLabel(s.status) }}</div>
           <div>{{ formatDate(s.paidAt) }}</div>
           <div v-if="filter.status === 'PENDING'">
-            <button class="btn-table-action" @click="handlePayment(s)">납부</button>
+            <button class="btn btn-default btn-sm" @click="handlePayment(s)">납부</button>
           </div>
         </article>
       </template>
     </DataTable>
 
     <Pagination :currentPage="currentPage" :maxPage="totalPages" @goToPage="goPage" />
+
+    <div v-if="filter.status === 'UNPAID'" class="panel-actions mt-md">
+      <button class="btn btn-default" @click="openMailModal">미납자 메일 발송</button>
+    </div>
 
     <!-- 미납자 메일 발송 모달 -->
     <div v-if="isMailModalOpen" class="modal-overlay" @click.self="isMailModalOpen = false">
@@ -279,8 +277,8 @@ onMounted(() => {
         </main>
 
         <footer class="modal-footer">
-          <button class="btn-cancel" @click="isMailModalOpen = false">취소</button>
-          <button class="btn-submit" @click="confirmSendMail">메일 발송</button>
+          <button class="btn btn-default" @click="isMailModalOpen = false">취소</button>
+          <button class="btn btn-submit" @click="confirmSendMail">메일 발송</button>
         </footer>
       </div>
     </div>
@@ -289,46 +287,6 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
-.table-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-  font-size: 14px;
-  font-weight: bold;
-
-  .total-count span { color: #2d7a5e; }
-}
-
-:deep(.state-text) { font-weight: bold; }
-:deep(.state-text.unpaid)  { color: #dc2626; }
-:deep(.state-text.paid)    { color: #16a34a; }
-:deep(.state-text.pending) { color: #ca8a04; }
-
-.btn-mail {
-  background: #ea580c;
-  color: #fff;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.btn-table-action {
-  padding: 3px 12px;
-  border: 1px solid #2d7a5e;
-  color: #2d7a5e;
-  background: #fff;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 13px;
-  transition: all 0.2s;
-
-  &:hover { background: #2d7a5e; color: #fff; }
-}
-
 /* 메일 모달 */
 .modal-overlay {
   position: fixed;
@@ -346,7 +304,7 @@ onMounted(() => {
   overflow: hidden;
 }
 .modal-header {
-  background: #1e293b;
+  background: $font-color-bold;
   color: #fff;
   padding: 14px 20px;
   display: flex; justify-content: space-between; align-items: center;
@@ -355,40 +313,35 @@ onMounted(() => {
 }
 .modal-body {
   padding: 20px;
-  background: #f8fafc;
+  background: $default-bg;
   display: flex; flex-direction: column; gap: 18px;
-  h4 { font-size: 13px; color: #64748b; margin-bottom: 8px; font-weight: 600; }
+  h4 { font-size: 13px; color: $font-color-light; margin-bottom: 8px; font-weight: 600; }
 }
 .summary-table {
-  width: 100%; background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px;
-  th { text-align: left; color: #475569; font-size: 14px; font-weight: 500; padding: 4px 8px; width: 100px; }
-  td { text-align: right; color: #1e293b; font-size: 14px; font-weight: 500; padding: 4px 8px; }
-  .count-highlight { color: #dc2626; font-weight: bold; }
+  width: 100%; background: #fff; border: 1px solid $border-color; border-radius: 6px; padding: 12px;
+  th { text-align: left; color: $font-color; font-size: 14px; font-weight: 500; padding: 4px 8px; width: 100px; }
+  td { text-align: right; color: $font-color-bold; font-size: 14px; font-weight: 500; padding: 4px 8px; }
+  .count-highlight { color: $error; font-weight: bold; }
 }
 .preview-box {
-  background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 16px; font-size: 13px;
+  background: #fff; border: 1px solid $border-color; border-radius: 6px; padding: 16px; font-size: 13px;
   .meta-row { margin-bottom: 6px; display: flex; gap: 15px;
-    strong { width: 35px; color: #64748b; }
-    span { color: #1e293b; }
+    strong { width: 35px; color: $font-color-light; }
+    span { color: $font-color-bold; }
   }
-  .preview-divider { border: 0; border-top: 1px solid #f1f5f9; margin: 12px 0; }
-  .mail-content { color: #334155; line-height: 1.6;
-    .text-danger { color: #dc2626; font-weight: 500; }
+  .preview-divider { border: 0; border-top: 1px solid $border-color; margin: 12px 0; }
+  .mail-content { color: $font-color; line-height: 1.6;
+    .text-danger { color: $error; font-weight: 500; }
     .margin-top-md { margin-top: 14px; }
   }
 }
 .warning-alert {
-  background: #fef3c7; border: 1px solid #fde68a; color: #b45309;
+  background: $warning-bg; border: 1px solid $warning-bg; color: $warning;
   padding: 10px 14px; border-radius: 6px; font-size: 13px; font-weight: 500;
   display: flex; align-items: center; gap: 6px;
 }
 .modal-footer {
-  padding: 12px 20px; background: #fff; border-top: 1px solid #e2e8f0;
+  padding: 12px 20px; background: #fff; border-top: 1px solid $border-color;
   display: flex; justify-content: flex-end; gap: 8px;
-  button { padding: 8px 20px; font-size: 14px; border-radius: 4px; font-weight: 500; cursor: pointer; }
-  .btn-cancel { background: #fff; border: 1px solid #cbd5e1; color: #475569; }
-  .btn-submit { background: #fff; border: 1px solid #94a3b8; color: #1e293b;
-    &:hover { background: #f8fafc; }
-  }
 }
 </style>

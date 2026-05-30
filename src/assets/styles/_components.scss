@@ -57,6 +57,15 @@
 /* === 신청서/상세 페이지 공통 카드 패턴 === */
 .detail-wrap { position: relative; min-height: 300px; }
 
+.empty-period {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 60vh;
+  font-size: 18px;
+  color: $font-color-light;
+}
+
 .card {
   background: #fff;
   border: 1px solid $border-color;
@@ -146,7 +155,7 @@
   cursor: pointer;
   padding: 0;
 }
-.empty-text { color: #aaa; font-size: 0.85em; }
+.empty-text { color: $font-color-light;text-align: center; padding: 20px 0; }
 
 .result-box {
   margin-top: 14px;
@@ -228,7 +237,6 @@
   border: 1px solid $border-color;
   border-radius: 6px;
   resize: vertical;
-  font-size: 0.9em;
   font-family: inherit;
   line-height: 1.5;
 }
@@ -236,7 +244,6 @@
 
 /* 신청서 공통 */
 .reason-text { white-space: pre-wrap; line-height: 1.6; }
-.history-btn { font-size: 0.8em; padding: 4px 12px; font-weight: 400; }
 
 /* === Badge === */
 
@@ -254,12 +261,6 @@
 .badge-running  { @extend %badge-base; background: rgba($green-600, 0.12); color: $green-600; }
 .badge-rejected { @extend %badge-base; background: #fff0f0; color: #d32f2f; }
 .badge-closed   { @extend %badge-base; background: #f0f0f0; color: #aaa; }
-
-/* 목록용 상태 텍스트 색상 (미사용 클래스는 디자인 확정 후 정리 예정) */
-.text-pending  { }
-.text-approved { color: $green-600 !important; font-weight: bold; }
-.text-rejected { }
-.text-closed   { }
 
 .tbl-wrap .badge,
 .tbl-wrap .status-badge {
@@ -284,22 +285,57 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
+  border-bottom: 1px solid $border-color;  
 
   th, td {
     padding: 10px 12px;
     text-align: left;
     border-bottom: 1px solid $border-color;
-    white-space: nowrap;
+    line-height: 1.1;
   }
   th {
     background-color: $default-bg;
     font-weight: 600;
-    color: $font-color;
+    text-align: center; vertical-align: middle;
+    border-top: 1px solid $border-color;
   }
+  tr:last-child td { border-bottom: none; }
 
   tr.row--error td  { background-color: #fde8e8; }
   tr.row--sample td { background-color: #fefce8; color: $font-color-light; font-style: italic; }
   .empty-cell       { text-align: center; color: $font-color-light; padding: 32px; }
+}
+
+/* === 목록 요약 박스  === */
+.summary-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.summary-item {
+  flex: 1;
+  background: $default-bg;
+  border: 1px solid $border-color;
+  border-radius: 8px;
+  padding: 12px 16px;
+  text-align: center;
+}
+.summary-label { font-size: 0.8em; color: $font-color-light; margin-bottom: 4px; }
+.summary-value { font-size: 1.2em; font-weight: 700; color: $green-600; }
+
+/* 조회 전 안내 / 검색 유도 문구 */
+.guide-text {
+  text-align: center;
+  padding: 60px 0;
+  color: $font-color-light;
+  font-size: 0.85em;
+}
+
+/* 경고 · 주의 안내 문구 */
+.notice-caution {
+  font-size: 0.85em;
+  color: $warning;
+  margin-top: 8px;
 }
 
 /* === Notice Panel === */

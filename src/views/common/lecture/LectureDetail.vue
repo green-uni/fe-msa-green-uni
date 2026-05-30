@@ -438,7 +438,7 @@ onMounted(async () => {
         <div class="action-group">
           <!-- 관리자: 승인 / 반려 (대기 상태) -->
           <template v-if="canApprove">
-            <button class="btn btn-approval" @click="updateStatus('APPROVED')">승인</button>
+            <button class="btn btn-submit" @click="updateStatus('APPROVED')">승인</button>
             <button v-if="!showRejectionBox" class="btn btn-default" @click="openRejectionBox">반려</button>
           </template>
           <!-- 관리자: 더보기 (수동폐강 / 교수변경, 승인 상태) -->

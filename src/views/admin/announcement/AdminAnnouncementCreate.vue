@@ -131,7 +131,7 @@ const handleDelete = async () => {
       <div class="btn-row">
         <button type="button" class="btn-outline" @click="router.push('/admin/announcements')">목록으로</button>
         <button type="button" class="btn-danger" @click="handleDelete">삭제</button>
-        <button type="button" class="btn-primary" @click="enterEditMode">수정</button>
+        <button type="button" class="btn-submit" @click="enterEditMode">수정</button>
       </div>
     </template>
 
@@ -164,7 +164,7 @@ const handleDelete = async () => {
       </div>
       <div class="btn-row">
         <button type="button" class="btn-outline" @click="isEditing ? cancelEdit() : router.back()">취소</button>
-        <button type="submit" class="btn-primary" :disabled="isLoading">
+        <button type="submit" class="btn-submit" :disabled="isLoading">
           {{ isEditing ? '확인' : '등록' }}
         </button>
       </div>
@@ -222,7 +222,7 @@ const handleDelete = async () => {
   background: #fff; font-size: 0.875rem; cursor: pointer;
   &:hover { background: #f5f5f5; }
 }
-.btn-primary {
+.btn-submit {
   padding: 8px 20px; background: #2d8659; color: #fff;
   border: none; border-radius: 6px; font-size: 0.875rem; cursor: pointer;
   &:disabled { background: #aaa; cursor: not-allowed; }

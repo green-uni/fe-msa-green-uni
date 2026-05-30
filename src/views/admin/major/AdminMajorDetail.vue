@@ -126,7 +126,7 @@ onMounted(fetchDetail)
           <font-awesome-icon icon="fa-solid fa-list" /> 목록
         </button>
         <div class="action-group">
-          <button class="btn btn-primary" @click="goToEdit">
+          <button class="btn btn-submit" @click="goToEdit">
             <font-awesome-icon icon="fa-solid fa-pen" /> 수정
           </button>
         </div>
