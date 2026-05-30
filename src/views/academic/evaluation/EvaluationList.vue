@@ -181,7 +181,7 @@ onMounted(() => {
         <div class="txt-left txt-ellipsis">{{ item.lectureName }}</div>
         <div v-if="role === 'STUDENT'">{{ item.proName }}</div>
         <div>{{ formatPeriod(item) }}</div>
-        <div><span :class="['badge', getBadge(item).cls]">{{ getBadge(item).label }}</span></div>
+        <div>{{ getBadge(item).label }}</div>
       </article>
     </DataTable>
 
@@ -192,10 +192,10 @@ onMounted(() => {
       @goToPage="goToPage"
     />
 
-    <div class="card notice-card">
+    <div class="card notice-panel" style="margin-top: 16px;">
       <h3 class="notice-title">나의 강의평가</h3>
       <p class="notice-desc">목록에서 강의를 선택하면 상세 내용을 확인할 수 있습니다.</p>
-      <table class="notice-table">
+      <table class="data-tbl">
         <colgroup>
           <col style="width: 110px"/>
           <col/>
@@ -218,20 +218,12 @@ onMounted(() => {
   </div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
 .badge { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; white-space: nowrap; }
-.badge.before  { color: #888; }
+.badge.before  { color: $font-color-light; }
 .badge.pending { color: #c62828; }
-.badge.done    { color: #333; }
-.badge.expired { color: #888; }
-
-.notice-card { margin-top: 16px; }
-.notice-title { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
-.notice-desc { font-size: 14px; color: #777; margin-bottom: 16px; line-height: 1.6; }
-.notice-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-.notice-table th, .notice-table td { padding: 10px 12px; border: 1px solid #eee; vertical-align: middle; }
-.notice-table th { background: #f9f9f9; text-align: center; color: #333; }
-.notice-table .badge { color: #333; background: none; padding: 0; font-size: 13px; }
+.badge.done    { color: $font-color-bold; }
+.badge.expired { color: $font-color-light; }
 
 :deep(.tbl-row div.txt-left) { justify-content: flex-start; }
 :deep(.tbl-row div.txt-ellipsis) { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; display: block; padding: 10px; }

@@ -102,12 +102,6 @@ onMounted(fetchData);
   <div style="position: relative">
     <LoadingSpinner v-if="isLoading" :overlay="true" size="md" />
 
-    <div class="page-header">
-      <button class="btn" @click="router.back()">
-        <font-awesome-icon icon="fa-solid fa-chevron-left" /> 목록으로
-      </button>
-    </div>
-
     <!-- 학생 상세 -->
     <template v-if="role === 'STUDENT'">
       <div v-if="evalStatus === 'before'" class="card">
@@ -141,7 +135,7 @@ onMounted(fetchData);
           본 설문은 수업 개선의 기초 및 교육의 질적인 향상을 위해 실시합니다.
           성실하게 작성하여 주시기 바랍니다.
         </p>
-        <table class="survey-table">
+        <table class="data-tbl" style="margin-top: 14px;">
           <thead>
             <tr>
               <th>구분</th>
@@ -153,28 +147,22 @@ onMounted(fetchData);
           </thead>
           <tbody>
             <tr v-for="(q, idx) in QUESTIONS" :key="idx">
-              <td>{{ idx + 1 }}</td>
-              <td class="q-text">{{ q }}</td>
-              <td v-for="c in CHOICES" :key="c.label">
+              <td class="tac">{{ idx + 1 }}</td>
+              <td>{{ q }}</td>
+              <td v-for="c in CHOICES" :key="c.label" class="tac vam">
                 <input type="radio" :name="`q${idx + 1}`" :value="c.value" v-model="evalForm[`q${idx + 1}`]"/>
               </td>
             </tr>
             <tr>
-              <td>6</td>
+              <td class="tac">6</td>
               <td colspan="6">
                 <div class="free-text-label">그 외 하고 싶은 말을 적어주세요.</div>
-                <textarea v-model="evalForm.comment" class="textarea" placeholder="10자 이상 작성해주세요." rows="4"/>
+                <textarea v-model="evalForm.comment" class="action-textarea" placeholder="10자 이상 작성해주세요." rows="4"/>
                 <span class="char-count">{{ evalForm.comment.length }}자</span>
               </td>
             </tr>
           </tbody>
         </table>
-        <div class="page-footer">
-          <div></div>
-          <div class="action-group">
-            <button class="btn btn-submit" @click="submitEval">제출</button>
-          </div>
-        </div>
       </div>
 
       <!-- 완료 조회 -->
@@ -195,20 +183,20 @@ onMounted(fetchData);
             </dd>
           </dl>
         </div>
-        <table class="survey-table">
+        <table class="data-tbl" style="margin-top: 14px;">
           <thead>
             <tr><th>구분</th><th>조사 항목</th><th>응답</th></tr>
           </thead>
           <tbody>
             <tr v-for="(q, idx) in QUESTIONS" :key="idx">
-              <td>{{ idx + 1 }}</td>
-              <td class="q-text">{{ q }}</td>
+              <td class="tac">{{ idx + 1 }}</td>
+              <td>{{ q }}</td>
               <td>{{ detail?.[`q${idx + 1}`] ?? '-' }}</td>
             </tr>
           </tbody>
         </table>
-        <div class="comment-section">
-          <p class="comment-label">강의평가</p>
+        <div style="margin-top: 14px;">
+          <p class="section-title">강의평가</p>
           <div class="comment-box">{{ detail?.comment }}</div>
         </div>
       </div>
@@ -252,54 +240,54 @@ onMounted(fetchData);
           강의평가가 완료된 후 확인할 수 있습니다.
         </p>
         <template v-else>
-          <table class="survey-table">
+          <table class="data-tbl" style="margin-top: 14px;">
             <thead>
               <tr><th>구분</th><th>조사 항목</th><th>평균</th></tr>
             </thead>
             <tbody>
               <tr v-for="(q, idx) in QUESTIONS" :key="idx">
-                <td>{{ idx + 1 }}</td>
-                <td class="q-text">{{ q }}</td>
+                <td class="tac">{{ idx + 1 }}</td>
+                <td>{{ q }}</td>
                 <td>{{ detail[`q${idx + 1}Avg`]?.toFixed(1) ?? '-' }}</td>
               </tr>
             </tbody>
           </table>
-          <div class="comment-section">
-            <p class="comment-label">수강평가</p>
+          <div style="margin-top: 14px;">
+            <p class="section-title">한줄평</p>
             <div v-for="(c, i) in detail.comments" :key="i" class="comment-box">{{ c }}</div>
             <p v-if="!detail.comments?.length" class="empty-text">작성된 수강평가가 없습니다.</p>
           </div>
         </template>
       </div>
     </template>
+
+    <div class="page-footer">
+      <button class="btn btn-default" @click="router.back()">
+        <font-awesome-icon icon="fa-solid fa-chevron-left" /> 목록으로
+      </button>
+      <div class="action-group">
+        <button
+          v-if="role === 'STUDENT' && evalStatus === 'active' && detail?.hasGrade && detail?.score == null"
+          class="btn btn-submit"
+          @click="submitEval"
+        >제출</button>
+      </div>
+    </div>
   </div>
 </template>
 
-<style scoped>
-.page-header { margin-bottom: 16px; }
-
-.empty-text { color: #999; font-size: 14px; text-align: center; padding: 20px 0; }
-
+<style lang="scss" scoped>
 .star-wrap { display: flex; align-items: center; gap: 4px; }
 .star-container { position: relative; display: inline-block; width: 28px; height: 28px; cursor: pointer; }
-.star-half { position: absolute; top: 0; left: 0; overflow: hidden; white-space: nowrap; line-height: 1; font-size: 28px; color: #ddd; }
+.star-half { position: absolute; top: 0; left: 0; overflow: hidden; white-space: nowrap; line-height: 1; font-size: 28px; color: $bold-border-color; }
 .star-half.left { width: 50%; z-index: 2; }
 .star-half.right { width: 100%; z-index: 1; }
 .star-half.active { color: #f5a623; }
 .star-wrap.readonly .star-container { cursor: default; }
-.score-text { margin-left: 8px; font-size: 14px; color: #555; }
+.score-text { margin-left: 8px; font-size: 14px; }
 
-.survey-guide { font-size: 13px; color: #555; line-height: 1.6; padding: 12px; background: #f9f9f9; border-radius: 6px; margin: 14px 0; }
-.survey-table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 14px; }
-.survey-table th, .survey-table td { border: 1px solid #ddd; padding: 10px; text-align: center; }
-.survey-table th { background: var(--main-color, #3e9e7e); color: #fff; }
-.survey-table td.q-text { text-align: left; }
-.choice-score { font-size: 11px; font-weight: normal; opacity: 0.8; }
-.free-text-label { font-size: 13px; color: #555; margin-bottom: 8px; text-align: left; }
-.textarea { width: 100%; padding: 12px; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 14px; resize: vertical; outline: none; box-sizing: border-box; }
-.char-count { font-size: 12px; color: #999; }
-
-.comment-section { margin-top: 14px; }
-.comment-label { font-size: 13px; font-weight: 600; color: #555; margin-bottom: 8px; }
-.comment-box { padding: 10px 14px; background: #f9f9f9; border-radius: 6px; font-size: 14px; color: #333; margin-bottom: 8px; }
-</style>
+.survey-guide { line-height: 1.6; padding: 12px; background: $default-bg; border-radius: 6px; margin: 14px 0; }
+.choice-score { font-weight: normal; opacity: 0.5; }
+.free-text-label { margin-bottom: 8px; text-align: left; }
+.comment-box { padding: 10px 14px; background: $default-bg; border-radius: 6px; margin-bottom: 8px; }
+</style> 
