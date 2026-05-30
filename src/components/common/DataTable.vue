@@ -41,6 +41,8 @@ defineProps({
   &:nth-of-type(2) { border-radius: 5px 5px 0 0; border-top-width: 1px; }
   &:last-of-type { border-radius: 0 0 5px 5px; }
   &.pointer:hover { background: $hover-bg-color; }
+  &.row-selected { }
+  &.row-selected:hover { }
   div { padding: 10px; line-height: 1.2; position: relative; display: flex; align-items: center; justify-content: center;}
   &.edit-row > div,
   &:has(button, input) > div { padding-top: 7px;padding-bottom: 7px;}
