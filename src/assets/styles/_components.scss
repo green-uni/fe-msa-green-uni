@@ -155,7 +155,8 @@
   cursor: pointer;
   padding: 0;
 }
-.empty-text { color: $font-color-light;text-align: center; padding: 20px 0; }
+.empty-text { color: $font-color-light; text-align: center; padding: 20px 0; }
+.no-data    { color: $font-color-light; }
 
 .result-box {
   margin-top: 14px;
@@ -290,24 +291,19 @@ input.tbl-input {
 
 /* === HTML 테이블 공통 스타일 (DataTable 계열 디자인) === */
 .data-tbl {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-  border-bottom: 1px solid $border-color;  
+  width: 100%;  border-collapse: collapse; font-size: 13px;
 
   th, td {
-    padding: 10px 12px;
-    text-align: left;
-    border-bottom: 1px solid $border-color;
-    line-height: 1.1;
+    padding: 10px 12px; text-align: left;  border-bottom: 1px solid $border-color;  line-height: 1.1; text-align: center;
   }
   th {
     background-color: $default-bg;
     font-weight: 600;
     text-align: center; vertical-align: middle;
-    border-top: 1px solid $border-color;
+    small{font-size: 0.8em;display: block;color: $font-color-light;}
   }
   tr:last-child td { border-bottom: none; }
+  tr:has(button, input) td { padding-top: 6px; padding-bottom:6px; }
 
   tr.row--error td  { background-color: #fde8e8; }
   tr.row--sample td { background-color: #fefce8; color: $font-color-light; font-style: italic; }
@@ -318,7 +314,8 @@ input.tbl-input {
 .summary-bar { display: flex; gap: 12px; margin-bottom: $md;}
 .summary-item { flex: 1; background: #fff; border: 1px solid $border-color; border-radius: 8px; padding: 12px 16px; text-align: center;}
 .summary-label { font-size: 0.925em; color: $font-color-light; margin-bottom: 4px; }
-.summary-value { font-size: 1.2em;  strong {font-weight: 700;color: $green-600;} }
+.summary-value { font-size: 1.2em; font-weight: 700; color: $green-600; }
+.summary-unit  { font-size: 0.7em; font-weight: 400; color: $font-color-light; margin-left: 2px; }
 
 /* 조회 전 안내 / 검색 유도 문구 */
 .guide-text {

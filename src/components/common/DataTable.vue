@@ -42,7 +42,8 @@ defineProps({
   &:last-of-type { border-radius: 0 0 5px 5px; }
   &.pointer:hover { background: $hover-bg-color; }
   div { padding: 10px; line-height: 1.2; position: relative; display: flex; align-items: center; justify-content: center;}
-  &.edit-row > div { padding-top: 6px; padding-bottom: 6px; }
+  &.edit-row > div,
+  &:has(button, input) > div { padding-top: 7px;padding-bottom: 7px;}
 }
-.no-data { grid-column: 1 / -1;  text-align: center; color: #aaa; padding: 40px 0; background: #fff; border: 1px solid $border-color; border-radius: 5px;}
+.no-data { grid-column: 1 / -1;  text-align: center; color: $font-color-light; padding: 40px 0; background: #fff; border: 1px solid $border-color; border-radius: 5px;}
 </style>
