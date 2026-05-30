@@ -326,6 +326,18 @@ input.tbl-input {
 .summary-value { font-size: 1.2em; font-weight: 700; color: $green-600; }
 .summary-unit  { font-size: 0.7em; font-weight: 400; color: $font-color-light; margin-left: 2px; }
 
+/* 목록 행 서브텍스트 (강의명 아래 미리보기 등) */
+.row-sub {
+  display: block;
+  font-size: 0.8em;
+  color: $font-color-light;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 400px;
+  margin-top: 2px;
+}
+
 /* 조회 전 안내 / 검색 유도 문구 */
 .guide-text {
   text-align: center;
