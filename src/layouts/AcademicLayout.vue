@@ -20,7 +20,7 @@ const showLayout = computed(() =>
 )
 const isTransitioning = computed(() =>
   (authStore.isLogin && publicRoutes.includes(route.path)) ||
-  (!authStore.isLogin && !publicRoutes.includes(route.path))
+  (!authStore.isLogin && !publicRoutes.includes(route.path) && !route.meta.public)
 )
 </script>
 <template>

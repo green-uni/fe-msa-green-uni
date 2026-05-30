@@ -1,21 +1,41 @@
 <script setup>
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import AnnouncementService from '@/services/announcementService'
+
+const router   = useRouter()
+const annoList = ref([])
+
+onMounted(async () => {
+    try {
+        const res = await AnnouncementService.getPublicList({ page: 1, size: 5 })
+        annoList.value = res.content ?? []
+    } catch (e) {
+        console.error(e)
+    }
+})
+
+const formatDate = (dateStr) => dateStr?.slice(0, 10) ?? ''
 </script>
 
 <template>
     <section class="notice">
       <header class="notice__head">
         <h2>공지사항</h2>
-        <a href="#" class="link-muted">더보기 +</a>
+        <a href="#" class="link-muted" @click.prevent="router.push('/public/announcements')">더보기 +</a>
       </header>
       <ul class="notice__list">
-        <li><a href="#"><span class="dot"></span>2026학년도 2학기 수강신청 일정 안내</a><time>2026-05-15</time></li>
-        <li><a href="#"><span class="dot"></span>여름계절수업 개설 교과목 공고</a><time>2026-05-08</time></li>
-        <li><a href="#"><span class="dot"></span>교내 장학금 신청 기간 안내 (1차)</a><time>2026-05-02</time></li>
-        <li><a href="#"><span class="dot"></span>학사시스템 정기 점검 안내 (5/20 02:00~04:00)</a><time>2026-04-28</time></li>
-        <li><a href="#"><span class="dot"></span>2026학년도 교직과정 이수예정자 선발 결과</a><time>2026-04-27</time></li>
+        <li v-if="annoList.length === 0">
+          <span style="color:#aaa; font-size:0.85rem;">공지사항이 없습니다.</span>
+        </li>
+        <li v-for="anno in annoList" :key="anno.annoId">
+          <a href="#" @click.prevent="router.push(`/public/announcements/${anno.annoId}`)">
+            <span class="dot"></span>{{ anno.title }}
+          </a>
+          <time>{{ formatDate(anno.createdAt) }}</time>
+        </li>
       </ul>
     </section>
-
 </template>
 
 <style scoped lang="scss">

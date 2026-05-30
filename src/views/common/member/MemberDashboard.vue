@@ -5,6 +5,7 @@ import MonthlyScheduleWidget from '@/components/dashboard/MonthlyScheduleWidget.
 import TodayLectureWidget from '@/components/dashboard/TodayLectureWidget.vue'
 import TuitionStatus from '@/components/dashboard/TuitionStatus.vue'
 import StudentRequestsWidget from '@/components/dashboard/StudentRequestsWidget.vue'
+import AnnouncementWidget from '@/components/dashboard/AnnouncementWidget.vue'
 import PendingLecturesWidget from '@/components/dashboard/PendingLecturesWidget.vue'
 import PendingMajorRequestsWidget from '@/components/dashboard/PendingMajorRequestsWidget.vue'
 import PendingStatusRequestsWidget from '@/components/dashboard/PendingStatusRequestsWidget.vue'
@@ -62,7 +63,7 @@ onMounted(async () => {
         <div class="student-side">
           <div class="content-wrap placeholder-cell">이번 학기 출석 현황</div>
           <div class="content-wrap"><StudentRequestsWidget /></div>
-          <div class="content-wrap placeholder-cell">공지사항</div>
+          <div class="content-wrap"><AnnouncementWidget /></div>
           <div class="content-wrap"><MonthlyScheduleWidget /></div>
         </div>
       </div>
@@ -92,7 +93,7 @@ onMounted(async () => {
         <div class="professor-side">
           <div class="content-wrap"><TodayLectureWidget /></div>
           <div class="content-wrap placeholder-cell">오늘 강의별 출석현황</div>
-          <div class="content-wrap placeholder-cell">공지사항</div>
+          <div class="content-wrap"><AnnouncementWidget /></div>
           <div class="content-wrap"><MonthlyScheduleWidget /></div>
         </div>
       </div>
@@ -123,7 +124,7 @@ onMounted(async () => {
         </div>
         <div class="admin-side">
           <div class="content-wrap"><MonthlyScheduleWidget /></div>
-          <div class="content-wrap placeholder-cell">공지사항</div>
+          <div class="content-wrap"><AnnouncementWidget /></div>
         </div>
       </div>
     </template>
