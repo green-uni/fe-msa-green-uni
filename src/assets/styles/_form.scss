@@ -4,6 +4,8 @@
 .form-wrap {
   display: flex;
   flex-direction: column;
+  border: 1px solid $border-color;
+  border-radius: $radius-sm;
   gap: 16px;
 }
 .form-grid {

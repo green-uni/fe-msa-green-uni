@@ -95,7 +95,7 @@
   gap: 1px;
   background: $border-color;
   border: 1px solid $border-color;
-  border-radius: $radius-sm;
+  border-radius: 5px;
   overflow: hidden;
 }
 .req-row {
@@ -105,7 +105,7 @@
   &.full { grid-column: 1 / -1; }
   dt {
     background: #f5f5f5;
-    color: $font-color-light;
+    color: $font-color;
     font-size: 0.9em;
     width: 100px;
     flex-shrink: 0;
@@ -123,6 +123,11 @@
     align-items: center;
   }
 }
+
+/* 신청서 공통 */
+.reason-text { white-space: pre-wrap; line-height: 1.6; }
+.reason-body { margin-top: $md; padding: $sm; }
+.attach-box { margin-top: 10px; background: $default-bg; border: 1px solid $border-color; border-radius: 4px; padding: 10px 14px; font-size: 0.9em;  color: $font-color-light;}
 
 .panel-actions {
   display: flex;
@@ -243,10 +248,14 @@
 }
 .action-buttons { display: flex; gap: 8px; justify-content: flex-end; }
 
-/* 신청서 공통 */
-.reason-text { white-space: pre-wrap; line-height: 1.6; }
-
 /* === Badge === */
+
+/* 목록용 상태 텍스트 색상 (배경 없음) */
+.text-badge{font-size: 0.9em;}
+.text-pending  { color: #888; }
+.text-approved { color: $green-600; }
+.text-rejected { color: #d32f2f; }
+.text-closed   { color: #aaa; }
 
 /* 상세용 뱃지 — tint 배경 + 텍스트 */
 %badge-base {
@@ -316,6 +325,18 @@ input.tbl-input {
 .summary-label { font-size: 0.925em; color: $font-color-light; margin-bottom: 4px; }
 .summary-value { font-size: 1.2em; font-weight: 700; color: $green-600; }
 .summary-unit  { font-size: 0.7em; font-weight: 400; color: $font-color-light; margin-left: 2px; }
+
+/* 목록 행 서브텍스트 (강의명 아래 미리보기 등) */
+.row-sub {
+  display: block;
+  font-size: 0.8em;
+  color: $font-color-light;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 400px;
+  margin-top: 2px;
+}
 
 /* 조회 전 안내 / 검색 유도 문구 */
 .guide-text {
