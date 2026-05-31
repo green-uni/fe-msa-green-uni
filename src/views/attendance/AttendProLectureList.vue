@@ -27,6 +27,7 @@ const scheduleText = (schedules) => {
 const isCurrent = (lecture) =>
   lecture.year === currentYear && lecture.semester === currentSemester
 
+
 onMounted(async () => {
   try {
     const res = await attendanceService.getProfessorLectures()

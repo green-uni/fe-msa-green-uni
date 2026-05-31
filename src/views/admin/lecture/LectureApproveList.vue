@@ -7,7 +7,7 @@ import DataTable from '@/components/common/DataTable.vue';
 import FilterBar from '@/components/common/FilterBar.vue';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import Pagination from '@/components/common/Pagination.vue';
-import { BUILDING_LABEL } from '@/utils/constants';
+import { scheduleText, roomText } from '@/utils/scheduleHelpers';
 
 const route = useRoute();
 const router = useRouter();
@@ -52,17 +52,6 @@ const LECTURE_TYPE_LABEL = {
   MAJOR_ELECTIVE: '전공선택',
 };
 const lectureTypeLabel = (code) => LECTURE_TYPE_LABEL[code] || code;
-
-// ── schedule 헬퍼 ─────────────────────────────────
-const scheduleText = (schedules) => {
-  if (!schedules?.length) return '-';
-  return schedules.map(s => `${s.dayOfWeek} ${s.startPeriod}~${s.endPeriod}교시`).join(',\n');
-};
-const roomText = (schedules) => {
-  if (!schedules?.length) return '-';
-  const rooms = [...new Set(schedules.map(s => `${BUILDING_LABEL[s.building] ?? s.building ?? ''} ${s.room ?? ''}`.trim()))];
-  return rooms.join(',\n');
-};
 
 const maxPage = ref(1);
 
@@ -213,8 +202,8 @@ watch(
         <div>{{ item.proName }}</div>
         <div>{{ item.majorName }}</div>
         <div>{{ item.credit }}</div>
-        <div style="white-space: pre-line;">{{ scheduleText(item.schedules) }}</div>
-        <div style="white-space: pre-line;">{{ roomText(item.schedules) }}</div>
+        <div class="pre-line">{{ scheduleText(item.schedules) }}</div>
+        <div class="pre-line">{{ roomText(item.schedules) }}</div>
         <div>{{ item.academicYear }}학년</div>
         <div>{{ STATUS_TO_LABEL[item.status] || item.status }}</div>
       </article>

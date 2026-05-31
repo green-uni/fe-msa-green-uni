@@ -14,7 +14,7 @@
         </div>
         <div class="info-item">
           <span class="info-key">강의실</span>
-          <span class="info-val" style="white-space: pre-line">{{ scheduleRoomText(lecture.schedules) }}</span>
+          <span class="info-val pre-line">{{ scheduleRoomText(lecture.schedules) }}</span>
         </div>
       </div>
     </section>

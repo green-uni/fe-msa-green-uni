@@ -8,7 +8,8 @@ import DataTable from '@/components/common/DataTable.vue';
 import FilterBar from '@/components/common/FilterBar.vue';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import Pagination from '@/components/common/Pagination.vue';
-import { APPROVAL_STATUS, BUILDING_LABEL } from '@/utils/constants';
+import { APPROVAL_STATUS } from '@/utils/constants';
+import { scheduleText, roomText } from '@/utils/scheduleHelpers';
 
 const route = useRoute();
 const router = useRouter();
@@ -99,17 +100,6 @@ const LECTURE_TYPE_LABEL = {
   MAJOR_ELECTIVE: '전공선택',
 };
 const lectureTypeLabel = (code) => LECTURE_TYPE_LABEL[code] || code;
-
-// ── schedule 헬퍼 ─────────────────────────────────
-const scheduleText = (schedules) => {
-  if (!schedules?.length) return '-';
-  return schedules.map(s => `${s.dayOfWeek} ${s.startPeriod}~${s.endPeriod}교시`).join(',\n');
-};
-const roomText = (schedules) => {
-  if (!schedules?.length) return '-';
-  const rooms = [...new Set(schedules.map(s => `${BUILDING_LABEL[s.building] ?? s.building ?? ''} ${s.room ?? ''}`.trim()))];
-  return rooms.join(',\n');
-};
 
 // ── 테이블 컬럼 설정 ──────────────────────────────
 const tableConfig = computed(() => {
@@ -349,8 +339,8 @@ onMounted(() => {
         <!-- 교수: 전공명 / 학생: 교수명 -->
         <div v-if="isProfessor">{{ item.majorName }}</div>
         <div v-else>{{ item.proName }}</div>
-        <div style="white-space: pre-line;">{{ scheduleText(item.schedules) }}</div>
-        <div style="white-space: pre-line;">{{ roomText(item.schedules) }}</div>
+        <div class="pre-line">{{ scheduleText(item.schedules) }}</div>
+        <div class="pre-line">{{ roomText(item.schedules) }}</div>
         <div>{{ item.credit }}</div>
         <!-- 교수 추가 컬럼 -->
         <template v-if="isProfessor">
