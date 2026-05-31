@@ -68,9 +68,11 @@ const pageSize = defineModel('pageSize', { default: 10 })
 </template>
 
 <style scoped lang="scss">
-.filter-header { flex-wrap: wrap; }
+.filter-header { flex-wrap: wrap; justify-content: space-between; }
 .filter-group { display: flex; gap: 15px; }
-.search-area { display: flex; gap: 5px; align-items: center; input { min-width: 180px; }}
+.search-area { display: flex; gap: 5px; align-items: center; 
+  input { min-width: 180px; }
+}
 .search-btn { 
   display: flex; align-items: center; gap: 4px; transition: 0.2s; background: $green-600; color: #fff; padding: 7px 15px; 
   &:hover { box-shadow: 0 0 5px $green-600; border-color: $green-600; filter: brightness(1.1);
@@ -84,8 +86,12 @@ const pageSize = defineModel('pageSize', { default: 10 })
   }
 }
 
-:slotted(.tab-area) { display: flex; gap: 4px; }
-:slotted(.tab-area .filter-btn) { padding: 8px 20px; border: 1px solid #ddd; border-radius: 4px; background: #fff;  color: #555; cursor: pointer; transition: all 0.2s;}
-:slotted(.tab-area .filter-btn.active) { background: $green-600; color: #fff; border-color: $green-600;}
-:slotted(.tab-area .filter-btn:hover:not(.active)) { background: #f5f5f5; }
+:slotted(.tab-area) { 
+  display: flex; gap: 4px; 
+  .filter-btn { 
+    padding: 6px 20px; border: 1px solid #ddd; border-radius: 4px; background: #fff;  color: #555; cursor: pointer; transition: all 0.2s;
+    &.active { background: $green-600; color: #fff; border-color: $green-600;}
+    &:hover:not(.active) { background: #f5f5f5; }
+  }
+}
 </style>
