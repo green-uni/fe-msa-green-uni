@@ -24,7 +24,7 @@ const pageSize = defineModel('pageSize', { default: 10 })
 
 <template>
   <div class="list-header">
-    <div class="filter-header">
+    <div class="filter-header list-header-box">
       <div class="filter-group">
         <slot />
         <button v-if="hasFilter" class="btn" @click="emit('reset')">초기화</button>
@@ -68,19 +68,16 @@ const pageSize = defineModel('pageSize', { default: 10 })
 </template>
 
 <style scoped lang="scss">
-.list-header { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
-.filter-header { display: flex; align-items: center; justify-content: space-between; background: #fff; border: 1px solid $border-color; padding: 8px 11px; border-radius: 7px; flex-wrap: wrap; gap: 5px; }
-.filter-group { display: flex; gap: 15px; font-size: .95rem; }
-.search-area {
-  display: flex; gap: 5px; align-items: center;
-  input { min-width: 180px; }
-}
-.search-btn { display: flex; align-items: center; gap: 4px; transition: 0.2s; background: $green-600; color: #fff; padding: 7px 15px; 
+.filter-header { flex-wrap: wrap; }
+.filter-group { display: flex; gap: 15px; }
+.search-area { display: flex; gap: 5px; align-items: center; input { min-width: 180px; }}
+.search-btn { 
+  display: flex; align-items: center; gap: 4px; transition: 0.2s; background: $green-600; color: #fff; padding: 7px 15px; 
   &:hover { box-shadow: 0 0 5px $green-600; border-color: $green-600; filter: brightness(1.1);
-}
+  }
 }
 .data-header {
-  display: flex; justify-content: space-between; align-items:end;
+  display: flex; justify-content: space-between; align-items:end;padding:0 3px;
   .count-text {
     color: #888;
     strong { color: $font-color-bold; font-weight: 700; }

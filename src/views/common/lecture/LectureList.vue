@@ -7,7 +7,7 @@ import FilterBar from '@/components/common/FilterBar.vue';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import Pagination from '@/components/common/Pagination.vue';
 import { useAuthStore } from '@/stores/authentication';
-import { BUILDING_LABEL } from '@/utils/constants';
+import { scheduleText, roomText } from '@/utils/scheduleHelpers';
 
 const authStore = useAuthStore();
 const route = useRoute();
@@ -59,20 +59,6 @@ const LECTURE_TYPE_LABEL = {
 };
 const lectureTypeLabel = (code) => LECTURE_TYPE_LABEL[code] || code;
 
-// ── schedule 표시용 헬퍼 ──────────────────────────
-const scheduleText = (schedules) => {
-  if (!schedules || schedules.length === 0) return '-';
-  return schedules
-    .map(s => `${s.dayOfWeek} ${s.startPeriod}~${s.endPeriod}교시`)
-    .join(',\n');
-};
-
-const roomText = (schedules) => {
-  if (!schedules || schedules.length === 0) return '-';
-  // 강의실이 모두 같으면 하나만, 다르면 첫 번째만 표시
-  const rooms = [...new Set(schedules.map(s => `${BUILDING_LABEL[s.building] ?? s.building ?? ''} ${s.room ?? ''}`.trim()))];
-  return rooms.join(',\n');
-};
 
 
 // ── API 호출 ─────────────────────────────────────
@@ -261,8 +247,8 @@ onMounted(() => {
         <div>{{ item.majorName }}</div>
         <div>{{ item.lectureName }}</div>
         <div>{{ item.proName }}</div>
-        <div style="white-space: pre-line;">{{ scheduleText(item.schedules) }}</div>
-        <div style="white-space: pre-line;">{{ roomText(item.schedules) }}</div>
+        <div class="pre-line">{{ scheduleText(item.schedules) }}</div>
+        <div class="pre-line">{{ roomText(item.schedules) }}</div>
         <div>{{ item.credit }}</div>
         <div>{{ item.academicYear }}학년</div>
       </article>

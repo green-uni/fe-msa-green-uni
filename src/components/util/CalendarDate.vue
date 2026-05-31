@@ -143,6 +143,7 @@ function isToday(day) {
   width: 100%;
 
   > input { padding-right: 36px; min-width: 0; }
+  .btn{right: 0;}
 }
 
 .calendar-icon-btn {

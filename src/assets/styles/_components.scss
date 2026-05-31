@@ -87,7 +87,7 @@
 .info-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px 28px; }
 .info-item { display: flex; gap: 8px; align-items: baseline; }
 .info-key  { color: $font-color-light; width: 80px; flex-shrink: 0; }
-.info-val  { color: $font-color; font-weight: 500; }
+.info-val  { color: $font-color; font-weight: 500; flex: 1; }
 
 .req-list {
   display: grid;
@@ -210,11 +210,11 @@
 /* action-box 내부 — 타이틀 / 푸터 / 글자수 카운터 */
 .action-box-title { font-weight: 700; font-size: 0.95em; margin: 0; color: #334155; }
 .action-box-footer { display: flex; justify-content: space-between; align-items: center; }
-.char-count { font-size: 0.8em; color: #aaa; }
+.char-count { font-size: 0.85em; color: #aaa; }
 .char-count.valid { color: #334155; font-weight: 600; }
 
 /* result-box 타임스탬프 */
-.result-at { color: #94a3b8; font-size: 0.75em; text-align: right; margin-top: 4px; }
+.result-at { color: #94a3b8; font-size: 0.85em; text-align: right; margin-top: 4px; }
 
 /* 승인/반려 입력 박스 */
 .action-box {
@@ -309,7 +309,7 @@ input.tbl-input {
     background-color: $default-bg;
     font-weight: 600;
     text-align: center; vertical-align: middle;
-    small{font-size: 0.8em;display: block;color: $font-color-light;}
+    small{font-size: 0.85em;display: block;color: $font-color-light;}
   }
   tr:last-child td { border-bottom: none; }
   tr:has(button, input) td { padding-top: 6px; padding-bottom:6px; }
@@ -324,12 +324,12 @@ input.tbl-input {
 .summary-item { flex: 1; background: #fff; border: 1px solid $border-color; border-radius: 8px; padding: 12px 16px; text-align: center;}
 .summary-label { font-size: 0.925em; color: $font-color-light; margin-bottom: 4px; }
 .summary-value { font-size: 1.2em; font-weight: 700; color: $green-600; }
-.summary-unit  { font-size: 0.7em; font-weight: 400; color: $font-color-light; margin-left: 2px; }
+.summary-unit  { font-size: 0.82em; font-weight: 400; color: $font-color-light; margin-left: 2px; }
 
 /* 목록 행 서브텍스트 (강의명 아래 미리보기 등) */
 .row-sub {
   display: block;
-  font-size: 0.8em;
+  font-size: 0.85em;
   color: $font-color-light;
   white-space: nowrap;
   overflow: hidden;
@@ -339,16 +339,21 @@ input.tbl-input {
 }
 
 /* 조회 전 안내 / 검색 유도 문구 */
-.guide-text {
-  text-align: center;
-  padding: 60px 0;
-  color: $font-color-light;
-  font-size: 0.85em;
-}
+.guide-text { text-align: center; padding: 60px 0; color: $font-color-light; }
 
 /* 경고 · 주의 안내 문구 */
 .notice-caution {
   color: $warning;
+}
+
+/* 카드 내 상태·결과 강조 타이틀 (휴강 완료, 출석 마감 등) */
+.status-title {
+  font-weight: 700;
+  font-size: 1.05em;
+  color: $font-color-bold;
+  text-align: center;
+  margin-bottom: 6px;
+  &.success { color: $green-600; }
 }
 
 /* === Notice Panel === */

@@ -28,6 +28,10 @@
 .tab-area .filter-btn.active         { background: $green-600; color: #fff; border-color: $green-600; }
 .tab-area .filter-btn:hover:not(.active) { background: #f5f5f5; }
 
+/* === 페이지 상단 정보 바 === */
+.list-header { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.list-header-box { display: flex; align-items: center; gap: 10px; background: #fff; min-height:50px;border: 1px solid $border-color; padding: 8px 11px; border-radius: 7px; margin-bottom: 12px; strong{font-weight: bold;margin-right: 1px;} }
+
 /* === 좌우 분할 레이아웃 (목록 + 상세 동시 표시) === */
 .split-layout { display: flex; gap: 20px; align-items: flex-start; }
 .split-list   { position: relative; flex: 0 0 500px; }

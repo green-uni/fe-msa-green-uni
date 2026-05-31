@@ -15,7 +15,7 @@ $green-700: #1f6b5b;
 $green-600: #3e9e7e;
 $green-500: #70be97;
 $green-400: #62c091;
-$green-300: #9aecc3;
+$green-300: #b2dfdb;
 $green-50:  #eef7f1;
 
 $border-color:        #e1e2e5;
@@ -47,9 +47,11 @@ $md: 16px;
 $lg: 24px;
 
 // Border Radius
-$bdrs-sm:   10px;
+$bdrs-xs:   4px;
+$bdrs-sm:   8px;
 $bdrs-df:   15px;
 $radius:    14px;
+$radius-xs: 4px;
 $radius-sm: 8px;
 
 // Shadows

@@ -100,6 +100,10 @@ input[type='radio'] {
   input[type='radio'] { display: none; }
   &:has(input[type='radio']:checked):before { border-color: $green-600; }
   &:has(input[type='radio']:checked):after  { display: block; background: $green-600; }
+  /* 출석 상태별 색상 변형 — 원 색상 override */
+  &.late:has(input:checked)        { &::before { border-color: #f57f17; } &::after { background: #f57f17; } }
+  &.absent:has(input:checked)      { &::before { border-color: #d32f2f; } &::after { background: #d32f2f; } }
+  &.early-leave:has(input:checked) { &::before { border-color: #e65100; } &::after { background: #e65100; } }
 }
 .radio-tab {
   border: 1px solid $border-color;
