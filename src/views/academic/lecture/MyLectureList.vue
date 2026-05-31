@@ -259,7 +259,7 @@ const fetchYearOptions = async () => {
     } else {
       return; // 관리자는 스킵
     }
-    yearOptions.value = res.data ?? [];
+    yearOptions.value = res?? [];
   } catch (err) {
     console.error('연도 옵션 로드 실패:', err);
   }
