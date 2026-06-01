@@ -45,7 +45,8 @@ async function fetchTuitionList() {
       filter.semester,
       filter.status,
       currentPage.value - 1,
-      pageSize
+      pageSize,
+      searchKeyword.value
     )
     students.value = response.data?.content || []
     totalElements.value = response.data?.totalElements || 0
@@ -78,7 +79,7 @@ const filteredStudents = computed(() => {
 })
 
 async function handlePayment(student) {
-  const isConfirmed = await modal.showConfirm('납부 완료 상태로 처리하시겠습니까?', 'info')
+  const isConfirmed = await modal.showConfirm('납부 완료 처리하시겠습니까?', 'info')
   if (isConfirmed) {
     try {
       await tuitionService.updateTuitionStatus(student.tuitionId, '납부완료')
@@ -145,15 +146,14 @@ onMounted(() => {
   <div style="position: relative">
     <LoadingSpinner v-if="isLoading" :overlay="true" size="md" />
 
-    <FilterBar
-      v-model:searchQuery="searchInput"
-      :hasFilter="false"
-      placeholder="이름 또는 학번을 입력하세요"
-      :show-count="true"
-      :count="totalElements"
-      @search="onSearch"
-      @reset="resetFilter"
-    >
+      <FilterBar
+        v-model:searchQuery="searchInput"
+        :hasFilter="false"
+        placeholder="이름 또는 학번을 입력하세요"
+        :show-count="true"
+        :count="Number(totalElements)" @search="onSearch"
+        @reset="resetFilter"
+      >
       <div class="tab-area">
         <button
           v-for="tab in tabs"
@@ -215,7 +215,7 @@ onMounted(() => {
           <div>{{ getStatusLabel(s.status) }}</div>
           <div>{{ formatDate(s.paidAt) }}</div>
           <div v-if="filter.status === 'PENDING'">
-            <button class="btn btn-default btn-sm" @click="handlePayment(s)">납부</button>
+            <button class="btn btn-default btn-sm" @click="handlePayment(s)">납부 확인</button>
           </div>
         </article>
       </template>

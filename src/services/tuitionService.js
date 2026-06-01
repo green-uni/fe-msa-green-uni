@@ -35,8 +35,8 @@ class TuitionService {
   /**
    * API-TUI-02: 관리자 - 등록금 납부 학생 목록 조회 (페이징 및 필터)
    */
-  getTuitionList(year, semester, status, page = 0, size = 10) {
-    const params = { year, semester, page, size };
+  getTuitionList(year, semester, status, page = 0, size = 10, searchKeyword) {
+    const params = { year, semester, page, size, searchKeyword };
     // '전체' 탭이거나 status가 공백이 아니라면 대문자로 변환하여 전송
     if (status && status !== '') {
       params.status = status;
