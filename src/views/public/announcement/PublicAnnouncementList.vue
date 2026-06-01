@@ -5,6 +5,7 @@ import AnnouncementService from '@/services/announcementService'
 import DataTable from '@/components/common/DataTable.vue'
 import Pagination from '@/components/common/Pagination.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
+import PublicAnnouncementHeader from './PublicAnnouncementHeader.vue'
 
 const router = useRouter()
 
@@ -37,11 +38,7 @@ onMounted(() => fetchList(1))
 
 <template>
   <div class="page-wrap">
-    <div class="page-header">
-      <h2>공지사항</h2>
-      <button class="btn-login" @click="router.push('/login')">로그인</button>
-    </div>
-
+    <PublicAnnouncementHeader />
     <div style="position: relative;">
       <LoadingSpinner v-if="isLoading" :overlay="true" size="md" />
 
@@ -59,13 +56,12 @@ onMounted(() => fetchList(1))
           @click="router.push(`/public/announcements/${anno.annoId}`)"
         >
           <div>{{ rowNum(idx) }}</div>
-          <div>{{ anno.title }}</div>
-          <div>{{ formatDate(anno.createdAt) }}</div>
+          <div class="tal">{{ anno.title }}</div>
+          <div class="tbl-meta">{{ formatDate(anno.createdAt) }}</div>
         </article>
       </DataTable>
 
       <Pagination
-        v-if="maxPage > 1"
         :currentPage="currentPage"
         :maxPage="maxPage"
         :pageGroupSize="10"
@@ -76,18 +72,5 @@ onMounted(() => fetchList(1))
 </template>
 
 <style scoped lang="scss">
-.page-wrap {
-  width: 100%; padding: 36px 44px;
-  display: flex; flex-direction: column; gap: 16px;
-  align-self: flex-start;
-}
-.page-header {
-  display: flex; justify-content: space-between; align-items: center;
-  h2 { font-size: 1.1rem; font-weight: 700; margin: 0; }
-}
-.btn-login {
-  padding: 6px 16px; background: #2d8659; color: #fff;
-  border: none; border-radius: 6px; font-size: 0.875rem; cursor: pointer;
-  &:hover { background: #246b47; }
-}
+.page-wrap { align-self: flex-start; width: 100%; padding: 36px 44px; display: flex; flex-direction: column;}
 </style>

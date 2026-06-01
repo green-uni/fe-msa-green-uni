@@ -72,7 +72,7 @@ const login = async () => {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  background: var(--default-bg);
+  background: $default-bg;
   padding: 52px 24px 32px;
   max-width: 480px;
   margin: 0 auto;
@@ -94,7 +94,7 @@ const login = async () => {
   &__logo {
     width: 26px;
     height: 26px;
-    background: var(--main-color);
+    background: $green-600;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -106,21 +106,21 @@ const login = async () => {
   &__name {
     font-size: 17px;
     font-weight: 700;
-    color: var(--font-color);
+    color: $font-color;
     margin: 0;
   }
 
   &__sub {
     margin: 0;
-    font-size: var(--text-sm);
-    color: var(--font-color-light);
+    font-size: 0.875rem;
+    color: $font-color-light;
     padding-left: 2px;
   }
 }
 
 .form-card {
   background: #fff;
-  border-radius: var(--bdrs-df);
+  border-radius: $radius-df;
   padding: 28px 20px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   display: flex;
@@ -129,9 +129,9 @@ const login = async () => {
 
   &__title {
     margin: 0;
-    font-size: var(--text-md);
+    font-size: 1rem;
     font-weight: 700;
-    color: var(--font-color);
+    color: $font-color;
   }
 }
 </style>

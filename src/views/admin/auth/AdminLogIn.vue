@@ -105,14 +105,14 @@ const login = async () => {
   }
 
   &-sub {
-    font-size: .9em;
+    font-size: $fs-xs;
     color: $green-600;
     font-weight: 600;
     letter-spacing: .04em;
   }
 
   &-name {
-    font-size: 1.8em;
+    font-size: 24px;
     font-weight: 500;
     letter-spacing: -0.01em;
   }

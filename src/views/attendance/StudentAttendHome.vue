@@ -162,7 +162,7 @@ function goToQrScan()   { router.push('/student/attendances/scan') }
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  background: var(--default-bg);
+  background: $default-bg;
   padding: 20px 16px;
   max-width: 480px;
   margin: 0 auto;
@@ -172,8 +172,8 @@ function goToQrScan()   { router.push('/student/attendances/scan') }
 /* ── PWA 설치 안내 배너 ── */
 .install-guide {
   background: #fff;
-  border: 1.5px solid var(--main-color);
-  border-radius: var(--bdrs-sm);
+  border: 1.5px solid $green-600;
+  border-radius: $radius-sm;
   margin-bottom: 16px;
   overflow: hidden;
 }
@@ -186,26 +186,26 @@ function goToQrScan()   { router.push('/student/attendances/scan') }
 }
 
 .install-guide-title {
-  font-size: var(--text-sm);
+  font-size: 0.875rem;
   font-weight: 700;
-  color: var(--font-color);
+  color: $font-color;
 }
 
 .install-guide-step {
-  font-size: var(--text-xs);
-  color: var(--font-color-light);
+  font-size: 0.75rem;
+  color: $font-color-light;
   line-height: 1.6;
-  strong { color: var(--font-color); }
+  strong { color: $font-color; }
 }
 
 .btn-install-main {
   width: 100%;
   padding: 10px 0;
-  background: var(--main-color);
+  background: $green-600;
   color: #fff;
   border: none;
-  border-radius: var(--bdrs-sm);
-  font-size: var(--text-sm);
+  border-radius: $radius-sm;
+  font-size: 0.875rem;
   font-weight: 700;
   cursor: pointer;
 }
@@ -214,8 +214,8 @@ function goToQrScan()   { router.push('/student/attendances/scan') }
   align-self: flex-end;
   background: none;
   border: none;
-  font-size: var(--text-xs);
-  color: var(--font-color-light);
+  font-size: 0.75rem;
+  color: $font-color-light;
   cursor: pointer;
   text-decoration: underline;
   padding: 0;
@@ -234,17 +234,17 @@ function goToQrScan()   { router.push('/student/attendances/scan') }
 
 .btn-logout {
   background: none;
-  border: 1px solid var(--line-color);
+  border: 1px solid $border-color;
   border-radius: 8px;
   padding: 6px 10px;
-  color: var(--font-color-light);
+  color: $font-color-light;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: var(--text-xs);
+  font-size: 0.75rem;
   flex-shrink: 0;
-  &:hover { color: var(--font-color); border-color: var(--font-color-light); }
+  &:hover { color: $font-color; border-color: $font-color-light; }
   &:active { opacity: 0.7; }
 }
 
@@ -257,7 +257,7 @@ function goToQrScan()   { router.push('/student/attendances/scan') }
 .header-logo {
   width: 22px;
   height: 22px;
-  background: var(--main-color);
+  background: $green-600;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -268,25 +268,25 @@ function goToQrScan()   { router.push('/student/attendances/scan') }
 .header-school {
   font-size: 15px;
   font-weight: 600;
-  color: var(--font-color);
+  color: $font-color;
 }
 
 .header-user {
-  font-size: var(--text-xs);
-  color: var(--font-color-light);
+  font-size: 0.75rem;
+  color: $font-color-light;
 }
 
 .btn-logout {
   background: none;
-  border: 1px solid var(--line-color);
+  border: 1px solid $border-color;
   border-radius: 8px;
   padding: 6px 8px;
-  color: var(--font-color-light);
+  color: $font-color-light;
   cursor: pointer;
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  &:hover { color: var(--font-color); border-color: var(--font-color-light); }
+  &:hover { color: $font-color; border-color: $font-color-light; }
   &:active { opacity: 0.7; }
 }
 
@@ -302,8 +302,8 @@ function goToQrScan()   { router.push('/student/attendances/scan') }
 
 /* ── 큰 카드 ── */
 .card-main {
-  background: var(--main-color);
-  border-radius: var(--bdrs-df);
+  background: $green-600;
+  border-radius: $radius-df;
   padding: 24px 16px;
   text-align: center;
   box-shadow: 0 4px 14px rgba(62, 158, 126, 0.25);
@@ -340,20 +340,20 @@ function goToQrScan()   { router.push('/student/attendances/scan') }
   align-items: center;
   padding: 14px 24px;
   background: white;
-  border: 1px solid var(--line-color);
-  border-radius: var(--bdrs-df);
+  border: 1px solid $border-color;
+  border-radius: $radius-df;
   cursor: pointer;
-  color: var(--main-color);
+  color: $green-600;
   transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
 
-  &:hover  { background: var(--hover-bg-color); border-color: var(--main-color); }
+  &:hover  { background: $hover-bg-color; border-color: $green-600; }
   &:active { transform: scale(0.96); }
 }
 
 .card-qr-icon { width: 56px; height: 56px; margin-bottom: 8px; }
-.card-qr-text { font-size: 13px; font-weight: 600; color: var(--main-color); }
+.card-qr-text { font-size: 13px; font-weight: 600; color: $green-600; }
 
 /* ── 하단 안내 ── */
 .footer-notice      { flex-shrink: 0; text-align: center; padding-bottom: 4px; }
-.footer-notice-text { font-size: 11px; color: var(--font-color-light); }
+.footer-notice-text { font-size: 11px; color: $font-color-light; }
 </style>

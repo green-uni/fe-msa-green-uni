@@ -64,7 +64,7 @@ onMounted(async () => {
   margin-bottom: 20px;
 
   h3 {
-    font-size: 13px;
+    font-size: $fs-sm;
     font-weight: 600;
     color: $font-color;
     margin: 0;
@@ -74,7 +74,7 @@ onMounted(async () => {
 }
 
 .view-all {
-  font-size: 13px;
+  font-size: $fs-sm;
   color: $font-color-light;
   text-decoration: none;
 
@@ -108,7 +108,7 @@ onMounted(async () => {
 }
 
 .member-info {
-  font-size: 13px;
+  font-size: $fs-sm;
   color: #94a3b8;
   margin: 0 0 15px 0;
 }

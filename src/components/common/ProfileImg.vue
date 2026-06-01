@@ -72,12 +72,12 @@ const handlePicChanged = (e) => {
   .btn { text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px;}
 }
 
-.pic-hint { font-size: 0.78rem; color: $font-color-light; text-align: center;
+.pic-hint { font-size: $fs-xs; color: $font-color-light; text-align: center;
   &.error { color: $error; font-weight: 500; }
 }
 
-.pic-box { max-width: 160px; width: 100%; aspect-ratio: 3 / 4; border: 1px solid #ddd; background-color: var(--hover-bg-color); display: flex;  justify-content: center; align-items: center; border-radius: 5px; overflow: hidden;
+.pic-box { max-width: 160px; width: 100%; aspect-ratio: 3 / 4; border: 1px solid #ddd; background-color: $hover-bg-color; display: flex;  justify-content: center; align-items: center; border-radius: 5px; overflow: hidden;
    img { width: 100%; height: 100%; object-fit: cover;}
-    svg { font-size: 5rem; color: var(--main-color);}
+    svg { font-size: 5rem; color: $green-600;}
 }
 </style>

@@ -195,25 +195,27 @@ onMounted(() => {
     <div class="card notice-panel" style="margin-top: 16px;">
       <h3 class="notice-title">나의 강의평가</h3>
       <p class="notice-desc">목록에서 강의를 선택하면 상세 내용을 확인할 수 있습니다.</p>
-      <table class="data-tbl">
-        <colgroup>
-          <col style="width: 110px"/>
-          <col/>
-        </colgroup>
-        <tbody>
-          <template v-if="role === 'STUDENT'">
-            <tr><th><span class="badge before">강의진행중</span></th><td>강의평가 기간이 시작되지 않은 강의입니다.</td></tr>
-            <tr><th><span class="badge pending">미작성</span></th><td>강의평가 기간이며 아직 평가를 작성하지 않은 강의입니다.</td></tr>
-            <tr><th><span class="badge done">완료</span></th><td>강의평가를 완료한 강의입니다.</td></tr>
-            <tr><th><span class="badge expired">만료</span></th><td>평가 기간이 종료되어 더 이상 작성할 수 없습니다.</td></tr>
-          </template>
-          <template v-else>
-            <tr><th><span class="badge before">강의진행중</span></th><td>강의평가 기간이 시작되지 않은 강의입니다.</td></tr>
-            <tr><th><span class="badge pending">진행중</span></th><td>현재 강의평가 기간입니다. 결과는 기간 종료 후 확인 가능합니다.</td></tr>
-            <tr><th><span class="badge done">평가완료</span></th><td>강의평가 기간이 종료되어 결과를 확인할 수 있습니다.</td></tr>
-          </template>
-        </tbody>
-      </table>
+      <div class="tbl-scroll">
+        <table class="data-tbl">
+          <colgroup>
+            <col style="width: 110px"/>
+            <col/>
+          </colgroup>
+          <tbody>
+            <template v-if="role === 'STUDENT'">
+              <tr><th><span class="text-badge text-pending">강의진행중</span></th><td>강의평가 기간이 시작되지 않은 강의입니다.</td></tr>
+              <tr><th><span class="text-badge text-rejected">미작성</span></th><td>강의평가 기간이며 아직 평가를 작성하지 않은 강의입니다.</td></tr>
+              <tr><th><span class="text-badge">완료</span></th><td>강의평가를 완료한 강의입니다.</td></tr>
+              <tr><th><span class="text-badge text-closed">만료</span></th><td>평가 기간이 종료되어 더 이상 작성할 수 없습니다.</td></tr>
+            </template>
+            <template v-else>
+              <tr><th><span class="text-badge text-pending">강의진행중</span></th><td>강의평가 기간이 시작되지 않은 강의입니다.</td></tr>
+              <tr><th><span class="text-badge">진행중</span></th><td>현재 강의평가 기간입니다. 결과는 기간 종료 후 확인 가능합니다.</td></tr>
+              <tr><th><span class="text-badge">평가완료</span></th><td>강의평가 기간이 종료되어 결과를 확인할 수 있습니다.</td></tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </template>

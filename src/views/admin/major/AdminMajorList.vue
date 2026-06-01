@@ -3,6 +3,7 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import majorService from '@/services/majorService'
 import { useModalStore } from '@/stores/modal'
+import { BUILDING_LABEL } from '@/utils/constants'
 import FilterBar from '@/components/common/FilterBar.vue'
 import Pagination from '@/components/common/Pagination.vue'
 import DataTable from '@/components/common/DataTable.vue'
@@ -32,20 +33,6 @@ const TAB_LIST = [
   { label: '폐지', value: 'CLOSED' },
 ]
 
-const STATUS_MAP = {
-  NORMAL: { label: '정상', cls: 'badge-running' },
-  CLOSED: { label: '폐지', cls: 'badge-closed'  },
-}
-
-const BUILDING_LABEL = {
-  BUSINESS:    '경영관',
-  ENGINEERING: '공학관',
-  HUMANITIES:  '인문관',
-  ARTS:        '예술관',
-  LIBERAL:     '교양관',
-  SCIENCE:     '이과관',
-}
-
 // ─── 헬퍼 함수 ───────────────────────────────────────────────────
 
 function getCollegeName(collegeId) {
@@ -56,15 +43,6 @@ function getProfessorName(professorCode) {
   if (!professorCode) return '-'
   const prof = state.professorList.find(p => p.memberCode === professorCode)
   return prof ? prof.name : '-'
-}
-
-function getBuildingLabel(val) {
-  return BUILDING_LABEL[val] ?? val ?? '-'
-}
-
-function getStatusBadge(active) {
-  const key = String(active || '').toUpperCase()
-  return STATUS_MAP[key] ?? { label: active, cls: 'badge-closed' }
 }
 
 // ─── 서버 사이드 페이징 데이터 fetch ─────────────────────────────
@@ -126,15 +104,13 @@ function onSearch() {
   fetchMajorList()
 }
 
-function resetFilter() {
-  state.activeTab   = 'ALL'
-  searchInput.value = ''
-  state.currentPage = 1
+function onPageChange(page) {
+  state.currentPage = page
   fetchMajorList()
 }
 
-function onPageChange(page) {
-  state.currentPage = page
+function onPageSizeChange() {
+  state.currentPage = 1
   fetchMajorList()
 }
 
@@ -159,10 +135,15 @@ const gridCols = '1.4fr 1fr 1.2fr 1.2fr 100px 80px 80px 100px'
   <div>
     <FilterBar
       v-model:searchQuery="searchInput"
+      v-model:pageSize="state.pageSize"
       :hasFilter="false"
+      :show-count="true"
+      :count="state.totalElements"
+      :show-page-size="true"
+      :page-size-options="[10, 20, 30]"
       placeholder="학과명을 입력하세요"
       @search="onSearch"
-      @reset="resetFilter"
+      @pageSizeChange="onPageSizeChange"
     >
       <!-- 탭 -->
       <div class="tab-area">
@@ -191,23 +172,18 @@ const gridCols = '1.4fr 1fr 1.2fr 1.2fr 100px 80px 80px 100px'
         <article
           v-for="m in state.majorList"
           :key="m.majorId"
-          class="tbl-row"
-          :class="{ 'row-disabled': String(m.active).toUpperCase() === 'CLOSED' }"
-          style="cursor: pointer;"
+          class="tbl-row pointer"
+          :class="{ 'row--sample': String(m.active).toUpperCase() === 'CLOSED' }"
           @click="goToDetail(m.majorId)"
         >
           <div>{{ m.name }}</div>
           <div>{{ getCollegeName(m.collegeId) }}</div>
-          <div>{{ m.majorBuilding ? `${getBuildingLabel(m.majorBuilding)} ${m.room}` : '-' }}</div>
+          <div>{{ m.majorBuilding ? `${BUILDING_LABEL[m.majorBuilding] ?? m.majorBuilding} ${m.room}` : '-' }}</div>
           <div>{{ m.tel ?? '-' }}</div>
           <div>{{ getProfessorName(m.professorCode) }}</div>
           <div>{{ m.capacity ?? '-' }}명</div>
           <div>{{ m.professorCount ?? '-' }}명</div>
-          <div>
-            <span class="status-badge" :class="getStatusBadge(m.active).cls">
-              {{ getStatusBadge(m.active).label }}
-            </span>
-          </div>
+          <div>{{ m.active ?? '-' }}</div>
         </article>
       </template>
     </DataTable>
@@ -215,31 +191,8 @@ const gridCols = '1.4fr 1fr 1.2fr 1.2fr 100px 80px 80px 100px'
     <Pagination
       :currentPage="state.currentPage"
       :maxPage="state.totalPages"
-      :pageGroupSize="5"
+      :pageGroupSize="10"
       @goToPage="onPageChange"
     />
   </div>
 </template>
-
-<style scoped lang="scss">
-.custom-search-area {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin-left: auto;
-}
-
-.search-btn {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  transition: 0.2s;
-  background: $green-600;
-  color: #fff;
-  padding: 8px 15px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.95rem;
-}
-</style>

@@ -109,128 +109,100 @@ const handleDelete = async () => {
 </script>
 
 <template>
-  <div class="page-wrap">
-    <div class="page-header">
-      <h2>{{ pageTitle }}</h2>
-    </div>
+  <div class="detail-wrap">
 
     <!-- 상세 보기 (읽기 전용) -->
     <template v-if="isEdit && !isEditing">
-      <div v-if="annoInfo" class="detail-card">
-        <div class="card-header">
-          <span class="badge">공지대상 : {{ targetRoleLabel }}</span>
+      <div v-if="annoInfo" class="post-card">
+        <div class="post-header">
           <h2>{{ form.title }}</h2>
-          <div class="meta">
+          <div class="post-meta">
             <span>{{ annoInfo.writerName }}</span>
             <span>조회 {{ annoInfo.viewCount }}</span>
             <span>{{ formatDate(annoInfo.createdAt) }}</span>
+            <span>대상 : {{ targetRoleLabel }}</span>
           </div>
         </div>
-        <div class="card-body">{{ form.content }}</div>
+        <div class="post-body">{{ form.content }}</div>
       </div>
-      <div class="btn-row">
-        <button type="button" class="btn-outline" @click="router.push('/admin/announcements')">목록으로</button>
-        <button type="button" class="btn-danger" @click="handleDelete">삭제</button>
-        <button type="button" class="btn-submit" @click="enterEditMode">수정</button>
+      <div class="page-footer">
+        <button type="button" class="btn btn-default" @click="router.push('/admin/announcements')">
+          <font-awesome-icon icon="fa-solid fa-list" /> 목록
+        </button>
+        <div class="action-group">
+          <button type="button" class="btn btn-default" @click="handleDelete">
+            <font-awesome-icon icon="fa-solid fa-trash" /> 삭제
+          </button>
+          <button type="button" class="btn btn-default" @click="enterEditMode">
+            <font-awesome-icon icon="fa-solid fa-pen" /> 수정
+          </button>
+        </div>
       </div>
     </template>
 
     <!-- 등록 / 수정 폼 -->
-    <form v-else class="form-wrap" @submit.prevent="handleSubmit">
-      <div class="form-row">
-        <label>대상</label>
-        <select v-model="form.targetRole" :disabled="isEditing">
-          <option value="STUDENT">학생</option>
-          <option value="PROFESSOR">교수</option>
-          <option value="ALL">전체공개</option>
-        </select>
+    <template v-else>
+      <div class="form-wrap">
+        <div class="content-wrap">
+          <h3>{{ pageTitle }}</h3>
+          <div class="form-grid" style="--grid-cols: 1fr; row-gap: 20px;">
+
+            <div class="input-wrap">
+              <div class="input-label">대상</div>
+              <div class="input-content">
+                <div class="radio-group">
+                  <label class="radio-label">
+                    <input type="radio" v-model="form.targetRole" value="STUDENT" :disabled="isEditing" /> 학생
+                  </label>
+                  <label class="radio-label">
+                    <input type="radio" v-model="form.targetRole" value="PROFESSOR" :disabled="isEditing" /> 교수
+                  </label>
+                  <label class="radio-label">
+                    <input type="radio" v-model="form.targetRole" value="ALL" :disabled="isEditing" /> 전체공개
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="input-wrap">
+              <div class="input-label">제목</div>
+              <div class="input-content">
+                <input
+                  v-model="form.title"
+                  type="text"
+                  maxlength="50"
+                  placeholder="제목을 입력하세요 (최대 50자)"
+                />
+              </div>
+            </div>
+
+            <div class="input-wrap input-grid-full">
+              <div class="input-label">내용</div>
+              <div class="input-content">
+                <textarea
+                  v-model="form.content"
+                  rows="12"
+                  placeholder="내용을 입력하세요"
+                />
+              </div>
+            </div>
+
+          </div>
+        </div>
       </div>
-      <div class="form-row">
-        <label>제목</label>
-        <input
-          v-model="form.title"
-          type="text"
-          maxlength="50"
-          placeholder="제목을 입력하세요 (최대 50자)"
-        />
-      </div>
-      <div class="form-row align-top">
-        <label>내용</label>
-        <textarea
-          v-model="form.content"
-          rows="12"
-          placeholder="내용을 입력하세요"
-        />
-      </div>
-      <div class="btn-row">
-        <button type="button" class="btn-outline" @click="isEditing ? cancelEdit() : router.back()">취소</button>
-        <button type="submit" class="btn-submit" :disabled="isLoading">
-          {{ isEditing ? '확인' : '등록' }}
+
+      <div class="page-footer">
+        <button type="button" class="btn btn-default" @click="isEditing ? cancelEdit() : router.back()">
+          <font-awesome-icon icon="fa-solid fa-arrow-left" /> 취소
         </button>
+        <div class="action-group">
+          <button type="button" class="btn btn-submit" :disabled="isLoading" @click="handleSubmit">
+            <font-awesome-icon icon="fa-solid fa-circle-check" /> {{ isEditing ? '확인' : '등록' }}
+          </button>
+        </div>
       </div>
-    </form>
+    </template>
+
   </div>
 </template>
 
-<style scoped lang="scss">
-.page-wrap { display: flex; flex-direction: column; gap: 16px; }
-.page-header h2 { font-size: 1.1rem; font-weight: 700; margin: 0; }
-
-.detail-card {
-  border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;
-  background: #fff;
-}
-.card-header {
-  padding: 20px 24px 16px;
-  border-bottom: 1px solid #eee;
-  h2 { font-size: 1.05rem; font-weight: 700; margin: 8px 0 10px; color: #1a1a1a; }
-  .meta {
-    display: flex; gap: 6px; align-items: center;
-    font-size: 0.8rem; color: #999;
-    span + span::before { content: '·'; margin-right: 6px; }
-  }
-}
-.badge {
-  display: inline-block; font-size: 0.75rem; padding: 2px 10px;
-  background: #e8f4ee; color: #2d8659;
-  border-radius: 10px; font-weight: 600;
-}
-.card-body {
-  padding: 24px; min-height: 200px;
-  font-size: 0.875rem; line-height: 1.8; color: #333;
-  white-space: pre-wrap; word-break: break-word;
-}
-
-.form-wrap { display: flex; flex-direction: column; gap: 16px; }
-.form-row {
-  display: flex; align-items: center; gap: 16px;
-  &.align-top { align-items: flex-start; }
-  label { width: 60px; font-size: 0.875rem; font-weight: 600; flex-shrink: 0; }
-  select, input, textarea {
-    flex: 1; padding: 8px 12px;
-    border: 1px solid #ddd; border-radius: 6px;
-    font-size: 0.875rem; font-family: inherit;
-    &:focus { outline: none; border-color: #2d8659; }
-  }
-  textarea { resize: vertical; line-height: 1.6; }
-  select:disabled { background: #f5f5f5; color: #888; }
-}
-
-.btn-row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
-.btn-outline {
-  padding: 8px 20px; border: 1px solid #ccc; border-radius: 6px;
-  background: #fff; font-size: 0.875rem; cursor: pointer;
-  &:hover { background: #f5f5f5; }
-}
-.btn-submit {
-  padding: 8px 20px; background: #2d8659; color: #fff;
-  border: none; border-radius: 6px; font-size: 0.875rem; cursor: pointer;
-  &:disabled { background: #aaa; cursor: not-allowed; }
-  &:not(:disabled):hover { background: #246b47; }
-}
-.btn-danger {
-  padding: 8px 20px; background: #e53935; color: #fff;
-  border: none; border-radius: 6px; font-size: 0.875rem; cursor: pointer;
-  &:hover { background: #c62828; }
-}
-</style>

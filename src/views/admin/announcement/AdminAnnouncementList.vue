@@ -19,6 +19,7 @@ const {
 const annoList   = ref([])
 const maxPage    = ref(1)
 const totalCount = ref(0)
+const pageSize   = ref(10)
 const isLoading  = ref(false)
 
 const GRID_COLS = '60px 1fr 80px 120px'
@@ -28,7 +29,7 @@ const fetchList = async () => {
     try {
         const res = await AnnouncementService.getList({
             page:       currentPage.value,
-            size:       10,
+            size:       pageSize.value,
             targetRole: filter.targetRole || null,
             search:     searchQuery.value  || null,
         })
@@ -42,7 +43,12 @@ const fetchList = async () => {
     }
 }
 
-const rowNum = (idx) => (currentPage.value - 1) * 10 + idx + 1
+const rowNum = (idx) => (currentPage.value - 1) * pageSize.value + idx + 1
+
+function onPageSizeChange() {
+    currentPage.value = 1
+    fetchList()
+}
 const formatDate = (dateStr) => dateStr?.slice(0, 10) ?? ''
 
 watch(() => route.query, fetchList, { immediate: false })
@@ -60,12 +66,16 @@ onMounted(() => {
 
     <FilterBar
       v-model:searchQuery="searchQuery"
+      v-model:pageSize="pageSize"
       :hasFilter="hasFilter"
       placeholder="제목 검색"
-      :showCount="true"
+      :show-count="true"
       :count="totalCount"
+      :show-page-size="true"
+      :page-size-options="[10, 20, 30]"
       @search="onSearch"
       @reset="resetFilter"
+      @pageSizeChange="onPageSizeChange"
     >
       <div class="tab-area">
         <button class="filter-btn" :class="{ active: !filter.targetRole }"
@@ -76,12 +86,6 @@ onMounted(() => {
           @click="filter.targetRole = 'PROFESSOR'; onFilterChange()">교수</button>
       </div>
     </FilterBar>
-
-    <div class="list-actions">
-      <button class="btn-create" @click="router.push('/admin/announcements/create')">
-        + 공지 등록
-      </button>
-    </div>
 
     <DataTable
       :columns="['번호', '제목', '조회수', '등록일']"
@@ -97,21 +101,18 @@ onMounted(() => {
         @click="router.push(`/admin/announcements/${anno.annoId}`)"
       >
         <div>{{ rowNum(idx) }}</div>
-        <div>{{ anno.title }}</div>
-        <div>{{ anno.viewCount }}</div>
-        <div>{{ formatDate(anno.createdAt) }}</div>
+        <div class="tal">{{ anno.title }}</div>
+        <div class="tbl-meta">{{ anno.viewCount }}</div>
+        <div class="tbl-meta">{{ formatDate(anno.createdAt) }}</div>
       </article>
     </DataTable>
 
-    <Pagination :currentPage="currentPage" :maxPage="maxPage" :pageGroupSize="10" @goToPage="goToPage" />
+    <div class="page-footer page-left">
+      <Pagination :currentPage="currentPage" :maxPage="maxPage" :pageGroupSize="10" @goToPage="goToPage" />
+      <button class="btn btn-submit" @click="router.push('/admin/announcements/create')">
+        <font-awesome-icon icon="fa-solid fa-plus" /> 공지 등록
+      </button>
+    </div>
   </div>
 </template>
 
-<style scoped lang="scss">
-.list-actions { display: flex; justify-content: flex-end; margin: 8px 0; }
-.btn-create {
-  padding: 6px 14px; background: #2d8659; color: #fff;
-  border: none; border-radius: 6px; font-size: 0.875rem; cursor: pointer;
-  &:hover { background: #246b47; }
-}
-</style>

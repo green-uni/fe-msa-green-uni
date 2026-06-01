@@ -123,7 +123,7 @@ onMounted(() => {
       :show-search="false"
       :show-count="true"
       :count="filteredTuitions.length"
-      :showPageSize="false"
+      :showPageSize="true"
       :pageSizeOptions="[10, 20, 30, 50]"
       @reset="resetFilter"
       @pageSizeChange="onPageSizeChange"
@@ -149,13 +149,6 @@ onMounted(() => {
         </div>
       </div>
     </FilterBar>
-
-    <div class="summary-bar">
-      <div class="summary-item">
-        <p class="summary-label">실납부 합계</p>
-        <p class="summary-value">{{ totalAmountFormatted }}원</p>
-      </div>
-    </div>
 
     <DataTable
       :columns="['연도', '학기', '실납부 금액', '납부 일자', '납부 상태']"
@@ -184,11 +177,16 @@ onMounted(() => {
         </article>
       </template>
     </DataTable>
+    <div class="tbl-summary">
+      <div class="tbl-summary-item">
+        실납부 합계 <span class="tbl-summary-value">{{ totalAmountFormatted }}원</span>
+      </div>
+    </div>
 
     <Pagination
       :currentPage="currentPage"
       :maxPage="maxPage"
-      :pageGroupSize="5"
+      :pageGroupSize="10"
       @goToPage="goPage"
     />
   </div>

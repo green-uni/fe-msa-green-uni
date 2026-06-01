@@ -27,56 +27,27 @@ onMounted(fetchDetail)
 </script>
 
 <template>
-  <div class="page-wrap">
+  <div class="detail-wrap">
     <LoadingSpinner v-if="isLoading" :overlay="true" size="md" />
 
     <template v-if="anno">
-      <div class="detail-card">
-        <div class="card-header">
+      <div class="post-card">
+        <div class="post-header">
           <h2>{{ anno.title }}</h2>
-          <div class="meta">
+          <div class="post-meta">
             <span>{{ anno.writerName }}</span>
             <span>조회 {{ anno.viewCount }}</span>
             <span>{{ formatDate(anno.createdAt) }}</span>
           </div>
         </div>
-        <div class="card-body">{{ anno.content }}</div>
+        <div class="post-body">{{ anno.content }}</div>
       </div>
 
-      <div class="btn-row">
-        <button class="btn-outline" @click="router.back()">목록으로</button>
+      <div class="page-footer">
+        <button class="btn btn-default" @click="router.back()">
+          <font-awesome-icon icon="fa-solid fa-list" /> 목록
+        </button>
       </div>
     </template>
   </div>
 </template>
-
-<style scoped lang="scss">
-.page-wrap { display: flex; flex-direction: column; gap: 16px; position: relative; }
-
-.detail-card {
-  border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;
-  background: #fff;
-}
-.card-header {
-  padding: 20px 24px 16px;
-  border-bottom: 1px solid #eee;
-  h2 { font-size: 1.05rem; font-weight: 700; margin: 0 0 10px; color: #1a1a1a; }
-  .meta {
-    display: flex; gap: 6px; align-items: center;
-    font-size: 0.8rem; color: #999;
-    span + span::before { content: '·'; margin-right: 6px; }
-  }
-}
-.card-body {
-  padding: 24px; min-height: 200px;
-  font-size: 0.875rem; line-height: 1.8; color: #333;
-  white-space: pre-wrap; word-break: break-word;
-}
-
-.btn-row { display: flex; justify-content: flex-end; }
-.btn-outline {
-  padding: 7px 16px; border: 1px solid #ccc; border-radius: 6px;
-  background: #fff; font-size: 0.875rem; cursor: pointer;
-  &:hover { background: #f5f5f5; }
-}
-</style>

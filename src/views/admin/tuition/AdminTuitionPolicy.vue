@@ -188,11 +188,11 @@ onMounted(() => {
         emptyMessage="해당 학기의 등록금 책정 정책 내역이 없습니다."
       >
         <template v-if="!isLoading && policies.length > 0">
-          <article class="tbl-row no-hover" v-for="policy in policies" :key="policy.policyId">
+          <article class="tbl-row no-hover" :class="{ 'edit-row': policy.isEditing }" v-for="policy in policies" :key="policy.policyId">
             <div>{{ policy.policyId }}</div>
             <div>{{ policy.collegeName }}</div>
-            <div v-if="policy.isEditing" class="edit-form">
-              <input type="number" v-model.number="policy.editAmount" class="edit-input" />
+            <div v-if="policy.isEditing" class="d-flex ai-center g5">
+              <input type="number" v-model.number="policy.editAmount" class="tbl-input edit-input" />
               <span>원</span>
             </div>
             <div v-else>{{ formatPrice(policy.baseAmount) }}원</div>
@@ -218,6 +218,5 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
-.edit-form { gap: 4px;}
-.edit-input { width: 120px; padding: 4px 8px; text-align: right; font-weight: bold;}
+.edit-input { width: 120px; text-align: right; font-weight: bold; }
 </style>

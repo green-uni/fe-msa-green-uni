@@ -1,172 +1,28 @@
-<template>
-  <div class="attendance-list-page">
-
-    <!-- ── View 1: 강의 목록 (DataTable) ───────────────────────── -->
-    <template v-if="!selectedLecture">
-      <div class="filter-header">
-        <h2 class="page-title">출석 현황</h2>
-      </div>
-
-      <!-- [수정] 고정 높이 확보를 위한 클래스 추가 -->
-      <DataTable
-        :columns="['강의명', '유형', '학년도 / 학기', '학점 / 대상학년', '강의실']"
-        :rows="lectures"
-        gridCols="minmax(160px,2fr) minmax(80px,1fr) minmax(120px,1.2fr) minmax(110px,1fr) minmax(200px,2.5fr)"
-        :isLoading="isLectureLoading"
-        emptyMessage="담당 강의가 없습니다."
-        class="lecture-table"
-      >
-        <article
-          v-for="lec in lectures"
-          :key="lec.lectureId"
-          class="tbl-row lecture-row"
-          @click="openRoster(lec)"
-        >
-          <div>{{ lec.lectureName }}</div>
-          <div><span class="type-badge">{{ lec.lectureType }}</span></div>
-          <div>{{ lec.year }}년 {{ lec.semester }}학기</div>
-          <div>{{ lec.credit }}학점 / {{ lec.academicYear }}학년</div>
-          <div class="schedule-cell">
-            <span v-for="(sch, i) in lec.schedules" :key="i" class="schedule-item">
-              {{ sch.dayOfWeek }}요일 {{ sch.startPeriod }}-{{ sch.endPeriod }}교시 · {{ sch.lectureRoom }}
-            </span>
-          </div>
-        </article>
-      </DataTable>
-    </template>
-
-    <!-- ── View 2: 출석부 ─────────────────────────────────────── -->
-    <template v-else>
-      <!-- 헤더 -->
-      <div class="roster-header">
-        <button class="back-btn" @click="closeRoster">← 강의 목록</button>
-        <div class="lecture-title">
-          <span class="type-badge">{{ selectedLecture.lectureType }}</span>
-          <h2>{{ selectedLecture.lectureName }}</h2>
-        </div>
-      </div>
-
-      <!-- 날짜 선택 + 액션 버튼 -->
-      <div class="date-bar">
-        <div class="date-picker-wrap">
-          <label class="date-label">수업 날짜</label>
-          <CalendarDate v-model="selectedDate" :highlightedDates="recordedDates" />
-        </div>
-        <!-- 출석 기록이 있을 때만 수정 버튼 표시 -->
-        <div class="action-btns" v-if="roster.length > 0">
-          <button v-if="!isEditMode" class="btn btn-edit-mode" @click="isEditMode = true">수정</button>
-          <template v-else>
-            <button class="btn btn-save" :disabled="isSaving" @click="saveAttendance">저장</button>
-            <button class="btn btn-cancel-edit" @click="cancelEditMode">취소</button>
-          </template>
-        </div>
-        <span v-if="!isRosterLoading && roster.length === 0" class="no-session-msg">
-          선택한 날짜에 출석 기록이 없습니다.
-        </span>
-      </div>
-
-      <!-- [수정] 고정 높이 확보를 위한 클래스 추가 -->
-      <DataTable
-        :columns="['학년', '학과', '이름', '출결 상태', '비고']"
-        :rows="roster"
-        gridCols="0.8fr 1.8fr 1fr 2.5fr 2fr"
-        :isLoading="isRosterLoading"
-        emptyMessage="선택한 날짜에 출석 기록이 없습니다."
-        class="roster-table"
-      >
-        <!-- [수정] :name 속성을 고유한 studentCode 조합으로 변경하여 결석 처리가 겹치는 버그 방지 -->
-        <article v-for="row in pagedRoster" :key="row.studentCode" class="tbl-row">
-          <div>{{ row.academic_year != null ? row.academic_year + '학년' : '-' }}</div>
-          <div>{{ row.major_name ?? '-' }}</div>
-          <div>{{ row.memberName }}</div>
-          <div>
-            <!-- 조회 모드: 상태 뱃지 -->
-            <template v-if="!isEditMode">
-              <span :class="['status-badge', statusClass(row.status)]">{{ statusLabel(row.status) }}</span>
-            </template>
-            <!-- 수정 모드: 라디오 버튼으로 상태 변경 -->
-            <template v-else>
-              <div class="radio-group">
-                <label class="radio-label">
-                  <input type="radio" :name="'status-' + row.studentCode" value="ATTEND"
-                    v-model="row.status" @change="saveDraft" /> 출석
-                </label>
-                <label class="radio-label">
-                  <input type="radio" :name="'status-' + row.studentCode" value="LATE"
-                    v-model="row.status" @change="saveDraft" /> 지각
-                </label>
-                <label class="radio-label">
-                  <input type="radio" :name="'status-' + row.studentCode" value="ABSENT"
-                    v-model="row.status" @change="saveDraft" /> 결석
-                </label>
-                <label class="radio-label">
-                  <input type="radio" :name="'status-' + row.studentCode" value="EARLY_LEAVE"
-                    v-model="row.status" @change="saveDraft" /> 조퇴
-                </label>
-              </div>
-            </template>
-          </div>
-          <div>
-            <!-- 조회 모드: 텍스트, 수정 모드: 입력 필드 -->
-            <template v-if="!isEditMode">
-              <span class="reason-text">{{ row.reason ?? '-' }}</span>
-            </template>
-            <input v-else type="text" v-model="row.reason" @input="saveDraft"
-              placeholder="사유 입력" class="reason-input" />
-          </div>
-        </article>
-      </DataTable>
-
-      <!-- 하단 정보 구조 레이아웃 감싸기 -->
-      <div class="roster-footer">
-        <!-- 페이지네이션: 10명 초과 시만 표시 -->
-        <div v-if="totalPages > 1" class="pagination">
-          <button class="page-btn" :disabled="currentPage === 1" @click="currentPage--">&#8249;</button>
-          <button
-            v-for="p in totalPages"
-            :key="p"
-            class="page-btn"
-            :class="{ active: p === currentPage }"
-            @click="currentPage = p"
-          >{{ p }}</button>
-          <button class="page-btn" :disabled="currentPage === totalPages" @click="currentPage++">&#8250;</button>
-        </div>
-        <p v-if="roster.length > 0" class="roster-count">
-          총 {{ roster.length }}명 중 {{ (currentPage - 1) * PAGE_SIZE + 1 }}~{{ Math.min(currentPage * PAGE_SIZE, roster.length) }}명 표시
-        </p>
-      </div>
-    </template>
-
-  </div>
-</template>
-
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { useModalStore } from '@/stores/modal'
 import attendanceService from '@/services/attendanceService.js'
 import CalendarDate from '@/components/util/CalendarDate.vue'
 import DataTable from '@/components/common/DataTable.vue'
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
+import Pagination from '@/components/common/Pagination.vue'
 
 const modal = useModalStore()
 
 // ── 강의 목록 ──────────────────────────────────────────────────
-const lectures = ref([])
+const lectures         = ref([])
 const isLectureLoading = ref(true)
-const selectedLecture = ref(null)
+const selectedLecture  = ref(null)
 
 // ── 날짜 필터 ──────────────────────────────────────────────────
-const selectedDate = ref(today())
-
-// ── 출석 기록이 있는 날짜 목록 ──
-const recordedDates = ref([])
+const selectedDate   = ref(today())
+const recordedDates  = ref([])
 
 // ── 출석부 ────────────────────────────────────────────────────
-const roster = ref([])
+const roster          = ref([])
 const isRosterLoading = ref(false)
-
-// ── 수정 모드 ─────────────────────────────────────────────────
-const isEditMode = ref(false)
-const isSaving = ref(false)
+const isEditMode      = ref(false)
+const isSaving        = ref(false)
 
 // ── 페이징 ────────────────────────────────────────────────────
 const PAGE_SIZE   = 10
@@ -179,21 +35,39 @@ const pagedRoster = computed(() => {
   return roster.value.slice(start, start + PAGE_SIZE)
 })
 
-const ATTEND_KEY = computed(() =>
-  `attendance_${selectedLecture.value?.lectureId}_${selectedDate.value}`
-)
+const ATTEND_KEY   = computed(() => `attendance_${selectedLecture.value?.lectureId}_${selectedDate.value}`)
+const LAST_EDIT_KEY = computed(() => `attendance_last_edit_${selectedLecture.value?.lectureId}`)
 
-const LAST_EDIT_KEY = computed(() =>
-  `attendance_last_edit_${selectedLecture.value?.lectureId}`
-)
+// ── 강의 유형 / 강의실 헬퍼 ───────────────────────────────────
+const LECTURE_TYPE = {
+  GENERAL_REQUIRED: '교양필수', GENERAL_ELECTIVE: '교양선택',
+  MAJOR_REQUIRED: '전공필수',   MAJOR_ELECTIVE: '전공선택',
+}
+const typeLabel = (code) => LECTURE_TYPE[code] ?? code
 
+const scheduleText = (schedules) => {
+  if (!schedules?.length) return '-'
+  return schedules.map(s => `${s.dayOfWeek}요일 ${s.startPeriod}-${s.endPeriod}교시 · ${s.lectureRoom}`).join('\n')
+}
+
+// ── 현재 학기 판별 ────────────────────────────────────────────
+const now             = new Date()
+const currentYear     = now.getFullYear()
+const currentSemester = now.getMonth() + 1 <= 6 ? 1 : 2
+const isCurrent       = (lec) => lec.year === currentYear && lec.semester === currentSemester
+
+// ── 출석 상태 ─────────────────────────────────────────────────
+const STATUS_LABEL = { ATTEND: '출석', ABSENT: '결석', LATE: '지각', EARLY_LEAVE: '조퇴' }
+const STATUS_CLASS = { ATTEND: 'text-attend', ABSENT: 'text-absent', LATE: 'text-late', EARLY_LEAVE: 'text-early-leave' }
+
+const statusLabel = (code) => STATUS_LABEL[code] ?? code
+const statusClass = (code) => STATUS_CLASS[code] ?? ''
+
+// ── 로직 ──────────────────────────────────────────────────────
 watch([selectedLecture, selectedDate], async ([newLec, newDate], [oldLec]) => {
   if (!newLec) return
   isEditMode.value = false
-
-  if (newLec?.lectureId !== oldLec?.lectureId) {
-    await loadRecordedDates()
-  }
+  if (newLec?.lectureId !== oldLec?.lectureId) await loadRecordedDates()
   await loadRoster()
 })
 
@@ -211,10 +85,8 @@ function openRoster(lec) {
   isEditMode.value = false
   roster.value = []
   recordedDates.value = []
-
   const lastDate = localStorage.getItem(`attendance_last_edit_${lec.lectureId}`)
   selectedDate.value = lastDate ?? today()
-  selectedLecture.value = lec
 }
 
 function closeRoster() {
@@ -241,13 +113,8 @@ async function loadRoster() {
   isRosterLoading.value = true
   currentPage.value = 1
   try {
-    const res = await attendanceService.getAttendanceList(
-      selectedLecture.value.lectureId,
-      selectedDate.value,
-    )
+    const res = await attendanceService.getAttendanceList(selectedLecture.value.lectureId, selectedDate.value)
     const data = res.data ?? res
-    console.log('🔍 roster data:', data)
-
     const draft = localStorage.getItem(ATTEND_KEY.value)
     if (draft) {
       const isConfirm = await modal.showConfirm('기존에 수정 중이던 내용을 불러오시겠습니까?', 'info')
@@ -288,18 +155,12 @@ async function cancelEditMode() {
 async function saveAttendance() {
   const confirm = await modal.showConfirm(`${selectedDate.value} 출석 정보를 저장하시겠습니까?`, 'info')
   if (!confirm) return
-
   isSaving.value = true
   try {
     const updates = roster.value
       .filter(row => row.attendId !== null)
-      .map(row => ({
-        attendId: row.attendId,
-        status: row.status,
-        reason: row.reason || null,
-      }))
+      .map(row => ({ attendId: row.attendId, status: row.status, reason: row.reason || null }))
     await attendanceService.updateAttendStatuses(selectedLecture.value.lectureId, updates)
-
     localStorage.removeItem(ATTEND_KEY.value)
     localStorage.removeItem(LAST_EDIT_KEY.value)
     await loadRoster()
@@ -314,254 +175,185 @@ async function saveAttendance() {
   }
 }
 
+const goToPage = (page) => { currentPage.value = page }
+
 function today() {
   const d = new Date()
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
-
-function statusLabel(code) {
-  return { ATTEND: '출석', ABSENT: '결석', LATE: '지각', EARLY_LEAVE: '조퇴' }[code] ?? code
-}
-
-function statusClass(status) {
-  return { ATTEND: 'attend', ABSENT: 'absent', LATE: 'late', EARLY_LEAVE: 'early-leave' }[status] ?? ''
-}
 </script>
 
+<template>
+  <div class="attendance-list-page">
+    <!-- ── View 1: 강의 목록 ────────────────────────────────── -->
+    <template v-if="!selectedLecture">
+      <LoadingSpinner v-if="isLectureLoading" :overlay="true" size="md" />
+
+    <div class="list-header">
+      <div class="list-header-box">
+        <p>현재 학기 <strong>{{ currentYear }}</strong>년 <strong>{{ currentSemester }}</strong>학기</p>
+      </div>
+    </div>
+
+      <DataTable
+        :columns="['강의명', '유형', '학년도 / 학기', '학점 / 대상학년', '강의실']"
+        :rows="lectures"
+        gridCols="minmax(160px,2fr) minmax(80px,1fr) minmax(120px,1.2fr) minmax(110px,1fr) minmax(200px,2.5fr)"
+        :isLoading="isLectureLoading"
+        emptyMessage="담당 강의가 없습니다.">
+        <article
+          v-for="lec in lectures"
+          :key="lec.lectureId"
+          class="tbl-row pointer"
+          :class="{ 'row--sample': !isCurrent(lec) }"
+          @click="openRoster(lec)">
+          <div class="tal">{{ lec.lectureName }}</div>
+          <div>{{ typeLabel(lec.lectureType) }}</div>
+          <div>{{ lec.year }}년 {{ lec.semester }}학기</div>
+          <div>{{ lec.credit }}학점 / {{ lec.academicYear }}학년</div>
+          <div class="tal pre-line">{{ scheduleText(lec.schedules) }}</div>
+        </article>
+      </DataTable>
+    </template>
+
+    <!-- ── View 2: 출석부 ─────────────────────────────────── -->
+    <template v-else>
+
+      <!-- 강의 정보 카드 -->
+      <div class="card">
+        <div class="card-label">{{ selectedLecture.lectureName }}</div>
+        <div class="info-grid lecture-card-grid">
+          <div class="info-item">
+            <span class="info-key">학점</span>
+            <span class="info-val">{{ selectedLecture.credit }}학점</span>
+          </div>
+          <div class="info-item">
+            <span class="info-key">대상학년</span>
+            <span class="info-val">{{ selectedLecture.academicYear }}학년</span>
+          </div>
+          <div class="info-item">
+            <span class="info-key">학년도</span>
+            <span class="info-val">{{ selectedLecture.year }}년</span>
+          </div>
+          <div class="info-item">
+            <span class="info-key">학기</span>
+            <span class="info-val">{{ selectedLecture.semester }}학기</span>
+          </div>
+          <div class="info-item g-col-full">
+            <span class="info-key">강의일정</span>
+            <span class="info-val pre-line">{{ scheduleText(selectedLecture.schedules) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 날짜 선택 -->
+      <div class="date-bar">
+        <span>수업 날짜</span>
+        <CalendarDate v-model="selectedDate" :highlightedDates="recordedDates" />
+      </div>
+
+      <!-- 출석부 테이블 -->
+      <DataTable
+        :columns="['학년', '학과', '이름', '출결 상태', '비고']"
+        :rows="roster"
+        gridCols="0.8fr 1.8fr 1fr 2.5fr 2fr"
+        :isLoading="isRosterLoading"
+        emptyMessage="선택한 날짜에 출석 기록이 없습니다."
+        class="roster-table">
+        <article v-for="row in pagedRoster" :key="row.studentCode" class="tbl-row">
+          <div>{{ row.academic_year != null ? row.academic_year + '학년' : '-' }}</div>
+          <div>{{ row.major_name ?? '-' }}</div>
+          <div>{{ row.memberName }}</div>
+          <div>
+            <template v-if="!isEditMode">
+              <span :class="statusClass(row.status)">{{ statusLabel(row.status) }}</span>
+            </template>
+            <template v-else>
+              <div class="radio-group">
+                <label class="radio-label">
+                  <input type="radio" :name="'status-' + row.studentCode" value="ATTEND"
+                    v-model="row.status" @change="saveDraft" /> 출석
+                </label>
+                <label class="radio-label late">
+                  <input type="radio" :name="'status-' + row.studentCode" value="LATE"
+                    v-model="row.status" @change="saveDraft" /> 지각
+                </label>
+                <label class="radio-label absent">
+                  <input type="radio" :name="'status-' + row.studentCode" value="ABSENT"
+                    v-model="row.status" @change="saveDraft" /> 결석
+                </label>
+                <label class="radio-label early-leave">
+                  <input type="radio" :name="'status-' + row.studentCode" value="EARLY_LEAVE"
+                    v-model="row.status" @change="saveDraft" /> 조퇴
+                </label>
+              </div>
+            </template>
+          </div>
+          <div>
+            <template v-if="!isEditMode">
+              <span class="no-data">{{ row.reason ?? '-' }}</span>
+            </template>
+            <input v-else type="text" v-model="row.reason" @input="saveDraft"
+              placeholder="사유 입력" class="tbl-input" />
+          </div>
+        </article>
+      </DataTable>
+
+      <!-- 페이지네이션 -->
+      <div v-if="roster.length > 0">
+        <Pagination v-if="totalPages > 1"
+          :currentPage="currentPage" :maxPage="totalPages" :pageGroupSize="10"
+          @goToPage="goToPage" />
+        <p class="roster-count">
+          총 {{ roster.length }}명 중
+          {{ (currentPage - 1) * PAGE_SIZE + 1 }}~{{ Math.min(currentPage * PAGE_SIZE, roster.length) }}명 표시
+        </p>
+      </div>
+
+      <!-- 하단 버튼 -->
+      <div class="page-footer">
+        <button class="btn btn-default" @click="closeRoster">← 강의 목록</button>
+        <div class="action-group" v-if="roster.length > 0">
+          <button v-if="!isEditMode" class="btn btn-default" @click="isEditMode = true">수정</button>
+          <template v-else>
+            <button class="btn btn-default" @click="cancelEditMode">취소</button>
+            <button class="btn btn-submit" :disabled="isSaving" @click="saveAttendance">저장</button>
+          </template>
+        </div>
+      </div>
+
+    </template>
+  </div>
+</template>
+
 <style scoped lang="scss">
-.attendance-list-page {
-  width: 100%;
-  padding: 28px var(--size-df);
-  /* [수정] 부모 컨테이너가 자식 달력 요소의 absolute 팝업을 가두지 않도록 수정 */
-  overflow: visible;
-  position: relative;
-}
-
-.page-title {
-  font-size: var(--text-xl);
-  font-weight: 700;
-  color: var(--font-color);
-  margin-bottom: 20px;
-}
-
-.type-badge {
-  position: static;
-  display: inline-block;
-  background: var(--main-color);
-  color: #fff;
-  font-size: var(--text-xs);
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 20px;
-  white-space: nowrap;
-}
-
-.lecture-row { cursor: pointer; }
-
-.schedule-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  text-align: left;
-}
-.schedule-item { font-size: var(--text-sm); white-space: nowrap; }
-
-/* ── View 2: 출석부 헤더 ── */
-.roster-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.back-btn {
-  background: none;
-  border: 1px solid var(--line-color);
-  border-radius: var(--bdrs-sm);
-  padding: 7px 14px;
-  font-size: var(--text-sm);
-  cursor: pointer;
-  color: var(--font-color-light);
-  white-space: nowrap;
-  &:hover { background: var(--default-hover-bg-color); }
-}
-
-.lecture-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  h2 { font-size: var(--text-xl); font-weight: 700; color: var(--font-color); margin: 0; }
-}
-
-/* ── 날짜 필터 바 ── */
+/* 달력 팝업이 테이블 뒤로 숨지 않도록 */
 .date-bar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  /* [수정] 달력 팝업 드롭다운이 아래 테이블 뒤로 숨지 않도록 레이어 순서 지정 */
-  position: relative;
-  z-index: 50;
+  display: flex; align-items: center; gap: 12px; margin-bottom: $md; position: relative;  z-index: 50;padding-left: $xs;
+  span{font-weight: bold;}
+  /* CalendarDate 내부 width: 100% 가 flex 폭을 전부 차지해 버튼이 우측 끝으로 밀리는 것 방지 */
+  :deep(.calendar-input-wrap) { width: auto; }
 }
 
-.date-picker-wrap {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  position: relative;
-}
+/* 강의 정보 카드 info-grid — 2컬럼, 강의일정은 g-col-full로 전체 폭 */
+.lecture-card-grid { grid-template-columns: 1fr 1fr 1fr 1fr; }
 
-.date-label { font-size: var(--text-sm); color: var(--font-color); font-weight: 600; }
-.action-btns { display: flex; gap: 8px; margin-left: 8px; }
-.no-session-msg { font-size: var(--text-sm); color: #f57c00; }
-
-/* ── [수정] 테이블 최소 높이 고정 ── */
-.lecture-table,
+/* overflow: visible — 달력 팝업이 테이블 내부 overflow에 잘리지 않도록 */
 .roster-table {
-  /* 인원이 적거나 없어도 하단 컴포넌트가 위로 올라오지 않도록 고정 높이 확보 */
-  min-height: 460px;
-  background-color: #fff;
   display: flex;
   flex-direction: column;
-
-  :deep(.tbl-wrap) {
-    overflow: visible !important;
-  }
+  :deep(.tbl-wrap) { overflow: visible !important; }
 }
 
-/* 데이터 없을 때 빈 영역도 충분한 높이 유지 */
-.roster-table :deep(.empty-message),
-.roster-table :deep(.no-data),
-.lecture-table :deep(.empty-message) {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 360px;
-  color: var(--font-color-light);
-  font-size: var(--text-sm);
-}
-
-/* ── 출결 상태 뱃지 ── */
-.status-badge {
-  position: static;
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: 12px;
-  font-size: var(--text-xs);
-  font-weight: 700;
-  &.attend      { background: #e6f9ee; color: #2e7d32; }
-  &.absent      { background: #fdecea; color: #c62828; }
-  &.late        { background: #fff8e1; color: #f57f17; }
-  &.early-leave { background: #fff3e0; color: #e65100; }
-}
-
-.reason-text { font-size: var(--text-sm); color: var(--font-color-light); }
-
-/* ── 수정 모드 라디오 버튼 ── */
-.radio-group { display: flex; gap: 14px; font-size: var(--text-sm); flex-wrap: wrap; }
+/* 수정 모드 라디오 — 전역 radio-group 사용, 테이블 셀 내 크기만 override */
+.radio-group { font-size: $fs-xs; flex-wrap: wrap; }
+/* 출석 상태별 선택 시 텍스트 색상 — modifier 클래스 기반 */
 .radio-label {
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-.radio-label:nth-of-type(1):has(input[type='radio']:checked) { color: #2e7d32; }
-.radio-label:nth-of-type(2):has(input[type='radio']:checked) { color: #f57f17; }
-.radio-label:nth-of-type(3):has(input[type='radio']:checked) { color: #c62828; }
-.radio-label:nth-of-type(4):has(input[type='radio']:checked) { color: #e65100; }
-
-.reason-input {
-  padding: 5px 8px;
-  border: 1px solid var(--line-color);
-  border-radius: 4px;
-  font-size: var(--text-sm);
-  width: 140px;
-  &:focus { border-color: var(--main-color); outline: none; }
+  &:has(input:checked)             { color: $green-600; }
+  &.late:has(input:checked)        { color: #f57f17; }
+  &.absent:has(input:checked)      { color: #d32f2f; }
+  &.early-leave:has(input:checked) { color: #e65100; }
 }
 
-/* ── 공통 버튼 ── */
-.btn {
-  padding: 6px 14px;
-  border: none;
-  border-radius: 5px;
-  font-size: var(--text-sm);
-  font-weight: 600;
-  cursor: pointer;
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
-  &.btn-edit-mode   { background: var(--default-hover-bg-color); color: var(--font-color); border: 1px solid var(--line-color); &:hover { background: #e0e0e0; } }
-  &.btn-save        { background: var(--main-color); color: #fff; border: 1px solid var(--main-color); &:hover { filter: brightness(1.1); } }
-  &.btn-cancel-edit { background: #fff; border: 1px solid var(--line-color); color: var(--font-color-light); &:hover { background: var(--default-hover-bg-color); } }
-}
-
-/* DataTable 슬롯 행 공통 */
-.tbl-row {
-  display: grid;
-  grid-template-columns: var(--grid-cols);
-  align-items: stretch;
-  background: #fff;
-  border: 1px solid var(--table-border-color);
-  border-top-width: 0;
-
-  &:nth-of-type(2) { border-radius: 5px 5px 0 0; border-width: 1px; }
-  &:last-child     { border-radius: 0 0 5px 5px; }
-
-  > div {
-    padding: 12px 10px;
-    line-height: 1.4;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-}
-
-.schedule-cell  { justify-content: flex-start !important; }
-.action-cell    { justify-content: center; gap: 6px; }
-.radio-group    { justify-content: flex-start; flex-wrap: wrap; }
-
-.lecture-row {
-  cursor: pointer;
-  &:hover { background: var(--hover-bg-color); color: #111; z-index: 2; }
-}
-
-/* ── 하단 푸터 (페이지네이션 + 카운트) ── */
-.roster-footer {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 16px 0;
-}
-
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 4px;
-}
-
-.page-btn {
-  min-width: 36px;
-  height: 36px;
-  padding: 0 10px;
-  border: 1px solid var(--line-color);
-  border-radius: 6px;
-  background: #fff;
-  color: var(--font-color);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-  &:hover:not(:disabled) { background: var(--hover-bg-color); border-color: var(--main-color); color: var(--main-color); }
-  &:disabled { opacity: 0.35; cursor: not-allowed; }
-  &.active { background: var(--main-color); color: #fff; border-color: var(--main-color); }
-}
-
-.roster-count {
-  text-align: center;
-  margin-top: 8px;
-  font-size: var(--text-xs);
-  color: var(--font-color-light);
-}
+.roster-count {  margin-top:$md; font-size: $fs-xs; color: $font-color-light; text-align: center;}
 </style>

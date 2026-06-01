@@ -1,34 +1,17 @@
 @use './variables' as *;
 
 /* === Form 레이아웃 === */
-.form-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-.form-grid {
-  display: grid;
-  grid-template-columns: var(--grid-cols);
-  row-gap: 15px;
-  padding: var(--size-df);
-}
-.form-wrap .content-wrap { padding: 0; gap: 0; }
-.form-wrap .content-wrap h3 {
-  font-weight: 700;
-  font-size: 1.05em;
-  color: $font-color-bold;
-  padding: 13px 20px;
-  border-bottom: 1px solid $border-color;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
+.form-wrap { display: flex; flex-direction: column; border-radius: $radius-sm;gap: 16px;}
+.form-grid { display: grid; grid-template-columns: var(--grid-cols); row-gap: $md; padding: $size-df;}
+.form-wrap .content-wrap { 
+  padding: 0; gap: 0; border: 1px solid $border-color;overflow:hidden;
+  h3 { font-weight: 700; font-size: $fs-md; color: $font-color-bold; padding: 10px $md; border-bottom: 1px solid $border-color; display: flex; align-items: center; gap: 8px; background-color: $default-bg; }
 }
 .form-wrap .input-label  { white-space: normal; }
 
 /* === Input 디자인 === */
 .input-wrap {
-  display: grid; grid-template-columns: 70px 1fr; align-items: center; gap: 15px;
+  display: grid; grid-template-columns: 70px 1fr; align-items: center; gap: $md;
   .input-content { width: 100%; }
 }
 .input-label {
@@ -89,15 +72,20 @@ input[type='radio'] {
 
 /* === Radio 디자인 === */
 .radio-group {
-  display: flex; gap: 12px; align-items: center; font-size: 1.1em; width: auto;
+  display: flex; gap: 12px; align-items: center;
 }
 .radio-label {
   display: flex; align-items: center; gap: 4px; cursor: pointer; position: relative; padding-left: 15px;
+  &:has(input:disabled) { cursor: default; opacity: 0.5; }
   &:before { content: ''; position: absolute; left: 0; width: 12px; height: 12px; border: 1px solid #999; border-radius: 50%; }
   &:after  { content: ''; position: absolute; left: 2px; width: 8px; height: 8px; border-radius: 50%; display: none; }
   input[type='radio'] { display: none; }
   &:has(input[type='radio']:checked):before { border-color: $green-600; }
   &:has(input[type='radio']:checked):after  { display: block; background: $green-600; }
+  /* 출석 상태별 색상 변형 — 원 색상 override */
+  &.late:has(input:checked)        { &::before { border-color: #f57f17; } &::after { background: #f57f17; } }
+  &.absent:has(input:checked)      { &::before { border-color: #d32f2f; } &::after { background: #d32f2f; } }
+  &.early-leave:has(input:checked) { &::before { border-color: #e65100; } &::after { background: #e65100; } }
 }
 .radio-tab {
   border: 1px solid $border-color;

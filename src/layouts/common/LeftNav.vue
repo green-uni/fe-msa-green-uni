@@ -235,8 +235,8 @@ watch(() => route.path, () => {
   display: flex; align-items: center; gap: 8px; cursor: pointer;
   img { height: 42px; }
   &-name { line-height: 1.25;
-    h1 { font-size: 1.4em; font-weight: 700; }
-    span { font-size: 0.85em; opacity: 0.6; }
+    h1 { font-size: 20px; font-weight: 700; }
+    span { font-size: $fs-xs; opacity: 0.6; }
   }
 }
 
@@ -244,11 +244,11 @@ watch(() => route.path, () => {
 .login-info {
   padding: 14px 15px; border-radius: 8px; background: linear-gradient(140deg, $green-600 0%, $green-700 100%); color: #fff; position: relative;
 
-  .name { font-size: 1.3em; font-weight: 700; line-height: 1.3;
-    .role { font-size: 0.78em; opacity: 0.75; font-weight: 400; margin-left: 4px; }
+  .name { font-size: $fs-xl; font-weight: 700; line-height: 1.3;
+    .role { font-size: $fs-xs; opacity: 0.75; font-weight: 400; margin-left: 4px; }
   }
   &-detail {
-    display: flex; flex-wrap: wrap; gap: 3px 6px; margin-top: 5px; font-size: 0.9em;
+    display: flex; flex-wrap: wrap; gap: 3px 6px; margin-top: 5px; font-size: $fs-xs;
     .member-code { width: 100%; opacity: 0.75; font-variant-numeric: tabular-nums; }
     .major { opacity: 0.75; }
     .student-info{opacity: 0.9;}
@@ -262,13 +262,13 @@ watch(() => route.path, () => {
     &:hover { opacity: 1; }
   }
   .badge {
-    position: absolute; top: -5px; right: -7px; background: #e74c3c; color: #fff; font-size: 0.6rem; font-weight: 700;  border-radius: 10px; padding: 1px 5px; line-height: 1.5; pointer-events: none;
+    position: absolute; top: -5px; right: -7px; background: #e74c3c; color: #fff; font-size: $fs-xs; font-weight: 700;  border-radius: 10px; padding: 1px 5px; line-height: 1.5; pointer-events: none;
   }
 }
 
 // ── 로그아웃 ──────────────────────────────────────────────
 .logout {
-  text-align: center; font-size: 0.9em; opacity: 0.7; font-weight: 500; transition: opacity 0.15s;
+  text-align: center; font-size: $fs-xs; opacity: 0.7; font-weight: 500; transition: opacity 0.15s;
   a { display: block; padding: 6px; border: 1px solid #ddd; border-radius: 6px; text-decoration: none; color: inherit; }
   &:hover { opacity: 1; background: rgba(#000, 0.04);}
 }
@@ -279,7 +279,7 @@ nav {
 
   .nav-section { display: flex; flex-direction: column; gap: 1px; }
   .section-label {
-    margin: 0; padding: 2px 10px 5px; font-size: 0.8em; font-weight: 700; letter-spacing: 0.05em;    text-transform: uppercase; opacity: 0.28; color: inherit;
+    margin: 0; padding: 2px 10px 5px; font-size: $fs-xs; font-weight: 700; letter-spacing: 0.05em;    text-transform: uppercase; opacity: 0.28; color: inherit;
   }
 
   .group { display: flex; flex-direction: column; }
@@ -321,7 +321,7 @@ nav {
   .sub-menu {
     background: rgba(#000, 0.03); border-radius: 0 0 8px 8px; overflow: hidden; margin-bottom: 2px;
     a {
-      display: flex; justify-content: space-between; align-items: center; padding: 8px 12px 8px 20px;   font-size: 0.95em; text-decoration: none; color: $font-color-light; transition: color 0.12s, background 0.12s, border-color 0.12s;
+      display: flex; justify-content: space-between; align-items: center; padding: 8px 12px 8px 20px;   font-size: $fs-sm; text-decoration: none; color: $font-color-light; transition: color 0.12s, background 0.12s, border-color 0.12s;
       &:hover { color: $font-color; background: rgba(#000, 0.03); }
       &.active {
         color: $green-600; font-weight: 600; background: rgba(#000, 0.03);

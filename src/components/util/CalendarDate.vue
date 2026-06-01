@@ -143,10 +143,11 @@ function isToday(day) {
   width: 100%;
 
   > input { padding-right: 36px; min-width: 0; }
+  .btn{right: 0;}
 }
 
 .calendar-icon-btn {
-  background: var(--main-color);
+  background: $green-600;
   border: none;
   border-radius: 4px;
   padding: 6px 8px;
@@ -155,7 +156,7 @@ function isToday(day) {
   display: flex;
   align-items: center;
   &:hover {
-  background: var(--hover-bg-color);
+  background: $hover-bg-color;
   }
 }
 
@@ -198,7 +199,7 @@ function isToday(day) {
   border: 1px solid #ccc;
   border-radius: 4px;
   padding: 2px 6px;
-  font-size: 13px;
+  font-size: $fs-sm;
   cursor: pointer;
   width: 66px;
 }
@@ -207,7 +208,7 @@ function isToday(day) {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   text-align: center;
-  font-size: 11px;
+  font-size: $fs-xs;
   color: #888;
   margin-bottom: 6px;
 }
@@ -224,7 +225,7 @@ function isToday(day) {
   border-radius: 50%;
   width: 30px;
   height: 30px;
-  font-size: 12px;
+  font-size: $fs-xs;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -233,19 +234,19 @@ function isToday(day) {
   transition: background 0.15s;
   color: #333;
   &:hover:not(.other-month) {
-  background: var(--main-color);
+  background: $green-600;
   }
   &.other-month {
   color: #ccc;
   cursor: default;
   }
   &.selected {
-  background: var(--main-color);
+  background: $green-600;
   color: #fff;
   }
  &.today {
-  border: 1.5px solid var(--main-color);
-  color: var(--main-color);
+  border: 1.5px solid $green-600;
+  color: $green-600;
   font-weight: 600;
   }
   &.highlighted {
@@ -253,7 +254,7 @@ function isToday(day) {
   color: #2e7d32;
   font-weight: 600;
     &:hover {
-  background: var(--main-color);
+  background: $green-600;
   color: #fff;
     }
   }
