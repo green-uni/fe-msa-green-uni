@@ -266,7 +266,7 @@ onMounted(() => {
                 <p>안녕하세요, 그린대학교 학사지원팀입니다.</p>
                 <p>아직 <span class="text-danger">{{ filter.year }}년 {{ filter.semester }}학기 등록금</span>이 납부되지 않았습니다.</p>
                 <p>납부기한까지 미납 시 수강이 취소될 수 있으니 빠른 시일 내에 납부해 주시기 바랍니다.</p>
-                <p class="margin-top-md">납부 문의: 학사지원팀 02-000-0000</p>
+                <p class="margin-top-md">납부 문의: green.uni502@gmail.com</p>
               </div>
             </div>
           </section>
