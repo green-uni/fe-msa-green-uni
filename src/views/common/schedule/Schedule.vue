@@ -22,8 +22,8 @@ const showAddForm = ref(false)
 const showEditForm = ref(false)
 
 // ===== 폼 데이터 =====
-const newEvent = ref({ type: '', title: '', year: 2026, semester: 1, startDate: '', endDate: '' })
-const editEvent = ref({ id: '', type: '', title: '', semester: 1, startDate: '', endDate: '' })
+const newEvent = ref({ type: '', title: '', startDate: '', endDate: '' })
+const editEvent = ref({ id: '', type: '', title: '', startDate: '', endDate: '' })
 
 // ===== 현재 표시 중인 년/월 (네비게이션용) =====
 const currentYear = ref(2026)
@@ -83,6 +83,12 @@ const fetchSchedules = async () => {
   }
 }
 
+const getSemester = (dateStr) => {
+  const month = new Date(dateStr).getMonth() + 1
+  if (month >= 3 && month <= 8) return 'FIRST'
+  return 'SECOND'
+}
+
 // ===== API: 학사일정 등록 (관리자) =====
 const submitEvent = async () => {
   if (!newEvent.value.title || !newEvent.value.startDate) return
@@ -90,7 +96,7 @@ const submitEvent = async () => {
     await ScheduleService.createSchedule({
       title: newEvent.value.title,
       year: currentYear.value,
-      semester: newEvent.value.semester,
+      semester: getSemester(editEvent.value.startDate),
       type: newEvent.value.type,
       startDate: newEvent.value.startDate + 'T00:00:00',
       endDate: (newEvent.value.endDate || newEvent.value.startDate) + 'T23:59:59',
@@ -258,8 +264,8 @@ fetchSchedules()
       </div>
       <div class="view-controls">
         <div class="tab-area">
-          <button :class="['filter-btn', { active: !isYearView }]" @click="isYearView = false; fetchSchedules()">월간일정</button>
-          <button :class="['filter-btn', { active: isYearView }]" @click="isYearView = true; fetchSchedules()">연간일정</button>
+          <button :class="['filter-btn', { active: !isYearView }]" @click="isYearView = false; fetchSchedules()">월간</button>
+          <button :class="['filter-btn', { active: isYearView }]" @click="isYearView = true; fetchSchedules()">연간</button>
         </div>
       </div>
     </header>
