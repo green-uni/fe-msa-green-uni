@@ -14,7 +14,7 @@ const currentPage = ref(1)
 const maxPage     = ref(1)
 const isLoading   = ref(false)
 
-const GRID_COLS = '60px 1fr 120px'
+const GRID_COLS = '60px 1fr 80px 120px'
 
 const fetchList = async (page = 1) => {
     isLoading.value = true
@@ -44,7 +44,7 @@ onMounted(() => fetchList(1))
       <LoadingSpinner v-if="isLoading" :overlay="true" size="md" />
 
       <DataTable
-        :columns="['번호', '제목', '등록일']"
+        :columns="['번호', '제목', '조회수', '등록일']"
         :rows="annoList"
         :gridCols="GRID_COLS"
         :isLoading="isLoading"
@@ -58,6 +58,7 @@ onMounted(() => fetchList(1))
         >
           <div>{{ rowNum(idx) }}</div>
           <div>{{ truncate(anno.title) }}</div>
+          <div class="tbl-meta">{{ anno.viewCount }}</div>
           <div class="tbl-meta">{{ formatDate(anno.createdAt) }}</div>
         </article>
       </DataTable>
