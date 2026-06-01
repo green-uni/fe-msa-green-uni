@@ -51,7 +51,7 @@
         <p class="result-title">출석 완료!</p>
         <p class="result-date">{{ scanResult?.classDate }}</p>
         <div class="result-actions">
-          <button class="btn btn-primary" @click="goToMyAttendance">내 출석 확인</button>
+          <button class="btn btn-submit" @click="goToMyAttendance">내 출석 확인</button>
           <button class="btn btn-secondary" @click="goToHome">홈으로</button>
         </div>
       </div>
@@ -74,7 +74,7 @@
         <p class="result-title">출석 실패</p>
         <p class="result-sub">{{ errorMsg }}</p>
         <div class="result-actions">
-          <button class="btn btn-primary" @click="restartScan">다시 시도</button>
+          <button class="btn btn-submit" @click="restartScan">다시 시도</button>
         </div>
       </div>
     </template>
@@ -409,7 +409,7 @@ onUnmounted(stopScan)
   cursor: pointer;
   transition: opacity 0.2s;
   &:hover { opacity: 0.85; }
-  &.btn-primary   { background: #4a7cf7; color: #fff; }
+  &.btn-submit   { background: #4a7cf7; color: #fff; }
   &.btn-secondary { background: #f0f0f0; color: #555; }
 }
 </style>

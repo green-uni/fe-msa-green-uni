@@ -438,7 +438,7 @@ onMounted(async () => {
         <div class="action-group">
           <!-- 관리자: 승인 / 반려 (대기 상태) -->
           <template v-if="canApprove">
-            <button class="btn btn-approval" @click="updateStatus('APPROVED')">승인</button>
+            <button class="btn btn-submit" @click="updateStatus('APPROVED')">승인</button>
             <button v-if="!showRejectionBox" class="btn btn-default" @click="openRejectionBox">반려</button>
           </template>
           <!-- 관리자: 더보기 (수동폐강 / 교수변경, 승인 상태) -->
@@ -488,26 +488,26 @@ onMounted(async () => {
   text-align: left;
   background: none;
   border: none;
-  font-size: var(--text-sm);
+  font-size: $fs-xs;
   cursor: pointer;
   color: #334155;
 }
 .more-dropdown button:hover { background: #f1f5f9; }
 
 /* 교수 변경 폼 */
-.pf-label { font-size: 0.875em; color: #64748b; font-weight: 500; }
+.pf-label { font-size: $fs-xs; color: #64748b; font-weight: 500; }
 .professor-field :deep(input),
 .professor-field .pf-input {
-  border: 1px solid var(--table-border-color);
+  border: 1px solid $bold-border-color;
   border-radius: 4px;
   padding: 8px 10px;
   width: 100%;
   background: #fcfcfc;
-  color: var(--color-font);
+  color: $font-color;
   box-sizing: border-box;
   appearance: none;
   -webkit-appearance: none;
-  font-size: var(--text-sm);
+  font-size: $fs-xs;
   font-family: inherit;
 }
 </style>

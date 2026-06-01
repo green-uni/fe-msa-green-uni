@@ -65,14 +65,14 @@ const pwView = () => { modeShowPw.value = !modeShowPw.value }
 
     .changePw {
       button {
-        font-size: .95em;
+        font-size: $fs-sm;
         background: none;
         border: none;
         color: #aaa;
         cursor: pointer;
 
         &:hover {
-          color: var(--main-color);
+          color: $green-600;
         }
       }
     }
@@ -95,7 +95,7 @@ const pwView = () => { modeShowPw.value = !modeShowPw.value }
   position: relative;
 
   &__label {
-    font-size: .95em;
+    font-size: $fs-sm;
     font-weight: 600;
   }
 
@@ -133,7 +133,7 @@ const pwView = () => { modeShowPw.value = !modeShowPw.value }
     cursor: pointer;
 
     &.show {
-      color: var(--font-color);
+      color: $font-color;
     }
   }
 }

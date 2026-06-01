@@ -550,7 +550,7 @@ onBeforeRouteLeave(async (to, from, next) => {
                 </select>
                 <span
                   v-if="room.room && getRoomCapacity(idx)"
-                  style="white-space:nowrap; font-size:var(--text-sm); color:var(--font-color-light); flex-shrink:0;"
+                  style="white-space:nowrap; font-size:12px; color:#9fa9b1; flex-shrink:0;"
                 >
                   최대수용 {{ getRoomCapacity(idx) }}명
                 </span>
@@ -619,7 +619,7 @@ onBeforeRouteLeave(async (to, from, next) => {
   justify-content: center;
   align-items: center;
   height: 60vh;
-  font-size: 18px;
+  font-size: $fs-xl;
   color: #999;
 }
 </style>

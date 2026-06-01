@@ -3,8 +3,9 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import majorService from '@/services/majorService'
 import { useModalStore } from '@/stores/modal'
-import CalendarDate from '@/components/util/CalendarDate.vue'   // ← 추가
+import CalendarDate from '@/components/util/CalendarDate.vue'
 import SearchInput from '@/components/util/SearchInput.vue'
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 
 const route  = useRoute()
 const router = useRouter()
@@ -14,9 +15,10 @@ const majorId   = computed(() => route.params.majorId ?? null)
 const isEdit    = computed(() => !!majorId.value)
 const pageTitle = computed(() => isEdit.value ? '학과 정보수정' : '학과 개설')
 
+const isLoading     = ref(false)
 const professorList  = ref([])
 const collegeList    = ref([])
-const buildingList = ref([])
+const buildingList   = ref([])
 
 const form = reactive({
   name:               '',
@@ -175,11 +177,16 @@ async function fetchDetail() {
 }
 
 onMounted(async () => {
-  await fetchInitData()
-  if (isEdit.value) {
-    await fetchDetail()
-  } else {
-    loadTemp()
+  isLoading.value = true
+  try {
+    await fetchInitData()
+    if (isEdit.value) {
+      await fetchDetail()
+    } else {
+      loadTemp()
+    }
+  } finally {
+    isLoading.value = false
   }
 })
 
@@ -228,34 +235,34 @@ const displayProfessorList = computed(() => {
 
 <template>
   <div>
+    <div class="form-wrap" style="position: relative; min-height: 200px;">
+      <LoadingSpinner v-if="isLoading && isEdit" :overlay="true" size="md" />
+      <div class="content-wrap">
+        <h3>{{ pageTitle }}</h3>
+        <div class="form-grid" style="--grid-cols: repeat(3, 1fr); row-gap: 28px;">
 
-    <div class="form-card">
-      <div class="form-grid">
-
-        <!-- Row 1: 학과명 / 소속대학 / 학과구분 -->
-        <div class="input-wrap">
-          <label class="input-label">학과명</label>
-          <div class="input-content">
-            <input v-model="form.name" type="text" placeholder="학과명을 입력하세요" />
+          <div class="input-wrap">
+            <div class="input-label">학과명</div>
+            <div class="input-content">
+              <input v-model="form.name" type="text" placeholder="학과명을 입력하세요" />
+            </div>
           </div>
-        </div>
 
-        <div class="input-wrap">
-          <label class="input-label">소속대학</label>
-          <div class="input-content">
-            <select v-model="form.collegeId">
-              <option value="" disabled>소속대학 선택</option>
-              <option v-for="c in collegeList" :key="c.collegeId" :value="c.collegeId">
-                {{ c.name }}
-              </option>
-            </select>
+          <div class="input-wrap">
+            <div class="input-label">소속대학</div>
+            <div class="input-content">
+              <select v-model="form.collegeId">
+                <option value="" disabled>소속대학 선택</option>
+                <option v-for="c in collegeList" :key="c.collegeId" :value="c.collegeId">
+                  {{ c.name }}
+                </option>
+              </select>
+            </div>
           </div>
-        </div>
 
-        <div class="input-wrap">
-          <label class="input-label">학과구분</label>
-          <div class="input-content">
-            <div class="radio-group">
+          <div class="input-wrap">
+            <div class="input-label">학과구분</div>
+            <div class="input-content radio-group">
               <label class="radio-label">
                 <input type="radio" v-model="form.active" value="정상" /> 정상
               </label>
@@ -264,167 +271,105 @@ const displayProfessorList = computed(() => {
               </label>
             </div>
           </div>
-        </div>
 
-        <!-- Row 2: 학과장 / 수업연한 / 사무실 -->
-        <div class="input-wrap">
-          <label class="input-label">학과장명</label>
-          <div class="input-content">
-          <SearchInput
-            v-model="professorKeyword"
-            :list="displayProfessorList"
-            label-key="displayName"
-            value-key="memberCode"
-            placeholder="교수명을 입력하세요"
-            :show-on-focus="true"
-            @select="onSelectProfessor"
-          />
-          </div>
-        </div>
-
-        <div class="input-wrap">
-          <label class="input-label">수업연한</label>
-          <div class="input-content">
-            <input v-model="form.courseDuration" type="number" 
-                  placeholder="수업연한(년)을 입력하세요" min="1" />
-          </div>
-        </div>
-
-        <div class="input-wrap multi-input-wrap">
-          <label class="input-label">사무실</label>
-          <div class="input-content two-input">
-            <select v-model="form.majorBuilding">
-              <option value="" disabled>건물 선택</option>
-              <option v-for="b in buildingList" :key="b.code" :value="b.name">
-                {{ b.name }}
-              </option>
-            </select>
-            <input v-model="form.room" type="text" placeholder="예: 201호" />
+          <div class="input-wrap">
+            <div class="input-label">학과장명</div>
+            <div class="input-content">
+              <SearchInput
+                v-model="professorKeyword"
+                :list="displayProfessorList"
+                label-key="displayName"
+                value-key="memberCode"
+                placeholder="교수명을 입력하세요"
+                :show-on-focus="true"
+                @select="onSelectProfessor"
+              />
+            </div>
           </div>
 
-          <label class="input-label">전화번호</label>
-          <div class="input-content">
-            <input v-model="form.tel" type="text" placeholder="예: 02-0000-0000" />
+          <div class="input-wrap">
+            <div class="input-label">수업연한</div>
+            <div class="input-content">
+              <input v-model="form.courseDuration" type="number" placeholder="수업연한(년)을 입력하세요" min="1" />
+            </div>
           </div>
-        </div>
 
-        <div class="input-wrap">
-          <label class="input-label">입학정원</label>
-          <div class="input-content">
-            <input v-model="form.capacity" type="number" placeholder="정원 수를 입력하세요" min="0" />
+          <div class="input-wrap">
+            <div class="input-label">입학정원</div>
+            <div class="input-content">
+              <input v-model="form.capacity" type="number" placeholder="정원 수를 입력하세요" min="0" />
+            </div>
           </div>
-        </div>
 
-        <div class="input-wrap">
-          <label class="input-label">개설일</label>
-          <div class="input-content">
-            <CalendarDate v-model="form.foundedDate" />
+          <div class="input-wrap">
+            <div class="input-label">사무실</div>
+            <div class="input-content two-input">
+              <select v-model="form.majorBuilding">
+                <option value="" disabled>건물 선택</option>
+                <option v-for="b in buildingList" :key="b.code" :value="b.name">
+                  {{ b.name }}
+                </option>
+              </select>
+              <input v-model="form.room" type="text" placeholder="예: 201호" />
+            </div>
           </div>
-        </div>
 
-        <div class="input-wrap">
-          <label class="input-label">폐지일</label>
-          <div class="input-content">
-            <CalendarDate v-model="form.closedDate" />
+          <div class="input-wrap">
+            <div class="input-label">전화번호</div>
+            <div class="input-content">
+              <input v-model="form.tel" type="text" placeholder="예: 02-0000-0000" />
+            </div>
           </div>
-        </div>
 
-        <!-- Row 4: 학과정보 (전체 너비) -->
-        <div class="input-wrap input-grid-full">
-          <label class="input-label">학과정보</label>
-          <div class="input-content">
-            <textarea v-model="form.info" placeholder="학과 소개를 입력하세요" />
+          <div class="input-wrap">
+            <div class="input-label">개설일</div>
+            <div class="input-content">
+              <CalendarDate v-model="form.foundedDate" />
+            </div>
           </div>
-        </div>
 
+          <div class="input-wrap">
+            <div class="input-label">폐지일</div>
+            <div class="input-content">
+              <CalendarDate v-model="form.closedDate" />
+            </div>
+          </div>
+
+          <div class="input-wrap input-grid-full">
+            <div class="input-label">학과정보</div>
+            <div class="input-content">
+              <textarea v-model="form.info" placeholder="학과 소개를 입력하세요" />
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
 
-    <!-- 버튼 -->
-    <div class="footer-btn-area">
+    <div class="page-footer">
       <template v-if="!isEdit">
         <button class="btn btn-default" @click="resetForm">
-          <font-awesome-icon icon="fa-solid fa-rotate-left" style="margin-right:4px;" />초기화
+          <font-awesome-icon icon="fa-solid fa-rotate-left" /> 초기화
         </button>
-        <button class="btn btn-line point" @click="handleTempSave">
-          <font-awesome-icon icon="fa-regular fa-floppy-disk" style="margin-right:4px;" />임시저장
-        </button>
-        <button class="btn btn-submit" @click="handleSubmit">
-          <font-awesome-icon icon="fa-solid fa-circle-check" style="margin-right:4px;" />등록
-        </button>
+        <div class="action-group">
+          <button class="btn btn-line point" @click="handleTempSave">
+            <font-awesome-icon icon="fa-regular fa-floppy-disk" /> 임시저장
+          </button>
+          <button class="btn btn-submit" @click="handleSubmit">
+            <font-awesome-icon icon="fa-solid fa-circle-check" /> 등록
+          </button>
+        </div>
       </template>
-
       <template v-else>
-        <button class="btn btn-line" @click="router.back()">
-          <font-awesome-icon icon="fa-solid fa-arrow-left" style="margin-right:4px;" />뒤로가기
+        <button class="btn btn-default" @click="router.back()">
+          <font-awesome-icon icon="fa-solid fa-arrow-left" /> 뒤로가기
         </button>
-        <button class="btn btn-submit" @click="handleSubmit">
-          <font-awesome-icon icon="fa-solid fa-circle-check" style="margin-right:4px;" />수정
-        </button>
+        <div class="action-group">
+          <button class="btn btn-submit" @click="handleSubmit">
+            <font-awesome-icon icon="fa-solid fa-circle-check" /> 수정
+          </button>
+        </div>
       </template>
     </div>
   </div>
 </template>
-
-<style scoped lang="scss">
-/* 기존 스타일 전부 유지 */
-.page-title {
-  font-size: var(--text-xl); font-weight: 600; display: flex; align-items: center; gap: 8px;
-  .title-icon { color: var(--main-color); font-size: 0.8em; }
-}
-.breadcrumb { font-size: var(--text-sm); color: var(--font-color-light); }
-
-.form-card {
-  background: #fff; border: 1px solid var(--line-color);
-  border-radius: var(--bdrs-df); margin-bottom: 20px;
-}
-.form-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  row-gap: 28px; column-gap: 20px; padding: 28px 32px;
-}
-.input-grid-full { grid-column: 1 / -1; }
-
-.input-wrap {
-  display: grid; 
-  grid-template-columns: 70px 1fr;
-  align-items: center; 
-  gap: 12px;
-
-  /* 사무실과 전화번호를 한 줄에 놓기 위한 스타일 추가 */
-  &.multi-input-wrap {
-    grid-template-columns: 50px 1fr 50px 1fr;
-    column-gap: 5px; /* 사무실 입력 영역과 전화번호 라벨 사이의 여백 */
-  }
-}
-.input-label {
-  text-align: right; font-weight: bold; font-size: var(--text-sm);
-  white-space: nowrap; word-break: keep-all; line-height: 1.3;
-}
-.input-content {
-  position: relative; width: 100%;
-
-  input:not([type='radio']), select, textarea {
-    border: 1px solid var(--table-border-color); border-radius: 4px;
-    padding: 8px 10px; outline: none; width: 100%;
-    background: #fcfcfc; color: var(--font-color); transition: border-color 0.2s;
-    &:focus   { border-color: var(--main-color); background: #fff; }
-    &:disabled{ background: #f5f5f5; color: #ccc; }
-  }
-  textarea { min-height: 150px; resize: vertical; }
-
-  &.two-input {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
-  }
-}
-
-.footer-btn-area {
-  display: flex; justify-content: center; gap: 10px; margin-top: 10px;
-}
-
-.btn-close {
-  background: #e74c3c; color: #fff; border: none; border-radius: 5px;
-  padding: 8px 30px; font-size: var(--text-sm); font-weight: 600;
-  cursor: pointer; transition: filter 0.2s;
-  &:hover { filter: brightness(1.1); }
-}
-</style>

@@ -34,18 +34,18 @@ const modal = useModalStore();
 .modal-body { padding:40px 30px;display: flex;gap: 25px;flex-direction: column;align-items: center;}
 
 .modal-icon { font-size: 35px;background: #f5f5f5;border-radius: 50%;width:60px;height:60px;display: flex;justify-content: center;align-items: center;border: 1px solid #eee;padding-top: 2px;
-  &.success{background-color: var(--success-bg); color: var(--success);border-color: rgba(62, 158, 126, 0.2);}
-  &.error{background-color: var(--error-bg);color: var(--error);border-color:rgba(224, 82, 82, 0.2) }
-  &.info{background-color:var(--info-bg);color: var(--info);border-color:rgb(74, 144, 226, 0.2) }
-  &.warning{background-color:  var(--warning-bg);color: var(--warning);border-color:rgb(217, 144, 0, 0.2) }
+  &.success{background-color: $success-bg; color: $success;border-color: rgba(62, 158, 126, 0.2);}
+  &.error{background-color: $error-bg;color: $error;border-color:rgba(224, 82, 82, 0.2) }
+  &.info{background-color:$info-bg;color: $info;border-color:rgb(74, 144, 226, 0.2) }
+  &.warning{background-color: $warning-bg;color: $warning;border-color:rgb(217, 144, 0, 0.2) }
 }
 
-.modal-message { text-align: center;font-size: var(--text-lg); font-weight: 500; white-space: pre-wrap; color: var(--font-color);}
+.modal-message { text-align: center;font-size: $fs-xl; font-weight: 500; white-space: pre-wrap; color: $font-color;}
 
 .modal-footer {
   display: flex; border-top: 1px solid #eee;
-  button { flex: 1; border: none; padding: var(--size-xs); cursor: pointer; color: var(--font-color);background: #fff;transition:.2s;
-    &.btn-ok {color: var(--main-color);
+  button { flex: 1; border: none; padding: $size-xs; cursor: pointer; color: $font-color;background: #fff;transition:.2s;
+    &.btn-ok {color: $green-600;
       &:hover {background: rgb(62, 158, 126,0.05);}
     }
     &.btn-cancel { border-right: 1px solid #eee ;color: #aaa;

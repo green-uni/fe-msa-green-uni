@@ -263,11 +263,12 @@ onMounted(async () => {
   gap: 14px;
   text-align: center;
   padding: 20px 16px;
+  border: 1px solid $border-color
 }
 
 .profile-info {
-  h2 { font-size: 1.15em; font-weight: 700; margin: 0; }
-  span { color: $font-color-light; font-size: 0.88em; }
+  h2 { font-size: $fs-lg; font-weight: 700; margin: 0; }
+  span { color: $font-color-light; font-size: $fs-xs; }
 }
 
 .info-key { min-width: 90px; }

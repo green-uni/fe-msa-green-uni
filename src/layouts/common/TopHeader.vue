@@ -58,8 +58,8 @@ const doLogOut = async () => {
   justify-content: space-between;
   align-items: flex-start;
   padding: 14px 16px 12px;
-  background: var(--default-bg);
-  border-bottom: 1px solid var(--line-color);
+  background: $default-bg;
+  border-bottom: 1px solid $border-color;
 }
 
 .header-left {
@@ -77,7 +77,7 @@ const doLogOut = async () => {
 .header-logo {
   width: 22px;
   height: 22px;
-  background: var(--main-color);
+  background: $green-600;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -89,7 +89,7 @@ const doLogOut = async () => {
 .header-school {
   font-size: 15px;
   font-weight: 600;
-  color: var(--font-color);
+  color: $font-color;
   margin: 0;
 }
 
@@ -98,8 +98,8 @@ const doLogOut = async () => {
   display: flex;
   align-items: center;
   gap: 0;
-  font-size: var(--text-xs);
-  color: var(--font-color-light);
+  font-size: $fs-xs;
+  color: $font-color-light;
 
   span + span::before {
     content: '·';
@@ -108,9 +108,9 @@ const doLogOut = async () => {
 }
 
 .header-status {
-  font-size: 0.68rem;
+  font-size: $fs-xs;
   font-weight: 600;
-  color: var(--main-color) !important;
+  color: $green-600 !important;
 
   &::before {
     content: '' !important;
@@ -121,11 +121,11 @@ const doLogOut = async () => {
 
 .btn-logout {
   background: none;
-  border: 1px solid var(--line-color);
+  border: 1px solid $border-color;
   border-radius: 8px;
   padding: 6px 8px;
-  color: var(--font-color-light);
-  font-size: var(--text-xs);
+  color: $font-color-light;
+  font-size: $fs-xs;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -133,7 +133,7 @@ const doLogOut = async () => {
   flex-shrink: 0;
   transition: color 0.15s, border-color 0.15s;
 
-  &:hover   { color: var(--font-color); border-color: var(--font-color-light); }
+  &:hover   { color: $font-color; border-color: $font-color-light; }
   &:active  { opacity: 0.7; }
 }
 </style>

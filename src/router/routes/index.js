@@ -11,7 +11,7 @@ import { tuitionRoutes, adminTuitionRoutes } from './routeTuition'
 import { scholarshipRoutes, adminScholarshipRoutes } from './routeScholarship'
 
 import { gradeRoutes } from './routeGrade'
-import { announcementRoutes, adminAnnouncementRoutes } from './routeAnnouncement'
+import { announcementRoutes, adminAnnouncementRoutes, publicAnnouncementRoutes } from './routeAnnouncement'
 import { attendanceRoutes, mobileAttendanceRoutes } from './routeAttendance'
 
 // 에러 라우트 import
@@ -34,6 +34,7 @@ export const routes = [
       ...scholarshipRoutes,
       ...announcementRoutes,
       ...attendanceRoutes,
+      ...publicAnnouncementRoutes,
     ],
   },
   // 관리자 레이아웃

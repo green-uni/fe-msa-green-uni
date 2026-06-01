@@ -1,30 +1,31 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import DataTable from '@/components/common/DataTable.vue'
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import GradeService from '@/services/gradeService'
 
-const router    = useRouter()
-const isLoading = ref(true)
+const router     = useRouter()
+const isLoading  = ref(false)
 const appealList = ref([])
+const selectedId = ref(null)
 
-const statusLabel = (status) => {
-    const map = { PENDING: '검토 중', APPROVED: '승인', REJECTED: '반려' }
-    return map[status] ?? status
-}
+const selectedItem = computed(() =>
+    appealList.value.find(a => a.courseId === selectedId.value) ?? null
+)
 
-const statusClass = (status) => {
-    const map = { PENDING: 'badge-pending', APPROVED: 'badge-approved', REJECTED: 'badge-rejected' }
-    return map[status] ?? ''
-}
+const statusLabel = (s) => ({ PENDING: '검토 중', APPROVED: '승인', REJECTED: '반려' }[s] ?? s)
+const statusBadge = (s) => ({ PENDING: 'badge-pending', APPROVED: 'badge-approved', REJECTED: 'badge-rejected' }[s] ?? '')
+const statusText  = (s) => ({ PENDING: 'text-pending', APPROVED: 'text-approved', REJECTED: 'text-rejected' }[s] ?? '')
+const formatDate  = (dt) =>
+    dt ? new Date(dt).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '-'
 
-const formatDate = (datetime) => {
-    if (!datetime) return '-'
-    return new Date(datetime).toLocaleDateString('ko-KR', {
-        year: 'numeric', month: '2-digit', day: '2-digit'
-    })
+const selectItem = (courseId) => {
+    selectedId.value = selectedId.value === courseId ? null : courseId
 }
 
 onMounted(async () => {
+    isLoading.value = true
     try {
         appealList.value = await GradeService.getStudentAppealList()
     } catch {
@@ -36,146 +37,91 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div class="appeal-list-wrap">
+    <div style="position: relative">
+        <LoadingSpinner v-if="isLoading" :overlay="true" size="md" />
 
-        <div v-if="isLoading" class="loading-area">조회 중...</div>
+        <div class="split-layout">
 
-        <template v-else>
-            <div v-if="!appealList.length" class="empty-area">이의신청 내역이 없습니다.</div>
-
-            <div v-else class="list">
-                <article
-                    v-for="item in appealList"
-                    :key="item.courseId"
-                    class="appeal-card">
-
-                    <!-- 카드 헤더 -->
-                    <div class="card-header">
-                        <div class="lecture-info">
-                            <span class="lecture-name">{{ item.lectureName }}</span>
-                            <span class="lecture-term">{{ item.lectureYear }}년 {{ item.lectureSemester }}학기</span>
+            <!-- 목록 -->
+            <div class="split-list">
+                <DataTable
+                    :columns="['강의명', '신청일', '상태']"
+                    :rows="appealList"
+                    :isLoading="isLoading"
+                    gridCols="1fr 130px 80px"
+                    emptyMessage="이의신청 내역이 없습니다.">
+                    <article
+                        v-for="item in appealList"
+                        :key="item.courseId"
+                        class="tbl-row pointer"
+                        :class="{ 'row-selected': selectedId === item.courseId }"
+                        @click="selectItem(item.courseId)">
+                        <div class="tal">{{ item.lectureName }}</div>
+                        <div>{{ formatDate(item.createdAt) }}</div>
+                        <div>
+                            <span :class="['text-badge', statusText(item.appealStatus)]">
+                                {{ statusLabel(item.appealStatus) }}
+                            </span>
                         </div>
-                        <span :class="['status-badge', statusClass(item.appealStatus)]">
-                            {{ statusLabel(item.appealStatus) }}
-                        </span>
-                    </div>
-
-                    <!-- 신청 내용 -->
-                    <div class="card-body">
-                        <p class="content-text">{{ item.reason }}</p>
-                    </div>
-
-                    <!-- 반려 사유 -->
-                    <div v-if="item.appealStatus === 'REJECTED' && item.rejectReason" class="reject-reason">
-                        <span class="reject-label">반려 사유</span>
-                        <span class="reject-text">{{ item.rejectReason }}</span>
-                    </div>
-
-                    <!-- 카드 푸터 -->
-                    <div class="card-footer">
-                        <span class="date-info">신청일: {{ formatDate(item.createdAt) }}</span>
-                        <span v-if="item.processedAt" class="date-info">
-                            처리일: {{ formatDate(item.processedAt) }}
-                        </span>
-                        <button
-                            v-if="item.appealStatus === 'REJECTED'"
-                            class="btn-reapply"
-                            @click="router.push(`/grades/${item.courseId}/appeal`)">
-                            재신청
-                        </button>
-                    </div>
-
-                </article>
+                    </article>
+                </DataTable>
             </div>
-        </template>
+
+            <!-- 상세 -->
+            <div class="split-detail">
+
+                <template v-if="selectedItem">
+                    <section class="card">
+                        <p class="card-label">
+                            <span>{{ selectedItem.lectureName }}</span>
+                            <span :class="statusBadge(selectedItem.appealStatus)">
+                                {{ statusLabel(selectedItem.appealStatus) }}
+                            </span>
+                        </p>
+
+                        <!-- 메타 정보 -->
+                        <div class="req-list">
+                            <dl class="req-row"><dt>강의년도</dt><dd>{{ selectedItem.lectureYear }}년 {{ selectedItem.lectureSemester }}학기</dd></dl>
+                            <dl class="req-row"><dt>신청일</dt><dd>{{ formatDate(selectedItem.createdAt) }}</dd></dl>
+                            <dl v-if="selectedItem.processedAt" class="req-row full"><dt>처리일</dt><dd>{{ formatDate(selectedItem.processedAt) }}</dd></dl>
+                        </div>
+
+                        <!-- 신청 내용 -->
+                        <p class="reason-text reason-body">{{ selectedItem.reason }}</p>
+                        
+                        <!-- 반려 사유 -->
+                        <div
+                            v-if="selectedItem.appealStatus === 'REJECTED' && selectedItem.rejectReason"
+                            class="result-box rejected">
+                            <p class="result-title">반려 사유</p>
+                            <p class="result-body">{{ selectedItem.rejectReason }}</p>
+                        </div>
+                    </section>
+
+                    <div class="page-footer">
+                        <div class="action-group" style="margin-left: auto">
+                            <button
+                                v-if="selectedItem.appealStatus === 'REJECTED'"
+                                class="btn btn-submit"
+                                @click="router.push(`/grades/${selectedItem.courseId}/appeal`)">
+                                <font-awesome-icon icon="fa-solid fa-paper-plane" /> 재신청
+                            </button>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- 선택 전 안내 -->
+                <div v-else class="notice-panel card">
+                    <h3 class="notice-title">성적 이의신청 내역</h3>
+                    <p class="notice-desc">
+                        좌측 목록에서 신청 내역을 클릭하면<br />
+                        상세 내용을 확인할 수 있습니다.
+                    </p>
+                    <p class="notice-caution">반려된 신청은 이의신청 기간 내 재신청이 가능합니다.</p>
+                </div>
+
+            </div>
+        </div>
     </div>
 </template>
 
-<style scoped>
-.appeal-list-wrap { max-width: 720px; }
-
-.loading-area, .empty-area {
-    padding: 60px;
-    text-align: center;
-    color: var(--font-color-light);
-}
-
-.list { display: flex; flex-direction: column; gap: 12px; }
-
-/* 카드 */
-.appeal-card {
-    background: #fff;
-    border: 1px solid var(--line-color);
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 14px 18px;
-    border-bottom: 1px solid var(--line-color);
-    background: var(--default-bg);
-}
-.lecture-info { display: flex; align-items: center; gap: 10px; }
-.lecture-name { font-size: var(--text-sm); font-weight: 700; color: var(--font-color); }
-.lecture-term { font-size: var(--text-xs); color: var(--font-color-light); }
-
-/* 상태 배지 */
-.status-badge {
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 700;
-}
-.badge-pending  { background: #fff9c4; color: #e65100; }
-.badge-approved { background: #c8e6c9; color: #1b5e20; }
-.badge-rejected { background: #ffd0d0; color: #b71c1c; }
-
-/* 내용 */
-.card-body { padding: 14px 18px; }
-.content-text {
-    font-size: 14px;
-    color: var(--font-color);
-    line-height: 1.6;
-    white-space: pre-wrap;
-}
-
-/* 반려 사유 */
-.reject-reason {
-    margin: 0 18px 12px;
-    padding: 10px 14px;
-    background: #fff5f5;
-    border: 1px solid #ffd0d0;
-    border-radius: 6px;
-    display: flex;
-    gap: 10px;
-    font-size: 13px;
-}
-.reject-label { color: #b71c1c; font-weight: 700; white-space: nowrap; }
-.reject-text  { color: var(--font-color); }
-
-/* 푸터 */
-.card-footer {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 10px 18px;
-    border-top: 1px solid var(--line-color);
-}
-.date-info { font-size: 12px; color: var(--font-color-light); }
-
-.btn-reapply {
-    margin-left: auto;
-    padding: 5px 14px;
-    border: 1px solid #c62828;
-    border-radius: 4px;
-    background: #fff;
-    color: #c62828;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    &:hover { background: #c62828; color: #fff; }
-}
-</style>

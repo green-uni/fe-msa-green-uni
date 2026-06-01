@@ -1,80 +1,57 @@
 <script setup>
 import courseService from '@/services/courseService'
-import MemberService from '@/services/memberService' // 🎯 MSA 환경의 전체 학과 조회를 위해 추가
-import ScheduleService from '@/services/scheduleService' // 🎯 일정 조회 서비스 추가
+import MemberService from '@/services/memberService'
+import ScheduleService from '@/services/scheduleService'
 import { useModalStore } from '@/stores/modal'
-import { useRouter } from 'vue-router'
-import { ref, onMounted, computed, reactive, watch, nextTick } from 'vue'
+import { ref, onMounted, computed, reactive } from 'vue'
 import Pagination from '@/components/common/Pagination.vue'
 import DataTable from '@/components/common/DataTable.vue'
+import FilterBar from '@/components/common/FilterBar.vue'
 
 const modal = useModalStore()
-const router = useRouter()
 
-// 🎯 기간 체크 상태 변수 (기본값 true)
 const isPeriod = ref(true)
 
-const courseList = ref([])
+// ─── 수강 가능 강의 (서버 페이징) ────────────────────────────────
+const courseList         = ref([])
+const courseTotalPages   = ref(1)
+const courseTotalElements = ref(0)
+
+// ─── 내 수강 신청 목록 (전체 반환 → 클라이언트 페이징 유지) ────────
 const myCourseData = ref({
   totalEnrolledCredits: 0,
   courses: []
 })
 
 const state = reactive({
-  isLoading: false,
+  isLoading:  false,
   coursePage: 1,
   courseSize: 5,
-  myPage: 1,
-  mySize: 3,
+  myPage:     1,
+  mySize:     3,
 })
 
-const typeTab = ref('전체')
-const searchKeyword = ref('')
-const searchInput = ref('')
-const selectedMajor = ref('전체')
-const selectedYear = ref('전체')
+// ─── 필터 상태 ────────────────────────────────────────────────────
+const typeTab         = ref('전체')
+const searchInput     = ref('')
+const selectedMajorId = ref(null)   // 백엔드 파라미터: majorId (Long)
+const selectedYear    = ref(null)   // 백엔드 파라미터: academicYear (Integer)
 
 const tabs = ['전체', '전공', '교양']
+// 탭 → 백엔드 lectureType 값 매핑
+const TAB_TYPE_MAP = { '전체': null, '전공': 'MAJOR', '교양': 'GENERAL' }
 
-// 🎯 DB 전체 학과 목록을 저장할 상태 변수 추가
+
+// ─── 학과 목록 (필터용) ───────────────────────────────────────────
 const majorOptions = ref([])
 
-// 🎯 받아온 majorOptions 객체 배열에서 이름만 추출하여 필터용 리스트 생성
-const majorList = computed(() => {
-  const majors = majorOptions.value.map(item => item.name)
-  return ['전체', ...majors]
-})
-
-const filteredList = computed(() => {
-  let list = courseList.value
-  if (typeTab.value !== '전체') {
-    list = list.filter(item => item.lectureType?.includes(typeTab.value))
-  }
-  if (selectedMajor.value !== '전체') {
-    list = list.filter(item => item.majorName === selectedMajor.value)
-  }
-  if (selectedYear.value !== '전체') {
-    list = list.filter(item => item.academicYear === Number(selectedYear.value))
-  }
-  if (searchKeyword.value.trim()) {
-    const keyword = searchKeyword.value.trim().toLowerCase()
-    list = list.filter(item =>
-      item.majorName?.toLowerCase().includes(keyword) ||
-      item.lectureName?.toLowerCase().includes(keyword) ||
-      item.proName?.toLowerCase().includes(keyword)
-    )
-  }
-  return list
-})
-
-const pagedCourseList = computed(() => {
-  const start = (state.coursePage - 1) * state.courseSize
-  return filteredList.value.slice(start, start + state.courseSize)
-})
-const courseMaxPage = computed(() =>
-  Math.ceil(filteredList.value.length / state.courseSize) || 1
+const hasFilter = computed(() =>
+  selectedMajorId.value !== null ||
+  selectedYear.value !== null ||
+  typeTab.value !== '전체'
 )
 
+// ─── 내 수강 목록 클라이언트 페이징 ──────────────────────────────
 const pagedMyCourseList = computed(() => {
   const start = (state.myPage - 1) * state.mySize
   return myCourseData.value.courses.slice(start, start + state.mySize)
@@ -83,11 +60,22 @@ const myMaxPage = computed(() =>
   Math.ceil(myCourseData.value.courses.length / state.mySize) || 1
 )
 
-const fetchCourseList = async () => {
+// ─── 수강 가능 강의 fetch ─────────────────────────────────────────
+async function fetchCourseList() {
   state.isLoading = true
   try {
-    const res = await courseService.courseList()
-    courseList.value = res.data.data ?? []
+    const res = await courseService.courseList({
+      lectureType:  TAB_TYPE_MAP[typeTab.value],
+      majorId:      selectedMajorId.value || null,
+      academicYear: selectedYear.value    || null,
+      search:       searchInput.value.trim() || null,
+      page:         state.coursePage - 1,
+      size:         state.courseSize,
+    })
+    const pageData            = res.data?.data ?? {}
+    courseList.value          = pageData.content      ?? []
+    courseTotalPages.value    = pageData.totalPages    ?? 1
+    courseTotalElements.value = pageData.totalElements ?? 0
   } catch (e) {
     console.error('수강신청 목록 조회 실패', e)
   } finally {
@@ -95,21 +83,20 @@ const fetchCourseList = async () => {
   }
 }
 
-const fetchMyCourseList = async () => {
+async function fetchMyCourseList() {
   try {
     const res = await courseService.myCourseList()
     const data = res.data.data
     myCourseData.value = {
       totalEnrolledCredits: data.totalEnrolledCredits ?? 0,
-      courses: data.courses ?? []
+      courses:              data.courses              ?? []
     }
   } catch (e) {
     console.error('내 수강 목록 조회 실패', e)
   }
 }
 
-// 🎯 전체 DB 학과 목록 가져오기 로직 추가
-const fetchDepartments = async () => {
+async function fetchDepartments() {
   try {
     const res = await MemberService.getMajorList()
     majorOptions.value = res.data ?? []
@@ -118,142 +105,149 @@ const fetchDepartments = async () => {
   }
 }
 
-// 필터 변경 시 1페이지로 리셋
-watch([typeTab, selectedMajor, selectedYear, searchKeyword], () => {
+// ─── 이벤트 핸들러 ────────────────────────────────────────────────
+function onTabChange(tab) {
+  typeTab.value    = tab
   state.coursePage = 1
-})
+  fetchCourseList()
+}
 
-watch(() => myCourseData.value.courses.length, () => {
-  if (state.myPage > myMaxPage.value) state.myPage = myMaxPage.value
-})
+function onMajorChange() {
+  state.coursePage = 1
+  fetchCourseList()
+}
 
-const enroll = async (lectureId) => {
+function onYearChange() {
+  state.coursePage = 1
+  fetchCourseList()
+}
+
+function onSearch() {
+  state.coursePage = 1
+  fetchCourseList()
+}
+
+function resetFilter() {
+  typeTab.value         = '전체'
+  selectedMajorId.value = null
+  selectedYear.value    = null
+  searchInput.value     = ''
+  state.coursePage      = 1
+  fetchCourseList()
+}
+
+function onCoursePageChange(page) {
+  state.coursePage = page
+  fetchCourseList()
+}
+
+// ─── 수강 신청 / 취소 ─────────────────────────────────────────────
+const isEnrolled = (lectureId) =>
+  myCourseData.value.courses.some(c => String(c.lectureId) === String(lectureId))
+
+async function enroll(lectureId) {
   if (!await modal.showConfirm('해당 강의를 신청하시겠습니까?')) return
   try {
-    const res = await courseService.postCourse({ lectureId })
-    if (res) {
-      await modal.showAlert('수강 신청이 완료되었습니다.', 'success')
-      fetchCourseList()
-      fetchMyCourseList()
-    }
+    await courseService.postCourse({ lectureId })
+    await modal.showAlert('수강 신청이 완료되었습니다.', 'success')
+    fetchCourseList()
+    fetchMyCourseList()
   } catch (e) {
     console.error('수강 신청 실패', e)
   }
 }
 
-const courseDelete = async (lectureId) => {
+async function courseDelete(lectureId) {
   if (!await modal.showConfirm('수강을 취소하시겠습니까?', 'warning')) return
   try {
-    const res = await courseService.courseDel({ lectureId })
-    if (res) {
-      await modal.showAlert('수강 취소가 완료되었습니다.', 'success')
-      fetchCourseList()
-      fetchMyCourseList()
-    }
+    await courseService.courseDel({ lectureId })
+    await modal.showAlert('수강 취소가 완료되었습니다.', 'success')
+    fetchCourseList()
+    fetchMyCourseList()
   } catch (e) {
     console.error('수강 취소 실패', e)
   }
 }
 
-const isEnrolled = (lectureId) =>
-  myCourseData.value.courses.some(course => String(course.lectureId) === String(lectureId))
-
-const search = () => { searchKeyword.value = searchInput.value }
-const keydown = (e) => { if (e.key === 'Enter') search() }
-
+// ─── 마운트 ───────────────────────────────────────────────────────
 onMounted(async () => {
   try {
-    const res = await ScheduleService.getActiveSchedules();
-
-    console.log(res.data);
-
-    const scheduleData = res.data?.data;
-
-    isPeriod.value = !!(
-      scheduleData?.수강신청 ||
-      scheduleData?.수강정정
-    );
-
-    if (!isPeriod.value) return;
-
+    const res = await ScheduleService.getActiveSchedules()
+    const scheduleData = res.data?.data
+    isPeriod.value = !!(scheduleData?.수강신청 || scheduleData?.수강정정)
+    if (!isPeriod.value) return
   } catch (e) {
-    console.error('수강 상태 확인 실패', e);
-    isPeriod.value = false;
-    return;
+    console.error('수강 상태 확인 실패', e)
+    isPeriod.value = false
+    return
   }
 
-  fetchDepartments();
-  fetchCourseList();
-  fetchMyCourseList();
-});
+  await fetchDepartments()
+  fetchCourseList()
+  fetchMyCourseList()
+})
 </script>
 
 <template>
   <div v-if="!isPeriod" class="empty-period">수강신청 기간이 아닙니다.</div>
 
-  <div v-else class="form-wrap">
-    <div class="container" style="padding-bottom: 30px;">
-      <div class="data-header" style="margin-bottom:16px;">
-        <h2 class="page-title"><span class="title-icon">&#9658;</span> 수강 신청</h2>
-        <nav class="breadcrumb">수강 관리 &gt; 수강 신청</nav>
-      </div>
+  <div v-else>
 
-      <div class="filter-header">
+    <div>
+      <FilterBar
+        v-model:searchQuery="searchInput"
+        :hasFilter="hasFilter"
+        :showSearch="true"
+        :show-count="true"
+        :count="courseTotalElements"
+        placeholder="검색어를 입력하세요"
+        @search="onSearch"
+        @reset="resetFilter"
+      >
         <div class="tab-area">
           <button
             v-for="tab in tabs" :key="tab"
-            :class="['filter-btn', { active: typeTab === tab }]"
-            @click="typeTab = tab"
+            class="filter-btn"
+            :class="{ active: typeTab === tab }"
+            @click="onTabChange(tab)"
           >{{ tab }}</button>
         </div>
-        <div class="filter-group">
-          <div class="filter-item">
-            <div class="input-label">학과</div>
-            <div class="input-content">
-              <select v-model="selectedMajor">
-                <option v-for="major in majorList" :key="major" :value="major">{{ major }}</option>
-              </select>
-            </div>
-          </div>
-          <div class="filter-item">
-            <div class="input-label">학년</div>
-            <div class="input-content">
-              <select v-model="selectedYear">
-                <option value="전체">전체</option>
-                <option value="1">1학년</option>
-                <option value="2">2학년</option>
-                <option value="3">3학년</option>
-                <option value="4">4학년</option>
-              </select>
-            </div>
-          </div>
-          <div class="search-area">
-            <input
-              v-model="searchInput"
-              type="text"
-              placeholder="검색어를 입력하세요"
-              @keydown="keydown"
-            />
-            <button class="btn search-btn" @click="search">
-              <font-awesome-icon icon="fa-solid fa-magnifying-glass" /> 검색
-            </button>
+
+        <div class="filter-item">
+          <div class="input-label">학과</div>
+          <div class="input-content">
+            <select v-model="selectedMajorId" @change="onMajorChange">
+              <option :value="null">전체</option>
+              <option v-for="major in majorOptions" :key="major.majorId" :value="major.majorId">{{ major.name }}</option>
+            </select>
           </div>
         </div>
-      </div>
 
-      <div><p>전체: {{ filteredList.length }}개</p></div>
+        <div class="filter-item">
+          <div class="input-label">학년</div>
+          <div class="input-content">
+            <select v-model="selectedYear" @change="onYearChange">
+              <option :value="null">전체</option>
+              <option :value="1">1학년</option>
+              <option :value="2">2학년</option>
+              <option :value="3">3학년</option>
+              <option :value="4">4학년</option>
+            </select>
+          </div>
+        </div>
+      </FilterBar>
 
       <DataTable
         :columns="['학과명','강의명','강의실','이수구분','학년','담당교수','수업시간','학점','여석/정원','신청']"
-        :rows="pagedCourseList"
+        :rows="courseList"
         :isLoading="state.isLoading"
         gridCols="1fr 1fr 200px 100px 50px 100px 200px 50px 100px 100px"
         emptyMessage="조회된 강의가 없습니다."
       >
-        <template v-if="!state.isLoading && pagedCourseList.length > 0">
+        <template v-if="!state.isLoading && courseList.length > 0">
           <article
             class="tbl-row no-hover"
-            v-for="(item, idx) in pagedCourseList"
+            v-for="(item, idx) in courseList"
             :key="item.lectureId ?? idx"
           >
             <div>{{ item.majorName }}</div>
@@ -266,8 +260,8 @@ onMounted(async () => {
             <div>{{ item.credit }}</div>
             <div>{{ item.remStd }}/{{ item.maxStd }}</div>
             <div>
-              <button v-if="isEnrolled(item.lectureId)" class="btn-register-success">신청완료</button>
-              <button v-else class="btn-register" @click="enroll(item.lectureId)">수강신청</button>
+              <button v-if="isEnrolled(item.lectureId)" class="btn btn-default btn-sm" disabled>신청완료</button>
+              <button v-else class="btn btn-submit btn-sm" @click="enroll(item.lectureId)">수강신청</button>
             </div>
           </article>
         </template>
@@ -275,102 +269,59 @@ onMounted(async () => {
 
       <Pagination
         :currentPage="state.coursePage"
-        :maxPage="courseMaxPage"
+        :maxPage="courseTotalPages"
         :pageGroupSize="5"
-        @goToPage="state.coursePage = $event"
+        @goToPage="onCoursePageChange"
       />
     </div>
 
-    <div class="container" style="padding-bottom: 10px;">
-      <div class="my-course-header">
-        <h1 style="font-weight: bold;">신청 내역
-          <span class="totalCredit">신청 학점: <strong>{{ myCourseData.totalEnrolledCredits }}</strong>학점</span>
-        </h1>
-      </div>
-
-      <DataTable
-        :columns="['학과명','강의명','강의실','이수구분','학년','담당교수','수업시간','학점','여석/정원','신청']"
-        :rows="pagedMyCourseList"
-        :isLoading="false" 
-        gridCols="1fr 1fr 200px 100px 50px 100px 200px 50px 100px 100px"
-        emptyMessage="신청한 강의가 없습니다."
-      >
-        <template v-if="pagedMyCourseList.length > 0">
-          <article
-            class="tbl-row no-hover"
-            v-for="(item, idx) in pagedMyCourseList"
-            :key="item.lectureId ?? idx"
-          >
-            <div>{{ item.majorName }}</div>
-            <div>{{ item.lectureName }}</div>
-            <div>{{ item.building }} {{ item.roomNumber }}</div>
-            <div>{{ item.lectureType }}</div>
-            <div>{{ item.academicYear }}</div>
-            <div>{{ item.proName }}</div>
-            <div>{{ item.dayOfWeek }} {{ item.startPeriod }}교시~ {{ item.endPeriod }}교시</div>
-            <div>{{ item.credit }}</div>
-            <div>{{ item.remStd }}/{{ item.maxStd }}</div>
-            <div>
-              <button
-                v-if="item.isAttended === 0"
-                class="btn-register-del"
-                @click="courseDelete(item.lectureId)"
-              >수강취소</button>
-              <span class="not-cancel" v-else>취소 불가</span>
-            </div>
-          </article>
-        </template>
-      </DataTable>
-
-      <Pagination
-        :currentPage="state.myPage"
-        :maxPage="myMaxPage"
-        :pageGroupSize="5"
-        @goToPage="state.myPage = $event"
-      />
+    <!-- 신청 내역 — 독립 섹션, 로딩 없음 -->
+    <div class="d-flex jc-space-b ai-center mt-md" style="margin-bottom: 14px;">
+      <p class="section-title" style="margin: 0;">신청 내역</p>
+      <span style="font-size: 12px;">
+        신청 학점: <strong style="color: #3e9e7e;">{{ myCourseData.totalEnrolledCredits }}</strong>학점
+      </span>
     </div>
+
+    <DataTable
+      :columns="['학과명','강의명','강의실','이수구분','학년','담당교수','수업시간','학점','여석/정원','신청']"
+      :rows="pagedMyCourseList"
+      :isLoading="false"
+      gridCols="1fr 1fr 200px 100px 50px 100px 200px 50px 100px 100px"
+      emptyMessage="신청한 강의가 없습니다."
+    >
+      <template v-if="pagedMyCourseList.length > 0">
+        <article
+          class="tbl-row no-hover"
+          v-for="(item, idx) in pagedMyCourseList"
+          :key="item.lectureId ?? idx"
+        >
+          <div>{{ item.majorName }}</div>
+          <div>{{ item.lectureName }}</div>
+          <div>{{ item.building }} {{ item.roomNumber }}</div>
+          <div>{{ item.lectureType }}</div>
+          <div>{{ item.academicYear }}</div>
+          <div>{{ item.proName }}</div>
+          <div>{{ item.dayOfWeek }} {{ item.startPeriod }}교시~ {{ item.endPeriod }}교시</div>
+          <div>{{ item.credit }}</div>
+          <div>{{ item.remStd }}/{{ item.maxStd }}</div>
+          <div>
+            <button
+              v-if="item.isAttended === 0"
+              class="btn btn-danger btn-sm"
+              @click="courseDelete(item.lectureId)"
+            >수강취소</button>
+            <span class="c-default" style="opacity: .4;" v-else>취소 불가</span>
+          </div>
+        </article>
+      </template>
+    </DataTable>
+
+    <Pagination
+      :currentPage="state.myPage"
+      :maxPage="myMaxPage"
+      :pageGroupSize="5"
+      @goToPage="state.myPage = $event"
+    />
   </div>
 </template>
-
-<style scoped lang="scss">
-// 🎯 규칙에 정의된 기간 미충족 시 스타일 추가
-.empty-period {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 60vh;
-  font-size: 18px;
-  color: #999;
-}
-
-.page-title {
-  font-size: var(--text-xl); font-weight: 600; display: flex; align-items: center; gap: 8px;
-  .title-icon { color: var(--main-color); font-size: 0.8em; }
-}
-.breadcrumb { font-size: var(--text-sm); color: var(--font-color-light); }
-
-.my-course-header {
-  margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid var(--font-color);
-}
-.totalCredit { float: right; font-size: var(--text-md); color: var(--font-color); }
-.totalCredit strong { color: var(--main-color); font-size: var(--text-lg); margin-left: 5px; }
-.not-cancel { opacity: .4; cursor: default; }
-
-/* 버튼 스타일은 이 페이지 고유의 것이므로 유지 */
-.btn-register {
-  background-color: var(--main-color); color: #fff; border: none;
-  border-radius: 4px; padding: 5px 10px; cursor: pointer;
-  font-size: var(--text-sm); white-space: nowrap;
-}
-.btn-register-success {
-  background-color: #aaa; color: #fff; border: none;
-  border-radius: 4px; padding: 5px 10px; cursor: default;
-  font-size: var(--text-sm); white-space: nowrap;
-}
-.btn-register-del {
-  background-color: #fff; color: var(--main-color);
-  border: 1px solid var(--main-color); border-radius: 4px;
-  padding: 5px 10px; cursor: pointer;
-  font-size: var(--text-sm); white-space: nowrap;
-}
-</style>

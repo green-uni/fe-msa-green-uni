@@ -52,15 +52,15 @@ defineEmits(['select'])
   &-footer { margin-top: 4px;}
   &-detail { flex: 1; position: relative; border: 1px solid #ddd; border-radius: 8px; padding: 20px; display: flex; flex-direction: column;  gap: 12px; background: #fff;}
 
-  :slotted(.card-title){font-size: 1.1em;font-weight: 600;}
+  :slotted(.card-title){font-size: $fs-lg;font-weight: 600;}
   :slotted(.card-detail){
-    font-size: 0.9em;color: $font-color-light;
+    font-size: $fs-xs;color: $font-color-light;
     span:not(:first-child){margin-left: 7px;padding-left: 7px;position: relative;
       &:before{content:'';width: 1px;height: 100%; position: absolute;left: 0;top: 0;background: #ccc;}
     }
   }
   :slotted(.badge){
-    color: $font-color-light;font-size: 0.85em;
+    color: $font-color-light;font-size: $fs-xs;
   }
 }
 </style>

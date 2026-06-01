@@ -65,9 +65,6 @@ onMounted(async () => {
 
 <template>
   <div class="timetable-wrap">
-    <div class="timetable-header">
-      <span class="timetable-title">주간 시간표</span>
-    </div>
  
     <div v-if="loading" class="timetable-empty">불러오는 중...</div>
     <div v-else-if="!lectures.length" class="timetable-empty">등록된 강의가 없습니다.</div>
@@ -116,116 +113,117 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .timetable-wrap {
-  width: 35%;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
- 
+
 .timetable-header {
+  flex-shrink: 0;
   margin-bottom: 8px;
 }
- 
+
 .timetable-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: $admin-font-color;
+  font-size: $fs-df;
+  font-weight: 700;
+  color: $font-color;
 }
- 
+
 .timetable-empty {
-  font-size: 12px;
-  color: #999;
+  font-size: $fs-sm;
+  color: $font-color-light;
   padding: 20px 0;
   text-align: center;
 }
- 
+
 .timetable-grid-wrap {
-  overflow-x: auto;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
- 
+
 .timetable {
   width: 100%;
+  height: 100%;
   border-collapse: collapse;
-  font-size: 11px;
+  font-size: $fs-xs;
   table-layout: fixed;
 }
- 
+
 .timetable th,
 .timetable td {
   border: 1px solid #e8e8e8;
   text-align: center;
-  vertical-align: top;
-  padding: 3px 2px;
+  vertical-align: middle;
+  padding: 4px 3px;
 }
- 
+
 .timetable thead th {
-  background-color: #f5f5f5;
+  background-color: $default-bg;
   font-weight: 600;
-  color: #555;
-  padding: 5px 2px;
-  font-size: 11px;
- 
+  color: $font-color;
+  font-size: $fs-xs;
+  padding: 6px 3px;
+
   &.th-today {
     background-color: $green-600;
     color: #fff;
   }
 }
- 
+
 .th-period {
-  width: 46px;
+  width: 58px;
 }
- 
+
 .td-period {
   background-color: #fafafa;
   vertical-align: middle;
   text-align: center;
 }
- 
+
 .period-num {
   display: block;
-  font-weight: 600;
-  color: #444;
-  font-size: 10px;
+  font-weight: 700;
+  color: $font-color-bold;
+  font-size: $fs-sm;
 }
- 
+
 .period-time {
   display: block;
-  color: #aaa;
-  font-size: 9px;
-  margin-top: 1px;
+  color: $font-color-light;
+  font-size: $fs-xs;
+  margin-top: 2px;
 }
- 
+
 .td-cell {
-  height: 44px;
   background-color: #fff;
- 
-  &.td-today {
-    background-color: #f0faf5;
-  }
- 
-  &.td-today-filled {
-    background-color: #c2e8d4;
-  }
+
+  &.td-today        { background-color: #f0faf5; }
+  &.td-today-filled { background-color: #c2e8d4; }
 }
- 
+
 .cell-content {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
-  gap: 2px;
-  padding: 3px 2px;
+  gap: 3px;
+  padding: 4px 3px;
 }
- 
+
 .cell-name {
-  font-weight: 600;
+  font-weight: 700;
   color: $green-600;
-  font-size: 10px;
+  font-size: $fs-sm;
   word-break: keep-all;
   line-height: 1.3;
 }
- 
+
 .cell-room {
-  font-size: 9px;
-  color: #888;
+  font-size: $fs-xs;
+  color: $font-color-light;
   word-break: keep-all;
 }
 </style>

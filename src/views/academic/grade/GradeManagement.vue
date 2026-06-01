@@ -1,14 +1,11 @@
 <script setup>
-// 1. 라이브러리
 import { ref, reactive, computed, onMounted } from 'vue'
-// 2. 컴포넌트
 import DataTable from '@/components/common/DataTable.vue'
 import Pagination from '@/components/common/Pagination.vue'
 import SearchInput from '@/components/util/SearchInput.vue'
-// 3. 서비스
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import GradeService from '@/services/gradeService'
 import LectureService from '@/services/lectureService'
-// 4. 라우터 / 스토어
 import { useRoute, useRouter } from 'vue-router'
 import { useModalStore } from '@/stores/modal'
 
@@ -17,7 +14,6 @@ const router = useRouter()
 const modal = useModalStore()
 const lectureId = route.params.lectureId
 
-// 5. 상태값
 const searchInput = ref('')
 const isEditMode = ref(false)
 const currentPage = ref(1)
@@ -25,6 +21,12 @@ const pageSize = 10
 
 const lectureInfo = reactive({
     lectureName: '',
+    year: '',
+    semester: '',
+    lectureType: '',
+    credit: '',
+    academicYear: '',
+    maxStd: 0,
     studentCount: 0,
 })
 
@@ -33,10 +35,8 @@ const state = reactive({
     isLoading: false,
 })
 
-// 6. localStorage 키
 const GRADE_KEY = `grade_${lectureId}`
 
-// 7. computed
 const filteredList = computed(() => {
     if (!searchInput.value) return state.gradeList
     const keyword = searchInput.value.toLowerCase()
@@ -55,14 +55,6 @@ const maxPage = computed(() =>
     Math.ceil(filteredList.value.length / pageSize) || 1
 )
 
-// 등급 뱃지 CSS 클래스 (A+, B+ 등 특수문자 처리)
-const gradeClass = (letter) => {
-    if (!letter) return ''
-    return 'grade-' + letter.replace('+', 'plus').toLowerCase()
-}
-
-// 8. 총점·등급 미리보기 계산 (편집 시 실시간)
-// mid30% + fin30% + assignment20% + attend20%
 const calcTotalScore = (mid, fin, assignment, attend) =>
     Math.round(mid * 0.3 + fin * 0.3 + assignment * 0.2 + attend * 0.2)
 
@@ -78,12 +70,10 @@ const calcGradeLetter = (total) => {
     return 'F'
 }
 
-// 9. API 호출 함수
 const loadGrades = async () => {
     state.isLoading = true
     try {
         const res = await GradeService.getGradeList(lectureId)
-        // 서버 데이터 기반으로 총점·등급 미리 계산 후 상태 세팅
         const calcList = (res ?? []).map(s => ({
             ...s,
             total_score: calcTotalScore(s.mid_score, s.fin_score, s.assignment_score, s.attend_score),
@@ -92,7 +82,6 @@ const loadGrades = async () => {
             ),
         }))
 
-        // localStorage 임시저장 복원 여부 확인
         const draft = localStorage.getItem(GRADE_KEY)
         if (draft) {
             const confirm = await modal.showConfirm('이전에 수정 중이던 성적을 불러오시겠습니까?', 'info')
@@ -125,16 +114,12 @@ const loadGrades = async () => {
     }
 }
 
-// 10. 이벤트 핸들러
 const saveDraft = () => localStorage.setItem(GRADE_KEY, JSON.stringify(state.gradeList))
 
 const calcGrade = (student) => {
-    // 0~100 범위 강제
     student.mid_score = Math.min(100, Math.max(0, Number(student.mid_score) || 0))
     student.fin_score = Math.min(100, Math.max(0, Number(student.fin_score) || 0))
     student.assignment_score = Math.min(100, Math.max(0, Number(student.assignment_score) || 0))
-
-    // 총점·등급 실시간 미리보기 (출석점수는 서버 데이터 그대로)
     student.total_score = calcTotalScore(
         student.mid_score, student.fin_score,
         student.assignment_score, student.attend_score
@@ -149,7 +134,6 @@ const saveGrades = async () => {
     const confirm = await modal.showConfirm('성적을 저장하시겠습니까?', 'info')
     if (!confirm) return
     try {
-        // 서버 요청은 camelCase (GradeUpdateReq)
         const reqList = state.gradeList.map(s => ({
             courseId: s.courseId,
             midScore: s.mid_score,
@@ -160,7 +144,7 @@ const saveGrades = async () => {
         localStorage.removeItem(GRADE_KEY)
         await modal.showAlert('성적이 저장되었습니다.', 'success')
         isEditMode.value = false
-        await loadGrades() // 저장 후 서버 최신 데이터 재조회
+        await loadGrades()
     } catch {
         await modal.showAlert('성적 저장에 실패했습니다.', 'error')
     }
@@ -168,96 +152,126 @@ const saveGrades = async () => {
 
 const goToPage = (page) => { currentPage.value = page }
 
-// 11. onMounted
 onMounted(async () => {
     await loadGrades()
     try {
         const data = await LectureService.getLectureDetail(lectureId)
-        lectureInfo.lectureName = data?.lectureName ?? ''
+        const d = Array.isArray(data) && data.length > 0 ? data[0] : data
+        lectureInfo.lectureName  = d?.lectureName  ?? ''
+        lectureInfo.year         = d?.year         ?? ''
+        lectureInfo.semester     = d?.semester     ?? ''
+        lectureInfo.lectureType  = d?.lectureType  ?? ''
+        lectureInfo.credit       = d?.credit       ?? ''
+        lectureInfo.academicYear = d?.academicYear ?? ''
+        lectureInfo.maxStd       = d?.maxStd       ?? 0
     } catch {
-        // 강의 정보 조회 실패 시 무시
+        // 강의 정보 조회 실패 무시
     }
 })
 </script>
 
 <template>
-    <div class="grade-wrap">
-        <!-- 상단 헤더 -->
-        <div class="header-section">
-            <div class="table-header">
-                <span class="lecture-name">{{ lectureInfo.lectureName }}</span>
-                <span class="student-count">수강 인원: {{ lectureInfo.studentCount }}명</span>
+    <div style="position: relative">
+        <LoadingSpinner v-if="state.isLoading" :overlay="true" size="md" />
+
+        <!-- 강의 정보 + 검색 -->
+        <div class="card">
+            <div class="card-label">
+                <span>{{ lectureInfo.lectureName || '성적 관리' }}</span>
+                <div class="d-flex g5 ai-center">
+                    <SearchInput
+                        v-model="searchInput"
+                        :list="state.gradeList"
+                        placeholder="이름, 학번 검색"
+                        @update:modelValue="currentPage = 1"
+                    />
+                    <button class="btn btn-submit">
+                        <font-awesome-icon icon="fa-solid fa-magnifying-glass" />
+                    </button>
+                </div>
             </div>
-            <div class="search-area">
-                <SearchInput
-                    v-model="searchInput"
-                    :list="state.gradeList"
-                    placeholder="이름, 학번 검색"
-                    @update:modelValue="currentPage = 1"
-                />
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-key">학년도 / 학기</span>
+                    <span class="info-val">
+                        {{ lectureInfo.year ? `${lectureInfo.year}년 ${lectureInfo.semester}학기` : '-' }}
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="info-key">이수구분</span>
+                    <span class="info-val">{{ lectureInfo.lectureType || '-' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-key">이수학점</span>
+                    <span class="info-val">{{ lectureInfo.credit ? `${lectureInfo.credit}학점` : '-' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-key">대상학년</span>
+                    <span class="info-val">{{ lectureInfo.academicYear ? `${lectureInfo.academicYear}학년` : '-' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-key">수강인원</span>
+                    <span class="info-val">{{ lectureInfo.studentCount }}명</span>
+                </div>
             </div>
         </div>
 
         <!-- 성적 테이블 -->
-        <DataTable
-            :columns="['학번', '성명', '학년', '중간평가', '기말평가', '과제점수', '출석점수', '총점', '최종등급']"
-            :rows="pagedList"
-            :isLoading="state.isLoading"
-            gridCols="1.2fr 1fr 60px 1fr 1fr 1fr 1fr 80px 90px"
-            emptyMessage="수강 학생이 없습니다.">
+            <DataTable
+                :columns="['학번', '성명', '학년', '중간평가', '기말평가', '과제점수', '출석점수', '총점', '최종등급']"
+                :rows="pagedList"
+                :isLoading="state.isLoading"
+                gridCols="1.2fr 1fr 60px 1fr 1fr 1fr 1fr 80px 90px"
+                emptyMessage="수강 학생이 없습니다.">
 
-            <article
-                class="tbl-row no-hover"
-                v-for="(student, idx) in pagedList"
-                :key="student.courseId ?? idx">
+                <article
+                    class="tbl-row no-hover"
+                    :class="{ 'edit-row': isEditMode }"
+                    v-for="(student, idx) in pagedList"
+                    :key="student.courseId ?? idx">
 
-                <div>{{ student.studentCode }}</div>
-                <div>{{ student.memberName }}</div>
-                <div>{{ student.academic_year ?? '-' }}</div>
+                    <div>{{ student.studentCode }}</div>
+                    <div>{{ student.memberName }}</div>
+                    <div>{{ student.academic_year ?? '-' }}</div>
 
-                <!-- 조회 모드 -->
-                <template v-if="!isEditMode">
-                    <div>{{ student.mid_score }}</div>
-                    <div>{{ student.fin_score }}</div>
-                    <div>{{ student.assignment_score }}</div>
-                    <div>{{ student.attend_score }}</div>
-                </template>
+                    <template v-if="!isEditMode">
+                        <div>{{ student.mid_score }}</div>
+                        <div>{{ student.fin_score }}</div>
+                        <div>{{ student.assignment_score }}</div>
+                        <div class="attend-score">{{ student.attend_score }}</div>
+                    </template>
 
-                <!-- 편집 모드 -->
-                <template v-else>
-                    <div>
-                        <input class="score-input" type="number" v-model="student.mid_score"
-                            min="0" max="100" @input="calcGrade(student)" />
-                    </div>
-                    <div>
-                        <input class="score-input" type="number" v-model="student.fin_score"
-                            min="0" max="100" @input="calcGrade(student)" />
-                    </div>
-                    <div>
-                        <input class="score-input" type="number" v-model="student.assignment_score"
-                            min="0" max="100" @input="calcGrade(student)" />
-                    </div>
-                    <!-- 출석 점수는 서버 자동 계산 — 수정 불가 -->
-                    <div class="attend-score">{{ student.attend_score }}</div>
-                </template>
+                    <template v-else>
+                        <div>
+                            <input class="tbl-input score-input" type="number" v-model="student.mid_score"
+                                min="0" max="100" @input="calcGrade(student)" />
+                        </div>
+                        <div>
+                            <input class="tbl-input score-input" type="number" v-model="student.fin_score"
+                                min="0" max="100" @input="calcGrade(student)" />
+                        </div>
+                        <div>
+                            <input class="tbl-input score-input" type="number" v-model="student.assignment_score"
+                                min="0" max="100" @input="calcGrade(student)" />
+                        </div>
+                        <div class="attend-score">{{ student.attend_score }}</div>
+                    </template>
 
-                <div>{{ student.total_score }}</div>
-                <div>
-                    <span>{{ student.grade_letter || '-' }}</span>
-                </div>
-            </article>
-        </DataTable>
+                    <div>{{ student.total_score }}</div>
+                    <div>{{ student.grade_letter || '-' }}</div>
+                </article>
+            </DataTable>
 
-        <!-- 하단 버튼 -->
-        <div class="footer-section">
             <Pagination
                 :currentPage="currentPage"
                 :maxPage="maxPage"
                 :pageGroupSize="10"
                 @goToPage="goToPage"
             />
-            <div class="btn-group">
-                <button class="btn btn-default" @click="router.back()">← 뒤로</button>
+
+        <div class="page-footer">
+            <button class="btn btn-default" @click="router.back()">← 뒤로</button>
+            <div class="action-group">
                 <button v-if="!isEditMode" class="btn btn-default" @click="startEditMode">수정</button>
                 <button v-else class="btn btn-submit" @click="saveGrades">저장</button>
             </div>
@@ -265,35 +279,7 @@ onMounted(async () => {
     </div>
 </template>
 
-<style scoped>
-.grade-wrap { padding: 0; }
-
-.header-section {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-}
-.table-header { display: flex; align-items: flex-end; gap: 10px; }
-.lecture-name { font-size: 1.4rem; font-weight: 700; }
-.student-count { padding: 0 6px; color: var(--font-color-light); }
-
-.search-area { display: flex; align-items: center; gap: 8px; }
-
-.score-input {
-    width: 66px; padding: 4px 6px;
-    border: 1px solid #ccc; border-radius: 4px;
-    text-align: center; font-size: 14px;
-}
-
-/* 출석 점수 — 수정 불가 표시 */
-.attend-score { color: var(--font-color-light); font-size: 14px; }
-
-.footer-section {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 12px;
-}
-.btn-group { display: flex; gap: 8px; }
+<style scoped lang="scss">
+.score-input { width: 66px; text-align: center; }
+.attend-score { color: $font-color-light; }
 </style>

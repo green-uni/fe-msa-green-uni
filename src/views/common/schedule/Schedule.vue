@@ -29,26 +29,19 @@ const editEvent = ref({ id: '', type: '', title: '', semester: 1, startDate: '',
 const currentYear = ref(2026)
 const currentMonth = ref(5)
 
-// ===== 일정 구분 타입 목록 (EnumScheduleType 기반) =====
+// ===== 일정 구분 타입 목록 (bg: 연한 배경 / fg: 진한 글자 / bar: 왼쪽 바) =====
 const scheduleTypes = [
-  // 수강 계열
-  { code: 'COURSE_REGISTRATION', value: '수강신청', color: '#c1666b' },
-  { code: 'COURSE_MODIFICATION', value: '수강정정', color: '#a85c5c' },
-  { code: 'LECTURE_REGISTRATION', value: '강의개설신청', color: '#c47f3a' },
-
-  // 성적 계열
-  { code: 'GRADE_INPUT', value: '성적입력', color: '#6b5b95' },
-  { code: 'GRADE_VIEW', value: '성적조회', color: '#5e7a63' },
-  { code: 'GRADE_APPEAL', value: '성적이의신청', color: '#4f6f99' },
-
-  // 개별
-  { code: 'LECTURE_EVALUATION', value: '강의평가', color: '#9e9474' },
-  { code: 'TUITION_PAYMENT', value: '등록금납부', color: '#a84c5a' },
-
-  // 기타
-  { code: 'MAJOR_CHANGE', value: '전공변경신청', color: '#3b7dd8' },
-  { code: 'SEMESTER_START', value: '학기시작', color: '#2e7d32' },
-  { code: 'ETC', value: '기타', color: '#475569' },
+  { code: 'COURSE_REGISTRATION',  value: '수강신청',     bg: '#f7e9ea', fg: '#9c4348', bar: '#c1666b' },
+  { code: 'COURSE_MODIFICATION',  value: '수강정정',     bg: '#f6eaea', fg: '#8a4444', bar: '#b06a6a' },
+  { code: 'LECTURE_REGISTRATION', value: '강의개설신청', bg: '#f8efe1', fg: '#945c1f', bar: '#c4862f' },
+  { code: 'GRADE_INPUT',          value: '성적입력',     bg: '#edeaf4', fg: '#524179', bar: '#7565a0' },
+  { code: 'GRADE_VIEW',           value: '성적조회',     bg: '#eceef3', fg: '#475a86', bar: '#6b7ba8' },
+  { code: 'GRADE_APPEAL',         value: '성적이의신청', bg: '#e7edf5', fg: '#3a5478', bar: '#5e7aa6' },
+  { code: 'LECTURE_EVALUATION',   value: '강의평가',     bg: '#f1efe6', fg: '#6f6749', bar: '#9e9474' },
+  { code: 'TUITION_PAYMENT',      value: '등록금납부',   bg: '#f6e7e9', fg: '#8a3a46', bar: '#b85767' },
+  { code: 'MAJOR_CHANGE',         value: '전공변경신청', bg: '#e6eefb', fg: '#2c5fac', bar: '#4a82d6' },
+  { code: 'SEMESTER_START',       value: '학기시작',     bg: '#efece2', fg: '#7a6420', bar: '#b39636' },
+  { code: 'ETC',                  value: '기타',         bg: '#eaedf0', fg: '#3c4856', bar: '#64748b' },
 ]
 
 // ===== 현재 월 일정만 필터링 (시작일 오름차순) =====
@@ -78,8 +71,9 @@ const fetchSchedules = async () => {
         title: s.title,
         start: s.startDate,
         end: endDate.toISOString().slice(0, 10),
-        // color: '#e2e8f0',
-        color: typeInfo ? typeInfo.color : '#94a3b8',
+        backgroundColor: typeInfo ? typeInfo.bg : '#eaedf0',
+        textColor: typeInfo ? typeInfo.fg : '#3c4856',
+        borderColor: typeInfo ? typeInfo.bar : '#64748b',
         type: s.type,
         isActive: s.isActive,
       }
@@ -143,7 +137,8 @@ const calendarOptions = computed(() => ({
   initialView: 'dayGridMonth',
   headerToolbar: false,
   locale: 'ko',
-  height: 650,
+  height: '100%',
+  expandRows: false,
   events: events.value,
   // 선택된 이벤트에 active-bar 클래스 부여
   eventClassNames: (arg) => {
@@ -232,13 +227,13 @@ fetchSchedules()
 </script>
 
 <template>
-  <div class="academic-wrapper">
+  <div class="card">
 
     <!-- ===== 헤더: 년/월 표시 + 이전/다음 버튼 + 월간/연간 토글 ===== -->
     <header class="calendar-header">
       <div class="date-selector">
         <div class="year-picker-wrap" ref="yearPickerRef">
-          <div class="select-box year-clickable" @click="showYearPicker = !showYearPicker">
+          <div class="select-box pointer" @click="showYearPicker = !showYearPicker">
             <span>{{ currentYear }}년</span>
             <font-awesome-icon :icon="['fas', showYearPicker ? 'chevron-up' : 'chevron-down']" class="year-arrow" />
           </div>
@@ -255,16 +250,16 @@ fetchSchedules()
           <button class="nav-btn" @click="goPrev">
             <font-awesome-icon :icon="['fas', 'chevron-left']" />
           </button>
-          <div class="select-box"><span>{{ currentMonth }}월</span></div>
+          <div class="month"><span>{{ currentMonth }}월</span></div>
           <button class="nav-btn" @click="goNext">
             <font-awesome-icon :icon="['fas', 'chevron-right']" />
           </button>
         </template>
       </div>
       <div class="view-controls">
-        <div class="toggle-group">
-          <button :class="{ active: !isYearView }" @click="isYearView = false; fetchSchedules()">월간일정</button>
-          <button :class="{ active: isYearView }" @click="isYearView = true; fetchSchedules()">연간일정</button>
+        <div class="tab-area">
+          <button :class="['filter-btn', { active: !isYearView }]" @click="isYearView = false; fetchSchedules()">월간일정</button>
+          <button :class="['filter-btn', { active: isYearView }]" @click="isYearView = true; fetchSchedules()">연간일정</button>
         </div>
       </div>
     </header>
@@ -293,7 +288,9 @@ fetchSchedules()
 
         <!-- 달력 영역 -->
         <div class="calendar-main-area">
-          <FullCalendar ref="fullCalendar" :options="calendarOptions" />
+          <div class="fc-wrap">
+            <FullCalendar ref="fullCalendar" :options="calendarOptions" />
+          </div>
         </div>
 
         <!-- 사이드바 -->
@@ -315,8 +312,8 @@ fetchSchedules()
               <input type="date" v-model="newEvent.endDate" class="form-date" />
             </div>
             <div class="form-actions">
-              <button class="btn-cancel" @click="showAddForm = false">취소</button>
-              <button class="btn-submit" @click="submitEvent">등록</button>
+              <button class="btn btn-default" @click="showAddForm = false">취소</button>
+              <button class="btn btn-submit" @click="submitEvent">등록</button>
             </div>
           </div>
 
@@ -337,9 +334,9 @@ fetchSchedules()
             </div>
             <div class="form-actions">
               <!-- 삭제는 왼쪽, 취소/수정은 오른쪽 -->
-              <button class="btn-delete" @click="deleteEvent">삭제</button>
-              <button class="btn-cancel" @click="clearSelection">취소</button>
-              <button class="btn-submit" @click="submitEdit">수정</button>
+              <button class="btn btn-danger" @click="deleteEvent">삭제</button>
+              <button class="btn btn-default" @click="clearSelection">취소</button>
+              <button class="btn btn-submit" @click="submitEdit">수정</button>
             </div>
           </div>
 
@@ -362,7 +359,7 @@ fetchSchedules()
               </div>
             </div>
             <!-- 일정추가 버튼: 관리자만 표시 -->
-            <button v-if="isAdmin" class="btn-add-event" @click="showAddForm = true">
+            <button v-if="isAdmin" class="btn btn-default btn-add-event" @click="showAddForm = true">
               <font-awesome-icon :icon="['fas', 'plus']" /> 일정추가
             </button>
           </template>
@@ -373,106 +370,98 @@ fetchSchedules()
   </div>
 </template>
 
-<style scoped>
-/* ===== 전체 레이아웃 ===== */
-.academic-wrapper { max-width: 1300px; margin: 0 auto; padding: 25px; background-color: #fff; }
+<style scoped lang="scss">
+.card { height: calc(100vh - 140px); display: flex; flex-direction: column; margin-bottom: 0; }
 
 /* ===== 헤더 ===== */
-.calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+.calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: $sm; padding-bottom:$sm; flex-shrink: 0; }
 .date-selector { display: flex; gap: 10px; flex: 1; justify-content: center; margin-left: 100px; align-items: center; }
-.select-box { border: 1px solid #e2e8f0; padding: 6px 16px; border-radius: 20px; display: flex; align-items: center; gap: 8px; font-weight: 700; }
+.select-box { border: 1px solid $border-color; padding: 6px 16px; border-radius: 20px; display: flex; align-items: center; gap: 6px; font-weight: 600; user-select: none; }
+.month{font-weight: 600; padding: 0 $sm;font-size: $fs-lg;  }
 
 /* 이전/다음 달 네비게이션 버튼 */
-.nav-btn { border: 1px solid #e2e8f0; background: #f8fafc; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-.nav-btn:hover { cursor: pointer; }
+.nav-btn { border: 1px solid $border-color; background: $default-bg; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;color: $font-color; }
 
 /* ===== 연도 선택 팝업 ===== */
 .year-picker-wrap { position: relative; }
-.year-clickable { cursor: pointer; gap: 6px; user-select: none; }
-.year-arrow { font-size: 11px; color: #94a3b8; }
+.year-arrow { font-size: $fs-xs; color: $font-color-light; }
 .year-popup {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
-  padding: 8px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 4px;
-  z-index: 100;
-  min-width: 180px;
+  position: absolute;  top: calc(100% + 6px);  left: 50%;  transform: translateX(-50%);
+  background: #fff;  border: 1px solid $border-color;  border-radius: 10px;  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  padding: $sm;  display: grid;  grid-template-columns: repeat(3, 1fr);  gap: $xs;
+  z-index: 100;  min-width: 180px;
+  button {
+    padding: 7px 0;  border: none;   background: none;   border-radius: 6px;   font-size: 13px;  font-weight: 600;  cursor: pointer;  color: $font-color-light;
+    &:hover { background: $default-bg; }
+    &.active { background: $default-bg; font-weight: 800;  color: $font-color}
+  }
 }
-.year-popup button {
-  padding: 7px 0;
-  border: none;
-  background: none;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  color: #334155;
-}
-.year-popup button:hover { background: #f1f5f9; }
-.year-popup button.active { background: #f1f5f9; font-weight: 800; }
 
-/* ===== 월간/연간 토글 ===== */
-.toggle-group button { border: 1px solid #e2e8f0; background: #f8fafc; padding: 8px 16px; border-radius: 20px; cursor: pointer; }
-.toggle-group button.active { background: #f1f5f9; font-weight: 700; }
+/* ===== 바디 영역: 헤더 제외 나머지 높이 채우기 ===== */
+.calendar-body { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
 
 /* ===== 월간일정 뷰 레이아웃 ===== */
-.view-container { display: flex; gap: 30px; height: 690px; }
-.calendar-main-area { flex: 2.5; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; }
-.calendar-sidebar { flex: 1; border-top: 2px solid #e2e8f0; padding-top: 20px; overflow-y: auto; }
+.view-container { flex: 1; display: flex; min-height: 0; }
+.calendar-main-area { flex: 2.5; min-height: 0; overflow: hidden; }
+.calendar-sidebar { flex: 1; overflow-y: auto; min-height: 0;padding:$md 0 0 $lg;  }
 
+/* ===== 달력 외곽 래퍼  ===== */
+.fc-wrap { height: 100%; border: 1px solid $border-color; border-radius: 5px; overflow: hidden;}
+/* FullCalendar */
+:deep(.fc){
+  .fc-scrollgrid{
+    border: none !important;
+    td:last-child{border-right: none !important;}
+    th:last-child{border-right: none !important;}
+    tr:last-child td{ border-bottom: none !important;}
+  }
+  .fc-col-header-cell { background-color: $default-bg; font-size: $fs-xs; font-weight: bold; }
+  .fc-day-today { background-color: rgba($green-600, 0.08) !important; }
+  .fc-daygrid-day-number { font-size: $fs-xs !important; opacity: .8; }
+  .fc-event { font-weight: 500;font-size: $fs-xs; padding: 2px $sm; margin-bottom: 2px; border-width: 0 0 0 3px !important; box-shadow: 0 2px 2px rgba(0, 0, 0, 0.15); transition: all 0.2s ease;}
+}
 
 /* ===== 달력 이벤트 강조 (클릭 시) ===== */
 :deep(.active-bar) {
-  background-color: #3e9e7e !important;
-  border-color: #3e9e7e !important;
-  color: #ffffff !important;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-  z-index: 999 !important;
-  transition: all 0.2s ease;
+  background-color: $green-600 !important; border-color: $green-600 !important; color: #fff !important; transform: translateY(-1px); box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  z-index: 999 !important; 
 }
-:deep(.active-bar .fc-event-title) { font-weight: 800 !important; }
+:deep(.active-bar .fc-event-title) { font-weight: 700 !important; }
+:deep(.active-bar .fc-event-main) { color: #fff !important; }
 
 /* ===== 사이드바 일정 목록 ===== */
-.sidebar-title { font-size: 20px; font-weight: 800; margin-bottom: 20px; }
-.event-card { padding: 12px 0; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: all 0.15s; }
-.event-card:hover .event-title { color:hsla(160, 100%, 37%, 1); text-decoration: underline; }
-.event-card.selected .event-title { color: hsla(160, 100%, 37%, 1); font-weight: 800; }
-.event-title { font-size: 16px; font-weight: 700; color: #334155; }
-.event-time { font-size: 13px; color: #94a3b8; }
+.sidebar-title { font-size: $fs-lg; font-weight: 700; color: $font-color-bold; margin-bottom: $md; }
+.event-card { padding: $md $sm; border-bottom: 1px solid $border-color; cursor: pointer; transition: all 0.15s;
+&:first-child{border-top: 1px solid $border-color;}
+}
+.event-card:hover .event-title { color: $green-600; text-decoration: underline; }
+.event-card.selected .event-title { color: $green-600; font-weight: 700; }
+.event-title { font-size: 14px; font-weight: 600; color: $font-color-bold; }
+.event-time { font-size: 12px; color: $font-color-light; margin-top: 2px; }
 
 /* ===== 등록/수정 폼 ===== */
-.add-form { display: flex; flex-direction: column; gap: 16px; }
-.edit-form { border: 1.5px solid #3e9e7e; border-radius: 12px; padding: 20px; } /* 수정 폼은 보라색 테두리 */
-.form-select { border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; font-size: 14px; }
-.form-textarea { border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; font-size: 18px; color: #374957; min-height: 80px; resize: none; }
+.add-form { display: flex; flex-direction: column; gap: $md; }
+.edit-form { border: 1.5px solid $green-600; border-radius: 8px; padding: $md; }
+.form-select { border: 1px solid $border-color; border-radius: 6px; padding: 8px 12px; font-size: 14px; width: 100%; }
+.form-textarea { border: 1px solid $border-color; border-radius: 6px; padding: 10px; font-size: 14px; color: $font-color; min-height: 80px; resize: none; width: 100%; }
 .form-date-row { display: flex; align-items: center; gap: 12px; }
-.form-date-row label { font-weight: 700; font-size: 14px; width: 60px; }
-.form-date { border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; font-size: 14px; flex: 1; }
-.form-actions { display: flex; justify-content: flex-end; gap: 8px; }
-.btn-cancel { border: 1px solid #e2e8f0; background: #f8fafc; padding: 8px 20px; border-radius: 8px; cursor: pointer; }
-.btn-submit { background: #3e9e7e; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; }
-.btn-delete { background: #b91c1c; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; margin-right: auto; } /* 삭제 버튼은 왼쪽 정렬 */
+.form-date-row label { font-weight: 600; font-size: 13px; width: 60px; color: $font-color-light; flex-shrink: 0; }
+.form-date { border: 1px solid $border-color; border-radius: 6px; padding: 8px 10px; font-size: 14px; flex: 1; }
+.form-actions { display: flex; justify-content: flex-end; gap: $sm; }
+/* 삭제 버튼은 왼쪽 정렬 */
+.form-actions .btn.btn-danger { margin-right: auto; }
 
 /* ===== 일정추가 버튼 ===== */
-.btn-add-event { width: 100%; margin-top: 20px; padding: 12px; border: 1px solid #e2e8f0; background: #f8fafc; border-radius: 8px; font-weight: 700; cursor: pointer; }
+.btn-add-event { width: 100%; margin-top: $md; }
 
 /* ===== 연간일정 뷰 ===== */
-.year-list-container { border-top: 2px solid #334155; padding-top: 20px; }
-.month-section { display: flex; padding: 20px 0; border-bottom: 1px solid #f1f5f9; align-items: center; }
-.month-badge { background: #f1f5f9; padding: 8px 20px; border-radius: 20px; font-weight: 800; min-width: 80px; text-align: center; flex-shrink: 0; }
-.month-content { flex: 1; margin-left: 40px; display: flex; flex-direction: column; gap: 10px; }
+.year-list-container { flex: 1; overflow-y: auto; border-top: 1px solid $border-color; }
+.month-section { display: flex; padding: $md 0; border-bottom: 1px solid $border-color; align-items: center; }
+.month-badge { background: $default-bg; border: 1px solid $border-color; padding: 6px 16px; border-radius: 20px; font-weight: 700;  min-width: 70px; margin: 0 $sm;text-align: center; flex-shrink: 0; color: $font-color-bold; }
+.month-content { flex: 1; margin-left: 32px; display: flex; flex-direction: column; gap: $sm; }
 .year-row { display: flex; align-items: center; gap: 12px; }
-.year-date-block { display: flex; align-items: center; gap: 4px; width: 130px; flex-shrink: 0; }
-.year-start, .year-end { font-weight: 700; color: #374957; font-size: 14px; }
-.year-tilde { color: #94a3b8; font-size: 13px; }
-.year-title { font-size: 14px; color: #334155; }
+.year-date-block { display: flex; align-items: center; gap: $xs; width: 120px; flex-shrink: 0; }
+.year-start, .year-end { font-weight: 600; color: $font-color;  }
+.year-tilde { color: $font-color-light;  }
+.year-title {  color: $font-color-bold; }
 </style>
