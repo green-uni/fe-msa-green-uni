@@ -69,9 +69,9 @@ const fetchList = async () => {
     Object.keys(params).forEach(k => params[k] === undefined && delete params[k]);
 
     const res = await LectureService.getAdminLectures(params);
-    const page = res.data?.data ?? {}; 
+    const page = res.data?? {}; 
     state.list       = page.content ?? [];
-    state.totalCount = page.totalElements ?? 0;
+    state.totalCount = Number(page.totalElements) ?? 0;
     maxPage.value    = page.totalPages ?? 1;
 
   } catch (err) {
