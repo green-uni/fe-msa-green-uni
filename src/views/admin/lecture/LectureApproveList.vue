@@ -63,13 +63,13 @@ const fetchList = async () => {
     const params = {
       status: filter.status || undefined,
       lectureName: searchInput.value || undefined,
-      page: state.currentPage,
+      page: state.currentPage,  // 0부터 시작
       size: pageSize.value,
     };
     Object.keys(params).forEach(k => params[k] === undefined && delete params[k]);
 
     const res = await LectureService.getAdminLectures(params);
-    const page = res.data ?? {};
+    const page = res.data?.data ?? {}; 
     state.list       = page.content ?? [];
     state.totalCount = page.totalElements ?? 0;
     maxPage.value    = page.totalPages ?? 1;

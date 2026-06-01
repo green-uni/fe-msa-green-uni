@@ -144,7 +144,7 @@ const fetchList = async () => {
       page = res.data ?? {};
     }
     state.list       = page.content ?? [];
-    state.totalCount = page.totalElements ?? 0;
+    state.totalCount = Number(page.totalElements ?? 0);
     maxPage.value    = page.totalPages ?? 1;
 
   } catch (err) {
