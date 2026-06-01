@@ -21,6 +21,9 @@ const maxPage    = ref(1)
 const totalCount = ref(0)
 const pageSize   = ref(10)
 const isLoading  = ref(false)
+const yearFilter = ref('')
+
+const yearOptions = ref([])
 
 const GRID_COLS = '60px 1fr 80px 120px'
 
@@ -32,6 +35,7 @@ const fetchList = async () => {
             size:       pageSize.value,
             targetRole: filter.targetRole || null,
             search:     searchQuery.value  || null,
+            year:       yearFilter.value   || null,
         })
         annoList.value   = res.content ?? []
         maxPage.value    = res.totalPages ?? 1
@@ -54,7 +58,8 @@ const truncate   = (text, max = 20) => text?.length > max ? text.slice(0, max) +
 
 watch(() => route.query, fetchList, { immediate: false })
 
-onMounted(() => {
+onMounted(async () => {
+    yearOptions.value = await AnnouncementService.getYears().catch(() => [])
     const hasUrlQuery = Object.keys(route.query).length > 0
     const stored = sessionStorage.getItem(`listFilter:${route.path}`)
     if (hasUrlQuery || !stored) fetchList()
@@ -89,6 +94,15 @@ onMounted(() => {
           @click="filter.targetRole = 'MEMBER'; onFilterChange()">교내 전체</button>
         <button class="filter-btn" :class="{ active: filter.targetRole === 'ALL' }"
           @click="filter.targetRole = 'ALL'; onFilterChange()">전체공개</button>
+      </div>
+      <div class="filter-item">
+        <div class="input-label">연도</div>
+        <div class="input-content">
+          <select v-model="yearFilter" @change="() => { currentPage = 1; fetchList() }">
+            <option value="">전체</option>
+            <option v-for="y in yearOptions" :key="y" :value="y">{{ y }}년</option>
+          </select>
+        </div>
       </div>
     </FilterBar>
 
