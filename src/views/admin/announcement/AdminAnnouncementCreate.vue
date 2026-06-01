@@ -20,7 +20,7 @@ const annoInfo = ref(null)
 const originalForm = ref(null)
 
 const targetRoleLabel = computed(() => {
-    const map = { STUDENT: '학생', PROFESSOR: '교수', ALL: '전체공개' }
+    const map = { STUDENT: '학생', PROFESSOR: '교수', MEMBER: '교내 전체', ALL: '전체공개' }
     return map[form.value.targetRole] ?? form.value.targetRole
 })
 
@@ -156,6 +156,9 @@ const handleDelete = async () => {
                   </label>
                   <label class="radio-label">
                     <input type="radio" v-model="form.targetRole" value="PROFESSOR" :disabled="isEditing" /> 교수
+                  </label>
+                  <label class="radio-label">
+                    <input type="radio" v-model="form.targetRole" value="MEMBER" :disabled="isEditing" /> 교내 전체
                   </label>
                   <label class="radio-label">
                     <input type="radio" v-model="form.targetRole" value="ALL" :disabled="isEditing" /> 전체공개

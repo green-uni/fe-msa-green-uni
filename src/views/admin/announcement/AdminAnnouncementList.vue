@@ -85,6 +85,8 @@ onMounted(() => {
           @click="filter.targetRole = 'STUDENT'; onFilterChange()">학생</button>
         <button class="filter-btn" :class="{ active: filter.targetRole === 'PROFESSOR' }"
           @click="filter.targetRole = 'PROFESSOR'; onFilterChange()">교수</button>
+        <button class="filter-btn" :class="{ active: filter.targetRole === 'MEMBER' }"
+          @click="filter.targetRole = 'MEMBER'; onFilterChange()">교내 전체</button>
       </div>
     </FilterBar>
 
