@@ -18,10 +18,8 @@ $green-400: #62c091;
 $green-300: #b2dfdb;
 $green-50:  #eef7f1;
 
-$border-color:        #e1e2e5;
-$bold-border-color:   #ddd;
-$table-border-color:  #ddd;
-$input-border-color:  #ddd;
+$border-color:       #e1e2e5;
+$bold-border-color:  #ddd;
 
 $default-bg: #f8f8f7;
 
@@ -35,6 +33,15 @@ $admin-font-color:   #d5d8db;
 $text-df:   14px;
 $font-sans: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
+// Font Sizes (px 정수 단계, 최솟값 12px)
+$fs-xs:  12px;   // 최솟값 — 배지, 메타, 타임스탬프
+$fs-sm:  13px;   // 보조 텍스트, 테이블 내용
+$fs-df:  14px;   // 기본값 (= html root)
+$fs-md:  15px;   // 약간 강조, 섹션 라벨
+$fs-lg:  16px;   // 카드 소제목
+$fs-xl:  18px;   // 섹션 헤딩
+$fs-xxl: 22px;   // 페이지·모달 헤딩
+
 // Sizes
 $size-xs: 0.75rem;
 $size-sm: 1rem;
@@ -46,13 +53,10 @@ $sm: 8px;
 $md: 16px;
 $lg: 24px;
 
-// Border Radius
-$bdrs-xs:   4px;
-$bdrs-sm:   8px;
-$bdrs-df:   15px;
-$radius:    14px;
+// Border Radius ($radius-* 단일 계열)
 $radius-xs: 4px;
 $radius-sm: 8px;
+$radius-df: 15px;
 
 // Shadows
 $shadow-1: 0 1px 2px rgba(15, 61, 46, 0.06);
@@ -68,52 +72,3 @@ $info:       #4a90e2;
 $info-bg:    #ebf5ff;
 $warning:    #d99000;
 $warning-bg: #fff9eb;
-
-// Ink Scale (중립 회색)
-$ink-900: #0e1a14;
-$ink-700: #2b3a33;
-$ink-500: #5a6b63;
-$ink-300: #aab5af;
-$line:    #e3eae6;
-$bg:      #f6f8f7;
-$white:   #ffffff;
-
-// =====================================================
-// CSS 커스텀 프로퍼티 (런타임)
-// SCSS 변수를 #{} 참조하여 값 중복 방지
-// =====================================================
-:root {
-  --font-color:             #{$font-color};
-  --font-color-light:       #{$font-color-light};
-  --main-color:             #{$green-600};
-  --hover-bg-color:         #{$hover-bg-color};
-  --default-hover-bg-color: #{$default-hover-bg-color};
-
-  --line-color:             #{$border-color};
-  --table-border-color:     #{$table-border-color};
-  --default-bg:             #{$default-bg};
-
-  --text-xs:  0.75rem;  /* 12px */
-  --text-sm:  0.875rem; /* 14px */
-  --text-md:  1rem;     /* 16px */
-  --text-lg:  1.25rem;  /* 20px */
-  --text-xl:  1.5rem;   /* 24px */
-  --text-xxl: 1.75rem;  /* 28px */
-
-  --size-xs: #{$size-xs};
-  --size-sm: #{$size-sm};
-  --size-df: #{$size-df};
-  --size-lg: #{$size-lg};
-
-  --bdrs-sm: #{$bdrs-sm};
-  --bdrs-df: #{$bdrs-df};
-
-  --success:    #{$success};
-  --success-bg: #{$success-bg};
-  --error:      #{$error};
-  --error-bg:   #{$error-bg};
-  --info:       #{$info};
-  --info-bg:    #{$info-bg};
-  --warning:    #{$warning};
-  --warning-bg: #{$warning-bg};
-}

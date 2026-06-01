@@ -113,17 +113,17 @@ const handleDelete = async () => {
 
     <!-- 상세 보기 (읽기 전용) -->
     <template v-if="isEdit && !isEditing">
-      <div v-if="annoInfo" class="anno-card">
-        <div class="anno-header">
+      <div v-if="annoInfo" class="post-card">
+        <div class="post-header">
           <h2>{{ form.title }}</h2>
-          <div class="anno-meta">
+          <div class="post-meta">
             <span>{{ annoInfo.writerName }}</span>
             <span>조회 {{ annoInfo.viewCount }}</span>
             <span>{{ formatDate(annoInfo.createdAt) }}</span>
             <span>대상 : {{ targetRoleLabel }}</span>
           </div>
         </div>
-        <div class="anno-body">{{ form.content }}</div>
+        <div class="post-body">{{ form.content }}</div>
       </div>
       <div class="page-footer">
         <button type="button" class="btn btn-default" @click="router.push('/admin/announcements')">

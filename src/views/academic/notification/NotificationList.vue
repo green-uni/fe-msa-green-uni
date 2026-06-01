@@ -166,19 +166,19 @@ onMounted(loadNotifications)
   background: #fff;
   z-index: 1;
 
-  .noti-title { font-weight: 600; font-size: 1rem; }
+  .noti-title { font-weight: 600; font-size: $fs-df; }
   .noti-actions { display: flex; align-items: center; gap: 10px; }
 }
 
 .btn-text {
-  background: none; border: none; font-size: 0.78rem;
+  background: none; border: none; font-size: $fs-xs;
   color: #888; cursor: pointer; padding: 0;
   &:hover { color: #333; }
 }
 
 .btn-close {
   background: none; border: none; color: #aaa;
-  font-size: 1rem; cursor: pointer; padding: 2px 4px;
+  font-size: $fs-df; cursor: pointer; padding: 2px 4px;
   &:hover { color: #333; }
 }
 
@@ -186,7 +186,7 @@ onMounted(loadNotifications)
 
 .noti-empty {
   padding: 60px 16px; text-align: center;
-  color: #aaa; font-size: 0.875rem;
+  color: #aaa; font-size: $fs-xs;
 }
 
 ul { list-style: none; margin: 0; padding: 0; }
@@ -211,10 +211,10 @@ ul { list-style: none; margin: 0; padding: 0; }
   flex: 1; min-width: 0;
 
   .noti-message {
-    font-size: 0.875rem; line-height: 1.4;
+    font-size: $fs-xs; line-height: 1.4;
     margin: 0 0 4px; word-break: keep-all;
   }
-  .noti-date { font-size: 0.75rem; color: #aaa; }
+  .noti-date { font-size: $fs-xs; color: #aaa; }
 }
 
 .btn-delete {

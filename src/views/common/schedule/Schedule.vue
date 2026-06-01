@@ -377,14 +377,14 @@ fetchSchedules()
 .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: $sm; padding-bottom:$sm; flex-shrink: 0; }
 .date-selector { display: flex; gap: 10px; flex: 1; justify-content: center; margin-left: 100px; align-items: center; }
 .select-box { border: 1px solid $border-color; padding: 6px 16px; border-radius: 20px; display: flex; align-items: center; gap: 6px; font-weight: 600; user-select: none; }
-.month{font-weight: 600; padding: 0 $sm;font-size: 1.1em;  }
+.month{font-weight: 600; padding: 0 $sm;font-size: $fs-lg;  }
 
 /* 이전/다음 달 네비게이션 버튼 */
 .nav-btn { border: 1px solid $border-color; background: $default-bg; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;color: $font-color; }
 
 /* ===== 연도 선택 팝업 ===== */
 .year-picker-wrap { position: relative; }
-.year-arrow { font-size: 11px; color: $font-color-light; }
+.year-arrow { font-size: $fs-xs; color: $font-color-light; }
 .year-popup {
   position: absolute;  top: calc(100% + 6px);  left: 50%;  transform: translateX(-50%);
   background: #fff;  border: 1px solid $border-color;  border-radius: 10px;  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
@@ -415,10 +415,10 @@ fetchSchedules()
     th:last-child{border-right: none !important;}
     tr:last-child td{ border-bottom: none !important;}
   }
-  .fc-col-header-cell { background-color: $default-bg; font-size: .9em; font-weight: bold; }
+  .fc-col-header-cell { background-color: $default-bg; font-size: $fs-xs; font-weight: bold; }
   .fc-day-today { background-color: rgba($green-600, 0.08) !important; }
-  .fc-daygrid-day-number { font-size: 0.9em !important; opacity: .8; }
-  .fc-event { font-weight: 500;font-size: .9em; padding: 2px $sm; margin-bottom: 2px; border-width: 0 0 0 3px !important; box-shadow: 0 2px 2px rgba(0, 0, 0, 0.15); transition: all 0.2s ease;}
+  .fc-daygrid-day-number { font-size: $fs-xs !important; opacity: .8; }
+  .fc-event { font-weight: 500;font-size: $fs-xs; padding: 2px $sm; margin-bottom: 2px; border-width: 0 0 0 3px !important; box-shadow: 0 2px 2px rgba(0, 0, 0, 0.15); transition: all 0.2s ease;}
 }
 
 /* ===== 달력 이벤트 강조 (클릭 시) ===== */
@@ -430,7 +430,7 @@ fetchSchedules()
 :deep(.active-bar .fc-event-main) { color: #fff !important; }
 
 /* ===== 사이드바 일정 목록 ===== */
-.sidebar-title { font-size: 1.2em; font-weight: 700; color: $font-color-bold; margin-bottom: $md; }
+.sidebar-title { font-size: $fs-lg; font-weight: 700; color: $font-color-bold; margin-bottom: $md; }
 .event-card { padding: $md $sm; border-bottom: 1px solid $border-color; cursor: pointer; transition: all 0.15s;
 &:first-child{border-top: 1px solid $border-color;}
 }

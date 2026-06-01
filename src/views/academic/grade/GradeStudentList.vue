@@ -67,7 +67,7 @@ onMounted(fetchGrades)
     <div style="position: relative">
         <LoadingSpinner v-if="isLoading" :overlay="true" size="md" />
 
-        <FilterBar :hasFilter="false" :showSearch="false">
+        <FilterBar :hasFilter="false" :showSearch="false" :showCount="true" :count="grades.length">
             <div class="filter-item">
                 <div class="input-label">학년도</div>
                 <div class="input-content">

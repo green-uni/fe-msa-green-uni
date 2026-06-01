@@ -2,16 +2,16 @@
 
 /* === Form 레이아웃 === */
 .form-wrap { display: flex; flex-direction: column; border-radius: $radius-sm;gap: 16px;}
-.form-grid { display: grid; grid-template-columns: var(--grid-cols); row-gap: 15px; padding: var(--size-df);}
+.form-grid { display: grid; grid-template-columns: var(--grid-cols); row-gap: $md; padding: $size-df;}
 .form-wrap .content-wrap { 
   padding: 0; gap: 0; border: 1px solid $border-color;overflow:hidden;
-  h3 { font-weight: 700; font-size: 1.05em; color: $font-color-bold; padding: 10px 15px; border-bottom: 1px solid $border-color; display: flex; align-items: center; gap: 8px; background-color: $default-bg; }
+  h3 { font-weight: 700; font-size: $fs-md; color: $font-color-bold; padding: 10px $md; border-bottom: 1px solid $border-color; display: flex; align-items: center; gap: 8px; background-color: $default-bg; }
 }
 .form-wrap .input-label  { white-space: normal; }
 
 /* === Input 디자인 === */
 .input-wrap {
-  display: grid; grid-template-columns: 70px 1fr; align-items: center; gap: 15px;
+  display: grid; grid-template-columns: 70px 1fr; align-items: center; gap: $md;
   .input-content { width: 100%; }
 }
 .input-label {

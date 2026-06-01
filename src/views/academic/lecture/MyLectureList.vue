@@ -74,7 +74,8 @@ const onTabClick = (tab) => {
 };
 
 // ── 상태 ────────────────────────────────────────
-const PAGE_SIZE = 10;
+const pageSize = ref(10)
+const pageSizeOptions = [10, 20, 30]
 
 const state = reactive({
   list: [],
@@ -127,7 +128,7 @@ const fetchList = async () => {
       semester: filter.semester || undefined,
       lectureName: searchInput.value || undefined,
       page: state.currentPage,
-      size: PAGE_SIZE,
+      size: pageSize.value,
     };
     if (isProfessor.value && filter.status) {
       params.status = filter.status;
@@ -219,6 +220,8 @@ const moveToDetail = (id) => {
   });
 };
 
+watch(pageSize, () => { state.currentPage = 1; pushQuery() })
+
 // ── watch ─────────────────────────────────────────
 watch(
   () => route.query,
@@ -277,6 +280,10 @@ onMounted(() => {
       placeholder="강의명을 입력하세요"
       :showCount="true"
       :count="state.totalCount"
+      :showPageSize="true"
+      v-model:pageSize="pageSize"
+      :pageSizeOptions="pageSizeOptions"
+      @pageSizeChange="() => { state.currentPage = 1 }"
       v-model:searchQuery="searchQuery"
       @search="onSearch"
       @select="(item) => { searchInput.value = item.lectureName; searchQuery.value = item.lectureName; state.currentPage = 1; }"
@@ -312,12 +319,12 @@ onMounted(() => {
     </FilterBar>
 
     <div v-if="isStudent && periodMessage" class="card d-flex ai-center g10">
-      <font-awesome-icon icon="fa-solid fa-circle-exclamation" style="color: var(--main-color);" />
+      <font-awesome-icon icon="fa-solid fa-circle-exclamation" style="color: #3e9e7e;" />
       {{ periodMessage }}
     </div>
 
     <div v-if="isStudent && modificationNotice" class="card d-flex ai-center g10">
-      <font-awesome-icon icon="fa-solid fa-circle-info" style="color: var(--main-color);" />
+      <font-awesome-icon icon="fa-solid fa-circle-info" style="color: #3e9e7e;" />
       {{ modificationNotice }}
     </div>
 

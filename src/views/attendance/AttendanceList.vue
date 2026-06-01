@@ -346,7 +346,7 @@ function today() {
 }
 
 /* 수정 모드 라디오 — 전역 radio-group 사용, 테이블 셀 내 크기만 override */
-.radio-group { font-size: 0.875em; flex-wrap: wrap; }
+.radio-group { font-size: $fs-xs; flex-wrap: wrap; }
 /* 출석 상태별 선택 시 텍스트 색상 — modifier 클래스 기반 */
 .radio-label {
   &:has(input:checked)             { color: $green-600; }
@@ -355,5 +355,5 @@ function today() {
   &.early-leave:has(input:checked) { color: #e65100; }
 }
 
-.roster-count {  margin-top:$md; font-size: .9em; color: $font-color-light; text-align: center;}
+.roster-count {  margin-top:$md; font-size: $fs-xs; color: $font-color-light; text-align: center;}
 </style>

@@ -11,5 +11,5 @@ const router = useRouter()
 </template>
 
 <style scoped lang="scss">
-.pub-title { font-size: 1.1em; font-weight: 700; color: $font-color-bold; border-left: 3px solid $green-600; padding-left: 10px; }
+.pub-title { font-size: $fs-lg; font-weight: 700; color: $font-color-bold; border-left: 3px solid $green-600; padding-left: 10px; }
 </style>

@@ -273,7 +273,7 @@ function today() {
 <style scoped lang="scss">
 .attendance-roster-page {
   width: 100%;
-  padding: 28px var(--size-df);
+  padding: 28px $size-df;
   overflow: visible;
   position: relative;
 }
@@ -287,7 +287,7 @@ function today() {
   position: relative;
   z-index: 50;
 }
-.date-label { font-size: 0.875em; font-weight: 600; white-space: nowrap; }
+.date-label { font-size: $fs-xs; font-weight: 600; white-space: nowrap; }
 
 /* 최소 높이 — 인원 적어도 레이아웃 안정 */
 .roster-table {
@@ -298,7 +298,7 @@ function today() {
 }
 
 /* 수정 모드 라디오 — 전역 _form.scss radio-label과 충돌하여 scoped 유지 */
-.radio-group { display: flex; gap: 14px; font-size: 0.875em; flex-wrap: wrap; justify-content: flex-start; }
+.radio-group { display: flex; gap: 14px; font-size: $fs-xs; flex-wrap: wrap; justify-content: flex-start; }
 .radio-label {
   cursor: pointer; display: flex; align-items: center; gap: 4px;
   padding-left: 0;
@@ -318,7 +318,7 @@ function today() {
 }
 .roster-count {
   margin-top: 8px;
-  font-size: 0.85em;
+  font-size: $fs-xs;
   color: $font-color-light;
 }
 </style>

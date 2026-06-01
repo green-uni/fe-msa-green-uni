@@ -455,7 +455,7 @@ onUnmounted(() => stopStream())
 /* QR 영역 */
 .qr-wrapper { display: flex; flex-direction: column; align-items: center; gap: 12px; background: #fff;  border: 1px solid $border-color; border-radius: 8px; padding: 24px; width: 100%;}
 .qr-image   { border-radius: 8px; overflow: hidden;}
-.qr-loading {  width: 280px; height: 280px; display: flex; align-items: center; justify-content: center; background: #f4f6ff; border-radius: 8px; font-size: 0.875em; color: $font-color-light;}
+.qr-loading {  width: 280px; height: 280px; display: flex; align-items: center; justify-content: center; background: #f4f6ff; border-radius: 8px; font-size: $fs-xs; color: $font-color-light;}
 .countdown-bar-wrap {
   width: 280px; height: 6px; background: $border-color; border-radius: 3px; overflow: hidden;
   .countdown-bar { height: 100%; background: $green-600; border-radius: 3px; transition: width 0.9s linear;}

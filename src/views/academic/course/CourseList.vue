@@ -278,8 +278,8 @@ onMounted(async () => {
     <!-- 신청 내역 — 독립 섹션, 로딩 없음 -->
     <div class="d-flex jc-space-b ai-center mt-md" style="margin-bottom: 14px;">
       <p class="section-title" style="margin: 0;">신청 내역</p>
-      <span style="font-size: 0.9em;">
-        신청 학점: <strong style="color: var(--main-color);">{{ myCourseData.totalEnrolledCredits }}</strong>학점
+      <span style="font-size: 12px;">
+        신청 학점: <strong style="color: #3e9e7e;">{{ myCourseData.totalEnrolledCredits }}</strong>학점
       </span>
     </div>
 

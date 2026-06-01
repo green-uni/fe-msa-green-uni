@@ -31,7 +31,8 @@ const onTabClick = (tab) => {
 };
 
 // ── 상태 ────────────────────────────────────────
-const PAGE_SIZE = 10;
+const pageSize = ref(10)
+const pageSizeOptions = [10, 20, 30]
 
 const state = reactive({
   list: [],
@@ -63,7 +64,7 @@ const fetchList = async () => {
       status: filter.status || undefined,
       lectureName: searchInput.value || undefined,
       page: state.currentPage,
-      size: PAGE_SIZE,
+      size: pageSize.value,
     };
     Object.keys(params).forEach(k => params[k] === undefined && delete params[k]);
 
@@ -129,6 +130,8 @@ const moveToDetail = (id) => {
   });
 };
 
+watch(pageSize, () => { state.currentPage = 1; pushQuery() })
+
 // ── watch ─────────────────────────────────────────
 watch(
   () => route.query,
@@ -168,6 +171,10 @@ watch(
       placeholder="강의명 또는 교수명"
       :showCount="true"
       :count="state.totalCount"
+      :showPageSize="true"
+      v-model:pageSize="pageSize"
+      :pageSizeOptions="pageSizeOptions"
+      @pageSizeChange="() => { state.currentPage = 1 }"
       v-model:searchQuery="searchQuery"
       @search="onSearch"
       @select="(item) => { searchInput.value = item.lectureName; searchQuery.value = item.lectureName; }"

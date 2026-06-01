@@ -21,7 +21,7 @@
   cursor: pointer;
   border: 1px solid $border-color;
   font-weight: 500;
-  font-size: 13px;
+  font-size: $fs-sm;
   transition: filter 0.15s;
   line-height: 1;
 }
@@ -30,7 +30,7 @@
    [ 표준2 ] 크기
    ===================================================== */
 /* 소형 버튼 */
-.btn.btn-sm { padding: 5px 12px 4px; font-size: 0.85em; font-weight: 400; border-radius: 3px;}
+.btn.btn-sm { padding: 5px 12px 4px; font-size: $fs-xs; font-weight: 400; border-radius: 3px;}
 
 /* =====================================================
    [ 표준3 ] 색상 / 용도

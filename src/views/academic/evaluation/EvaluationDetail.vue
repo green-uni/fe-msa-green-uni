@@ -135,6 +135,7 @@ onMounted(fetchData);
           본 설문은 수업 개선의 기초 및 교육의 질적인 향상을 위해 실시합니다.
           성실하게 작성하여 주시기 바랍니다.
         </p>
+      <div class="tbl-scroll">
         <table class="data-tbl" style="margin-top: 14px;">
           <thead>
             <tr>
@@ -164,6 +165,7 @@ onMounted(fetchData);
           </tbody>
         </table>
       </div>
+      </div>
 
       <!-- 완료 조회 -->
       <div v-else-if="detail?.score != null" class="card">
@@ -183,7 +185,8 @@ onMounted(fetchData);
             </dd>
           </dl>
         </div>
-        <table class="data-tbl" style="margin-top: 14px;">
+      <div class="tbl-scroll" style="margin-top: 14px;">
+        <table class="data-tbl">
           <thead>
             <tr><th>구분</th><th>조사 항목</th><th>응답</th></tr>
           </thead>
@@ -195,6 +198,7 @@ onMounted(fetchData);
             </tr>
           </tbody>
         </table>
+        </div>
         <div style="margin-top: 14px;">
           <p class="section-title">강의평가</p>
           <div class="comment-box">{{ detail?.comment }}</div>

@@ -34,16 +34,16 @@ onMounted(fetchDetail)
     <LoadingSpinner v-if="isLoading" :overlay="true" size="md" />
 
     <template v-if="anno">
-      <div class="anno-card">
-        <div class="anno-header">
+      <div class="post-card">
+        <div class="post-header">
           <h2>{{ anno.title }}</h2>
-          <div class="anno-meta">
+          <div class="post-meta">
             <span>{{ anno.writerName }}</span>
             <span>조회 {{ anno.viewCount }}</span>
             <span>{{ formatDate(anno.createdAt) }}</span>
           </div>
         </div>
-        <div class="anno-body">{{ anno.content }}</div>
+        <div class="post-body">{{ anno.content }}</div>
       </div>
 
       <div class="page-footer">

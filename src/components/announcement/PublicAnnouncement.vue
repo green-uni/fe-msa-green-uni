@@ -26,7 +26,7 @@ const formatDate = (dateStr) => dateStr?.slice(0, 10) ?? ''
       </header>
       <ul class="notice__list">
         <li v-if="annoList.length === 0">
-          <span style="color:#aaa; font-size:0.85rem;">공지사항이 없습니다.</span>
+          <span style="color:#aaa; font-size:12px;">공지사항이 없습니다.</span>
         </li>
         <li v-for="anno in annoList" :key="anno.annoId">
           <a href="#" @click.prevent="router.push(`/public/announcements/${anno.annoId}`)">{{ anno.title }}</a>
@@ -48,7 +48,7 @@ a { color: inherit; text-decoration: none; }
 
     h2 {
       margin: 0;
-      font-size: 15px;
+      font-size: $fs-md;
       font-weight: 700;
       &::before {
         content: "";
@@ -62,7 +62,7 @@ a { color: inherit; text-decoration: none; }
     }
 
     .link-more {
-      font-size: 12px;
+      font-size: $fs-xs;
       opacity: 0.5;
       transition: opacity 0.15s;
       &:hover { opacity: 1; }
@@ -82,7 +82,7 @@ a { color: inherit; text-decoration: none; }
       padding: 9px 4px;
       border-bottom: 1px solid rgba(128, 128, 128, 0.2);
       opacity: 0.9;
-      font-size: 14px;
+      font-size: $fs-df;
 
       &:last-child { border-bottom: 0; }
 
@@ -94,7 +94,7 @@ a { color: inherit; text-decoration: none; }
         &:hover { color: $green-600; }
       }
       time {
-        font-size: 12px;
+        font-size: $fs-xs;
         opacity: 0.55;
         flex: 0 0 auto;
       }
