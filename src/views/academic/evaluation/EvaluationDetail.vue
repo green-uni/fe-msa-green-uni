@@ -200,7 +200,7 @@ onMounted(fetchData);
         </table>
         </div>
         <div style="margin-top: 14px;">
-          <p class="section-title">강의평가</p>
+          <p class="section-title">한줄평</p>
           <div class="comment-box">{{ detail?.comment }}</div>
         </div>
       </div>
@@ -257,7 +257,7 @@ onMounted(fetchData);
             </tbody>
           </table>
           <div style="margin-top: 14px;">
-            <p class="section-title">수강평가</p>
+            <p class="section-title">한줄평</p>
             <div v-for="(c, i) in detail.comments" :key="i" class="comment-box">{{ c }}</div>
             <p v-if="!detail.comments?.length" class="empty-text">작성된 수강평가가 없습니다.</p>
           </div>
