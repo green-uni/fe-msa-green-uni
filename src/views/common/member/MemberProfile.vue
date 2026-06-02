@@ -267,9 +267,8 @@ onMounted(async () => {
 }
 
 .profile-info {
-  h2 { font-size: $fs-lg; font-weight: 700; margin: 0; }
-  span { color: $font-color-light; font-size: $fs-xs; }
+  h2 { font-size: $fs-xl; font-weight: 700; margin: 0; }
+  span { color: $font-color-light; font-size: $fs-sm; }
 }
-
 .info-key { min-width: 90px; }
 </style>

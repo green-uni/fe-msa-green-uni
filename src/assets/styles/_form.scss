@@ -4,7 +4,7 @@
 .form-wrap { display: flex; flex-direction: column; border-radius: $radius-sm;gap: 16px;}
 .form-grid { display: grid; grid-template-columns: var(--grid-cols); row-gap: $md; padding: $size-df;}
 .form-wrap .content-wrap { 
-  padding: 0; gap: 0; border: 1px solid $border-color;overflow:hidden;
+  padding: 0; gap: 0; border: 1px solid $border-color;
   h3 { font-weight: 700; font-size: $fs-md; color: $font-color-bold; padding: 10px $md; border-bottom: 1px solid $border-color; display: flex; align-items: center; gap: 8px; background-color: $default-bg; }
 }
 .form-wrap .input-label  { white-space: normal; }
