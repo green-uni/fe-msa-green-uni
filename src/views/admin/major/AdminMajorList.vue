@@ -73,7 +73,7 @@ async function fetchMajorList() {
   try {
     const status = state.activeTab === 'ALL' ? null : state.activeTab
     const search = searchInput.value.trim() || null
-    const page   = state.currentPage - 1   // 0-based
+    const page   = state.currentPage
 
     const res = await majorService.getMajorList({
       status,
@@ -210,7 +210,7 @@ const gridCols = '1.4fr 1fr 1.2fr 1.2fr 100px 80px 80px 100px'
       :currentPage="state.currentPage"
       :maxPage="state.totalPages"
       :pageGroupSize="5"
-      @goToPage="onPageChange"
+      @goToPage="onPageChange($event)"
     />
   </div>
 </template>

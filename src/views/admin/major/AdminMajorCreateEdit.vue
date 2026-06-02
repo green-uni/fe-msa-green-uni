@@ -221,6 +221,11 @@ watch(() => form.active, async (newVal) => {
       console.error(e)
     }
   }
+  
+  // [추가] 상태를 다시 '정상'으로 바꾸면 입력 중이던 폐지일 데이터 초기화
+  if (newVal === '정상') {
+    form.closedDate = ''
+  }
 })
 
 // ↓ [추가] 화면 표시용 교수 리스트 정의 ('이름(코드)' 형태)
@@ -274,14 +279,15 @@ const displayProfessorList = computed(() => {
 
           <div class="input-wrap">
             <div class="input-label">학과장명</div>
-            <div class="input-content">
+            <div class="input-content" :class="{ 'disabled-style': !isEdit }">
               <SearchInput
                 v-model="professorKeyword"
                 :list="displayProfessorList"
                 label-key="displayName"
                 value-key="memberCode"
-                placeholder="교수명을 입력하세요"
-                :show-on-focus="true"
+                placeholder="학과 개설 후 지정 가능합니다"
+                :show-on-focus="isEdit"
+                :disabled="!isEdit"
                 @select="onSelectProfessor"
               />
             </div>
@@ -328,7 +334,7 @@ const displayProfessorList = computed(() => {
             </div>
           </div>
 
-          <div class="input-wrap">
+          <div v-if="form.active === '폐지'" class="input-wrap">
             <div class="input-label">폐지일</div>
             <div class="input-content">
               <CalendarDate v-model="form.closedDate" />
@@ -373,3 +379,11 @@ const displayProfessorList = computed(() => {
     </div>
   </div>
 </template>
+<style scoped lang="scss">
+.disabled-style {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+  opacity: 0.7;
+  pointer-events: none; /* 클릭 이벤트 통째로 막기 */
+}
+</style>
