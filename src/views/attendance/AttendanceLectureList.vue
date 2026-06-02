@@ -103,7 +103,7 @@
 
           <div class="modal-actions">
             <button class="btn btn-gray" @click="modalStep = 'action'">뒤로</button>
-            <button class="btn btn-primary" :disabled="!selectedCancelDate" @click="goToMakeupQR">
+            <button class="btn btn-submit" :disabled="!selectedCancelDate" @click="goToMakeupQR">
               보강 QR 시작
             </button>
           </div>
@@ -367,7 +367,7 @@ function formatCancelDate(dateStr) {
   font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity 0.2s;
   &:disabled { opacity: 0.5; cursor: not-allowed; }
   &.btn-search  { background: #4a7cf7; color: #fff; &:hover:not(:disabled) { opacity: 0.85; } }
-  &.btn-primary { background: #4a7cf7; color: #fff; &:hover:not(:disabled) { opacity: 0.85; } }
+  &.btn-submit { background: #4a7cf7; color: #fff; &:hover:not(:disabled) { opacity: 0.85; } }
   &.btn-gray    { background: #e0e0e0; color: #555; &:hover:not(:disabled) { opacity: 0.85; } }
 }
 </style>

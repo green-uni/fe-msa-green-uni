@@ -36,11 +36,28 @@ body.pwa-view #app { height: auto; min-height: 100vh; min-height: 100dvh; overfl
 .g20 { gap: 20px !important; }
 .g30 { gap: 30px !important; }
 
+.mt-sm { margin-top: 8px !important; }
+.mt-md { margin-top: 16px !important; }
+.mt-lg { margin-top: 24px !important; }
+
 .jc-space-b { justify-content: space-between; }
 .jc-center  { justify-content: center; }
 .jc-end     { justify-content: end; }
 .ai-end     { align-items: end; }
 .ai-center  { align-items: center; }
+
+.por{position: relative;}
+.tac        { text-align: center !important; }
+.tal        { text-align: left !important; justify-content: flex-start !important; }
+.pre-line   { white-space: pre-line; }
+.text-sub   { color: $font-color-light; margin-left: 4px; }
+
+/* 출석 상태 텍스트 색상 */
+.text-attend      { color: $green-600; }
+.text-absent      { color: #d32f2f; }
+.text-late        { color: #f57f17; }
+.text-early-leave { color: #e65100; }
+.vam {vertical-align: middle!important;}
 
 /* [추후 삭제 예정] 개발용 스크롤 테스트 클래스 */
 // .scrollbar { width: 250px; height: 250px; overflow-y: scroll; }

@@ -8,7 +8,8 @@ import DataTable from '@/components/common/DataTable.vue';
 import FilterBar from '@/components/common/FilterBar.vue';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import Pagination from '@/components/common/Pagination.vue';
-import { APPROVAL_STATUS, BUILDING_LABEL } from '@/utils/constants';
+import { APPROVAL_STATUS } from '@/utils/constants';
+import { scheduleText, roomText } from '@/utils/scheduleHelpers';
 
 const route = useRoute();
 const router = useRouter();
@@ -73,7 +74,8 @@ const onTabClick = (tab) => {
 };
 
 // ── 상태 ────────────────────────────────────────
-const PAGE_SIZE = 10;
+const pageSize = ref(10)
+const pageSizeOptions = [10, 20, 30]
 
 const state = reactive({
   list: [],
@@ -99,17 +101,6 @@ const LECTURE_TYPE_LABEL = {
   MAJOR_ELECTIVE: '전공선택',
 };
 const lectureTypeLabel = (code) => LECTURE_TYPE_LABEL[code] || code;
-
-// ── schedule 헬퍼 ─────────────────────────────────
-const scheduleText = (schedules) => {
-  if (!schedules?.length) return '-';
-  return schedules.map(s => `${s.dayOfWeek} ${s.startPeriod}~${s.endPeriod}교시`).join(',\n');
-};
-const roomText = (schedules) => {
-  if (!schedules?.length) return '-';
-  const rooms = [...new Set(schedules.map(s => `${BUILDING_LABEL[s.building] ?? s.building ?? ''} ${s.room ?? ''}`.trim()))];
-  return rooms.join(',\n');
-};
 
 // ── 테이블 컬럼 설정 ──────────────────────────────
 const tableConfig = computed(() => {
@@ -137,7 +128,7 @@ const fetchList = async () => {
       semester: filter.semester || undefined,
       lectureName: searchInput.value || undefined,
       page: state.currentPage,
-      size: PAGE_SIZE,
+      size: pageSize.value,
     };
     if (isProfessor.value && filter.status) {
       params.status = filter.status;
@@ -153,7 +144,7 @@ const fetchList = async () => {
       page = res.data ?? {};
     }
     state.list       = page.content ?? [];
-    state.totalCount = page.totalElements ?? 0;
+    state.totalCount = Number(page.totalElements ?? 0);
     maxPage.value    = page.totalPages ?? 1;
 
   } catch (err) {
@@ -229,6 +220,8 @@ const moveToDetail = (id) => {
   });
 };
 
+watch(pageSize, () => { state.currentPage = 1; pushQuery() })
+
 // ── watch ─────────────────────────────────────────
 watch(
   () => route.query,
@@ -287,6 +280,10 @@ onMounted(() => {
       placeholder="강의명을 입력하세요"
       :showCount="true"
       :count="state.totalCount"
+      :showPageSize="true"
+      v-model:pageSize="pageSize"
+      :pageSizeOptions="pageSizeOptions"
+      @pageSizeChange="() => { state.currentPage = 1 }"
       v-model:searchQuery="searchQuery"
       @search="onSearch"
       @select="(item) => { searchInput.value = item.lectureName; searchQuery.value = item.lectureName; state.currentPage = 1; }"
@@ -322,12 +319,12 @@ onMounted(() => {
     </FilterBar>
 
     <div v-if="isStudent && periodMessage" class="card d-flex ai-center g10">
-      <font-awesome-icon icon="fa-solid fa-circle-exclamation" style="color: var(--main-color);" />
+      <font-awesome-icon icon="fa-solid fa-circle-exclamation" style="color: #3e9e7e;" />
       {{ periodMessage }}
     </div>
 
     <div v-if="isStudent && modificationNotice" class="card d-flex ai-center g10">
-      <font-awesome-icon icon="fa-solid fa-circle-info" style="color: var(--main-color);" />
+      <font-awesome-icon icon="fa-solid fa-circle-info" style="color: #3e9e7e;" />
       {{ modificationNotice }}
     </div>
 
@@ -349,8 +346,8 @@ onMounted(() => {
         <!-- 교수: 전공명 / 학생: 교수명 -->
         <div v-if="isProfessor">{{ item.majorName }}</div>
         <div v-else>{{ item.proName }}</div>
-        <div style="white-space: pre-line;">{{ scheduleText(item.schedules) }}</div>
-        <div style="white-space: pre-line;">{{ roomText(item.schedules) }}</div>
+        <div class="pre-line">{{ scheduleText(item.schedules) }}</div>
+        <div class="pre-line">{{ roomText(item.schedules) }}</div>
         <div>{{ item.credit }}</div>
         <!-- 교수 추가 컬럼 -->
         <template v-if="isProfessor">

@@ -3,7 +3,6 @@ import { ref, onMounted } from 'vue'
 import memberService from '@/services/memberService'
 import { APPROVAL_STATUS, MAJOR_REQUEST_TYPE, STATUS_REQUEST_TYPE } from '@/utils/constants.js'
 
-const CATEGORY_LABEL = { STATUS: '학적변경 신청', MAJOR: '전공변경 신청' }
 const TYPE_LABEL_MAP = { STATUS: STATUS_REQUEST_TYPE, MAJOR: MAJOR_REQUEST_TYPE }
 
 const items = ref([])
@@ -29,14 +28,13 @@ onMounted(async () => {
       <div v-for="(item, index) in items" :key="item.requestId" class="request-item">
         <div class="item-row">
           <div class="item-info">
-            <span class="category">{{ CATEGORY_LABEL[item.requestCategory] ?? item.requestCategory }}</span>
             <span class="type-name">{{ TYPE_LABEL_MAP[item.requestCategory]?.[item.type] ?? item.type }}</span>
+            <span class="item-date">{{ formatDate(item.createdAt) }}</span>
           </div>
           <span class="status-badge" :class="`status-${item.status?.toLowerCase()}`">
             {{ APPROVAL_STATUS[item.status] ?? item.status }}
           </span>
         </div>
-        <p class="item-date">{{ formatDate(item.createdAt) }}</p>
         <hr v-if="index < items.length - 1" class="divider" />
       </div>
       <div v-if="items.length === 0" class="empty-msg">
@@ -72,34 +70,36 @@ onMounted(async () => {
 
 .widget-body { display: flex; flex-direction: column; }
 
-.request-item { margin-bottom: 12px; }
+.request-item { margin-bottom: 8px; }
 
 .item-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 4px;
+  gap: 8px;
 }
 
 .item-info {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.category {
-  font-size: 0.786em;
-  color: $font-color-light;
+  align-items: baseline;
+  gap: 6px;
 }
 
 .type-name {
-  font-size: 1em;
+  font-size: $fs-sm;
   font-weight: 600;
   color: $font-color;
 }
 
+.item-date {
+  font-size: $fs-xs;
+  color: $font-color-light;
+  margin: 0;
+  white-space: nowrap;
+}
+
 .status-badge {
-  font-size: 0.786em;
+  font-size: $fs-xs;
   font-weight: 600;
   border-radius: 4px;
   padding: 2px 6px;
@@ -108,12 +108,6 @@ onMounted(async () => {
   &.status-pending  { color: $warning;  background-color: $warning-bg; }
   &.status-approved { color: $success;  background-color: $success-bg; }
   &.status-rejected { color: $error;    background-color: $error-bg; }
-}
-
-.item-date {
-  font-size: 0.857em;
-  color: $font-color-light;
-  margin: 0 0 12px;
 }
 
 .divider {

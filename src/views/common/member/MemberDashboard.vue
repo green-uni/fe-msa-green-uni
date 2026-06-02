@@ -57,11 +57,10 @@ onMounted(async () => {
         </div>
       </header>
       <div class="student-grid">
-        <div class="content-wrap student-main">
+        <div class="">
           <TimetableWidget />
         </div>
         <div class="student-side">
-          <div class="content-wrap placeholder-cell">이번 학기 출석 현황</div>
           <div class="content-wrap"><StudentRequestsWidget /></div>
           <div class="content-wrap"><AnnouncementWidget /></div>
           <div class="content-wrap"><MonthlyScheduleWidget /></div>
@@ -87,12 +86,11 @@ onMounted(async () => {
         </div>
       </header>
       <div class="professor-grid">
-        <div class="content-wrap professor-main">
+        <div class="">
           <TimetableWidget />
         </div>
         <div class="professor-side">
           <div class="content-wrap"><TodayLectureWidget /></div>
-          <div class="content-wrap placeholder-cell">오늘 강의별 출석현황</div>
           <div class="content-wrap"><AnnouncementWidget /></div>
           <div class="content-wrap"><MonthlyScheduleWidget /></div>
         </div>
@@ -141,10 +139,10 @@ $gap: 16px;
 // ─── 헤더 (인삿말 + 배너) ─────────────────────────────────
 .dash-head {  display: grid;  grid-template-columns: 1fr 2fr; align-items: center;  gap: 24px;  flex-shrink: 0;
     .dash-greeting {  flex-shrink: 0;
-        .dash-name {  font-size: 1.286em;   font-weight: 400;  color: $font-color;
+        .dash-name {  font-size: $fs-xl;   font-weight: 400;  color: $font-color;
             strong { font-weight: 700; }
         }
-        .dash-sub {  font-size: 0.929em;  color: $font-color-light;  margin-top: 4px;}
+        .dash-sub {  font-size: $fs-sm;  color: $font-color-light;  margin-top: 4px;}
     }
     .dash-banner {  flex: 1;  min-width: 0;}
 }
@@ -152,29 +150,34 @@ $gap: 16px;
 .dash-col { display: flex;  flex-direction: column;  gap: $gap;  height: 100%;}
 
 // ─── 학생 레이아웃 ────────────────────────────────────────
-.student-grid {  flex: 1;  display: grid;  grid-template-columns: 1fr 2fr;  gap: $gap;  min-height: 0;}
-.student-main { overflow: auto; }
-.student-side {  display: grid;  grid-template-columns: 1fr 1fr;  grid-template-rows: 1fr 1fr;  gap: $gap;}
+.student-grid {  flex: 1;  display: grid;  grid-template-columns: 2fr 1fr;  gap: $gap;  min-height: 0;}
+.student-main { overflow: hidden; display: flex; flex-direction: column; padding: $md; }
+.student-side {  display: flex;  flex-direction: column;  gap: $gap;
+  > .content-wrap { flex: 1; min-height: 0; overflow-y: auto; padding: $md; }
+}
 
 // ─── 교수 레이아웃 ────────────────────────────────────────
-.professor-grid {  flex: 1;  display: grid;  grid-template-columns: 1fr 2fr;  gap: $gap;  min-height: 0;}
-.professor-main { overflow: auto; }
-.professor-side {  display: grid;  grid-template-columns: 1fr 1fr;  grid-template-rows: 1fr 1fr;  gap: $gap;}
+.professor-grid {  flex: 1;  display: grid;  grid-template-columns: 2fr 1fr;  gap: $gap;  min-height: 0;}
+.professor-main { overflow: hidden; display: flex; flex-direction: column; padding: $md; }
+.professor-side {  display: flex;  flex-direction: column;  gap: $gap;
+  > .content-wrap { flex: 1; min-height: 0; overflow-y: auto; padding: $md; }
+}
 
 // ─── 관리자 레이아웃 ──────────────────────────────────────
 .admin-outer {  flex: 1;  display: grid;  grid-template-columns: 2fr 1fr;  gap: $gap;  min-height: 0; }
-.admin-main { display: grid; grid-template-rows: 2fr 1fr; gap: $gap;
+.admin-main { display: grid; grid-template-rows: 2fr 1fr; gap: $gap; min-height: 0;
     .admin-pending { display: grid;  grid-template-columns: repeat(3, 1fr); gap: $gap;}
     .admin-info { flex: 1; display: grid; grid-template-columns: 1.2fr 1fr; gap: $gap;  min-height: 0;}
 }
-.admin-side {  display: grid; grid-template-rows:  1fr 1fr;  gap: $gap;  height: 100%;
+.admin-side {  display: grid; grid-template-rows: 1fr 1fr;  gap: $gap;  min-height: 0;
+  > .content-wrap { min-height: 0; overflow-y: auto; padding: $md; }
 }
 
 // ─── 플레이스홀더 ────────────────────────────────────────
-.placeholder-cell {  flex: 1;  min-height: 150px;  background-color: $bg !important;  border: 1px dashed $line !important;  box-shadow: none !important;}
+.placeholder-cell {  flex: 1;  min-height: 150px;  background-color: $default-bg !important;  border: 1px dashed $border-color !important;  box-shadow: none !important;}
 
-// ─── 컴포넌트 너비·사이즈 제약 해제 ──────────────────────
-:deep(.timetable-wrap) { width: 100%; }
+// ─── timetable height 체인 ────────────────────────────────
+:deep(.timetable-wrap) { width: 100%; height: 100%; }
 
 // content-wrap 안에서 이중 카드 방지 (border·padding·배경 제거)
 :deep(.widget-card),
@@ -187,9 +190,63 @@ $gap: 16px;
   box-shadow: none;
 }
 
-// ─── 제목 크기 통일 (13px) ────────────────────────────────
+// ─── 위젯 공통 스타일 ─────────────────────────────────────
+// 위젯 헤더 타이틀
 :deep(.widget-header h3),
-:deep(.tuition-header .title) { 
-font-weight: 600; color: $font-color; margin: 0;
+:deep(.tuition-header .title),
+:deep(.anno-title),
+:deep(.today-title),
+:deep(.timetable-title),
+:deep(.schedule-title) {
+  font-size: $fs-df; font-weight: 700; color: $font-color; margin: 0;
 }
+
+// 더보기 링크 / 전체보기
+:deep(.view-all),
+:deep(.anno-more),
+:deep(.today-more),
+:deep(.schedule-more) {
+  font-size: $fs-xs; color: $font-color-light;
+  &:hover { color: $green-600; }
+}
+
+// 빈 상태 메시지
+:deep(.empty-msg),
+:deep(.anno-empty),
+:deep(.today-empty),
+:deep(.timetable-empty),
+:deep(.schedule-empty) {
+  font-size: $fs-sm; color: $font-color-light; text-align: center; padding: 20px 0;
+}
+
+// 목록 항목 텍스트
+:deep(.anno-name),
+:deep(.today-name),
+:deep(.schedule-name) {
+  font-size: $fs-sm; color: $font-color; font-weight: 600;
+}
+
+// 보조 텍스트 (날짜, 시간, 장소 등)
+:deep(.anno-date),
+:deep(.today-room),
+:deep(.today-time),
+:deep(.schedule-date),
+:deep(.banner-date) {
+  font-size: $fs-xs; color: $font-color-light;
+}
+
+// 배지
+:deep(.type-badge) {
+  font-size: $fs-xs;
+}
+
+// 학생신청 위젯 타이틀
+:deep(.widget-header h3) {
+  font-size: $fs-df;
+}
+
+// 뱃지/상태 텍스트
+:deep(.category) { font-size: $fs-xs; color: $font-color-light; }
+:deep(.type-name) { font-size: $fs-sm; font-weight: 600; color: $font-color; }
+:deep(.item-date) { font-size: $fs-xs; color: $font-color-light; }
 </style>

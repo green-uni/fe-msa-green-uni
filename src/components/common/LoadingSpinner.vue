@@ -66,8 +66,8 @@ defineProps({
 }
 
 .loading-message {
-  font-size: var(--text-sm);
-  color: var(--font-color-light);
+  font-size: $fs-xs;
+  color: $font-color-light;
   margin: 0;
 }
 

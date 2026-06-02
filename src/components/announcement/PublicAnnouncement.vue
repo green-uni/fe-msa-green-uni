@@ -22,16 +22,14 @@ const formatDate = (dateStr) => dateStr?.slice(0, 10) ?? ''
     <section class="notice">
       <header class="notice__head">
         <h2>공지사항</h2>
-        <a href="#" class="link-muted" @click.prevent="router.push('/public/announcements')">더보기 +</a>
+        <a href="#" class="link-more" @click.prevent="router.push('/public/announcements')">더보기 +</a>
       </header>
       <ul class="notice__list">
         <li v-if="annoList.length === 0">
-          <span style="color:#aaa; font-size:0.85rem;">공지사항이 없습니다.</span>
+          <span style="color:#aaa; font-size:12px;">공지사항이 없습니다.</span>
         </li>
         <li v-for="anno in annoList" :key="anno.annoId">
-          <a href="#" @click.prevent="router.push(`/public/announcements/${anno.annoId}`)">
-            <span class="dot"></span>{{ anno.title }}
-          </a>
+          <a href="#" @click.prevent="router.push(`/public/announcements/${anno.annoId}`)">{{ anno.title }}</a>
           <time>{{ formatDate(anno.createdAt) }}</time>
         </li>
       </ul>
@@ -41,7 +39,7 @@ const formatDate = (dateStr) => dateStr?.slice(0, 10) ?? ''
 <style scoped lang="scss">
 a { color: inherit; text-decoration: none; }
 .notice {
-  border-top: 1px dashed #e3eae6;
+  border-top: 1px solid rgba(128, 128, 128, 0.25);
   padding-top: 22px;
 
   &__head {
@@ -50,7 +48,7 @@ a { color: inherit; text-decoration: none; }
 
     h2 {
       margin: 0;
-      font-size: 15px;
+      font-size: $fs-md;
       font-weight: 700;
       &::before {
         content: "";
@@ -61,6 +59,13 @@ a { color: inherit; text-decoration: none; }
         margin-right: 8px;
         vertical-align: -2px;
       }
+    }
+
+    .link-more {
+      font-size: $fs-xs;
+      opacity: 0.5;
+      transition: opacity 0.15s;
+      &:hover { opacity: 1; }
     }
   }
 
@@ -74,28 +79,23 @@ a { color: inherit; text-decoration: none; }
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      padding: 10px 0;
-      border-bottom: 1px solid #e3eae6;
-      font-size: 14px;
+      padding: 9px 4px;
+      border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+      opacity: 0.9;
+      font-size: $fs-df;
 
       &:last-child { border-bottom: 0; }
 
       a {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
         min-width: 0;
         flex: 1;
         overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-
-        &:hover {}
-      }
-      .dot {
-        width: 5px; height: 5px; border-radius: 50%;
-        flex: 0 0 auto;
+        transition: color 0.15s;
+        &:hover { color: $green-600; }
       }
       time {
-        font-size: 12.5px;
+        font-size: $fs-xs;
+        opacity: 0.55;
         flex: 0 0 auto;
       }
     }

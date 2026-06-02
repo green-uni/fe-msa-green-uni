@@ -159,6 +159,6 @@ onUnmounted(() => {
 .idx {
   padding: 10px 15px; cursor: pointer;
   &:hover,
-  &.active { background: var(--hover-bg-color); color: var(--main-color);}
+  &.active { background: $hover-bg-color; color: $green-600;}
 }
 </style>

@@ -23,18 +23,6 @@ export const tuitionRoutes = [
       auth: ['STUDENT'],
     },
   },
-  {
-    path: `${studentUrl}/:tuitionId/pending`,
-    component: () => import('@/views/academic/tuition/Tuition.vue'),
-    meta: {
-      title: '등록금 납부',
-      groupTitle: '등록금',
-      navSection: '나의 정보',
-      showInNav: false,
-      activeMenu: '/tuitions',
-      auth: ['STUDENT'],
-    },
-  },
 ]
 
 export const adminTuitionRoutes = [
@@ -42,7 +30,7 @@ export const adminTuitionRoutes = [
     path: 'tuition',
     component: () => import('@/views/admin/tuition/AdminTuition.vue'),
     meta: {
-      title: '학생 목록 조회',
+      title: '납부 상태 조회',
       groupTitle: '등록금 관리',
       navSection: '재정 관리',
       auth: ['ADMIN'],

@@ -252,7 +252,7 @@ onMounted(async () => {
         </label>
       </div>
     </div>
-    <div class="form-wrap">
+    <div class="form-wrap member-form">
       <!-- 두 열 레이아웃: 사진 + 정보 -->
       <div class="d-flex g20">
         <!-- 사진 등록 카드 -->
@@ -287,13 +287,10 @@ onMounted(async () => {
     </div>
 
     <div class="page-footer">
-      <button class="btn btn-default" @click="router.go(-1)">
-        <font-awesome-icon icon="fa-solid fa-arrow-left" /> 돌아가기
-      </button>
-      <div class="action-group">
         <button class="btn btn-default" @click="resetForm">
           <font-awesome-icon icon="fa-solid fa-rotate-left" /> 초기화
         </button>
+      <div class="action-group">
         <button class="btn btn-line point" @click="handleTempSave">
           <font-awesome-icon icon="fa-regular fa-floppy-disk" /> 임시저장
         </button>

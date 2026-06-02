@@ -231,21 +231,21 @@ onMounted(async () => {
 .my-attend-page {
   max-width: 480px;
   margin: 0 auto;
-  padding: 20px var(--size-df);
+  padding: 20px $size-df;
 }
 
 .page-title {
-  font-size: var(--text-xl);
+  font-size: 1.5rem;
   font-weight: 700;
-  color: var(--font-color);
+  color: $font-color;
   margin-bottom: 16px;
 }
 
 .hint {
   text-align: center;
   padding: 40px 0;
-  font-size: var(--text-sm);
-  color: var(--font-color-light);
+  font-size: 0.875rem;
+  color: $font-color-light;
 }
 
 /* ── 학기 탭 ── */
@@ -259,15 +259,15 @@ onMounted(async () => {
 .semester-tab {
   padding: 6px 14px;
   border-radius: 20px;
-  border: 1px solid var(--line-color);
+  border: 1px solid $border-color;
   background: #fff;
-  font-size: var(--text-sm);
-  color: var(--font-color-light);
+  font-size: 0.875rem;
+  color: $font-color-light;
   cursor: pointer;
   transition: all 0.15s;
 
   &.active {
-    background: var(--main-color);
+    background: $green-600;
     color: #fff;
     border-color: transparent;
   }
@@ -278,12 +278,12 @@ onMounted(async () => {
 
 .lecture-card {
   background: #fff;
-  border: 1px solid var(--line-color);
-  border-radius: var(--bdrs-df);
+  border: 1px solid $border-color;
+  border-radius: $radius-df;
   overflow: hidden;
   cursor: pointer;
 
-  &:active { background: var(--hover-bg-color); }
+  &:active { background: $hover-bg-color; }
 }
 
 .card-header {
@@ -291,20 +291,20 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   padding: 14px 16px;
-  background: var(--hover-bg-color);
-  border-bottom: 1px solid var(--line-color);
+  background: $hover-bg-color;
+  border-bottom: 1px solid $border-color;
 }
 
 .header-left { display: flex; flex-direction: column; gap: 4px; }
 
 .lec-name {
-  font-size: var(--text-md);
+  font-size: 1rem;
   font-weight: 700;
-  color: var(--font-color);
+  color: $font-color;
 }
 
 .attend-rate {
-  font-size: var(--text-sm);
+  font-size: 0.875rem;
   font-weight: 600;
   &.rate-good { color: #2e7d32; }
   &.rate-warn { color: #f57f17; }
@@ -313,7 +313,7 @@ onMounted(async () => {
 
 .arrow-icon {
   font-size: 22px;
-  color: var(--font-color-light);
+  color: $font-color-light;
 }
 
 /* ── 상세보기 헤더 ── */
@@ -327,31 +327,31 @@ onMounted(async () => {
 .btn-back {
   background: none;
   border: none;
-  font-size: var(--text-sm);
-  color: var(--main-color);
+  font-size: 0.875rem;
+  color: $green-600;
   cursor: pointer;
   padding: 0;
   white-space: nowrap;
 }
 
 .detail-title {
-  font-size: var(--text-lg);
+  font-size: 1.25rem;
   font-weight: 700;
   margin: 0;
-  color: var(--font-color);
+  color: $font-color;
 }
 
 /* ── 상세보기 요약 박스 ── */
 .summary-box {
-  background: var(--hover-bg-color);
-  border-radius: var(--bdrs-df);
+  background: $hover-bg-color;
+  border-radius: $radius-df;
   padding: 14px 16px;
   margin-bottom: 12px;
 }
 
 .rate-line {
-  font-size: var(--text-sm);
-  color: var(--font-color-light);
+  font-size: 0.875rem;
+  color: $font-color-light;
   margin-bottom: 10px;
 
   span {
@@ -374,19 +374,19 @@ onMounted(async () => {
 .summary-chip {
   padding: 3px 10px;
   border-radius: 20px;
-  font-size: var(--text-xs);
+  font-size: 0.75rem;
   font-weight: 700;
   &.attend { background: #e6f9ee; color: #2e7d32; }
   &.late   { background: #fff8e1; color: #f57f17; }
   &.early  { background: #fff3e0; color: #e65100; }
   &.absent { background: #fdecea; color: #c62828; }
-  &.total  { background: var(--hover-bg-color); color: var(--main-color); }
+  &.total  { background: $hover-bg-color; color: $green-600; }
 }
 
 /* ── 날짜별 기록 ── */
 .record-list {
-  border: 1px solid var(--line-color);
-  border-radius: var(--bdrs-df);
+  border: 1px solid $border-color;
+  border-radius: $radius-df;
   overflow: hidden;
 }
 
@@ -395,26 +395,26 @@ onMounted(async () => {
   align-items: center;
   gap: 10px;
   padding: 11px 16px;
-  border-bottom: 1px solid var(--line-color);
+  border-bottom: 1px solid $border-color;
   &:last-child { border-bottom: none; }
-  &:hover { background: var(--hover-bg-color); }
+  &:hover { background: $hover-bg-color; }
 }
 
 .record-date {
-  font-size: var(--text-sm);
-  color: var(--font-color);
+  font-size: 0.875rem;
+  color: $font-color;
   min-width: 160px; /* (휴강)·(보강) 레이블 포함 시 여유 확보 */
 }
 
 .record-time {
-  font-size: var(--text-xs);
-  color: var(--main-color);
+  font-size: 0.75rem;
+  color: $green-600;
   font-weight: 600;
 }
 
 .record-reason {
-  font-size: var(--text-xs);
-  color: var(--font-color-light);
+  font-size: 0.75rem;
+  color: $font-color-light;
 }
 
 /* ── 상태 뱃지 ── */
@@ -422,7 +422,7 @@ onMounted(async () => {
   display: inline-block;
   padding: 2px 10px;
   border-radius: 12px;
-  font-size: var(--text-xs);
+  font-size: 0.75rem;
   font-weight: 700;
   &.attend      { background: #e6f9ee; color: #2e7d32; }
   &.absent      { background: #fdecea; color: #c62828; }
@@ -432,8 +432,8 @@ onMounted(async () => {
 
 /* ── 강의 정보 카드 ── */
 .info-card {
-  background: var(--hover-bg-color);
-  border-radius: var(--bdrs-df);
+  background: $hover-bg-color;
+  border-radius: $radius-df;
   padding: 14px 16px;
   margin-bottom: 14px;
   display: flex;
@@ -448,51 +448,51 @@ onMounted(async () => {
 }
 
 .info-label {
-  font-size: var(--text-sm);
-  color: var(--font-color-light);
+  font-size: 0.875rem;
+  color: $font-color-light;
   min-width: 40px;
   white-space: nowrap;
 }
 
 .info-value {
-  font-size: var(--text-sm);
-  color: var(--font-color);
+  font-size: 0.875rem;
+  color: $font-color;
   font-weight: 600;
 }
 
 /* ── 출결 요약 한 줄 ── */
 .summary-line {
-  font-size: var(--text-sm);
-  color: var(--font-color-light);
+  font-size: 0.875rem;
+  color: $font-color-light;
   margin-bottom: 12px;
 
   strong {
-    color: var(--font-color);
+    color: $font-color;
     font-weight: 700;
   }
 }
 
 /* ── 출결 기록 표 ── */
 .record-table-wrap {
-  border: 1px solid var(--line-color);
-  border-radius: var(--bdrs-df);
+  border: 1px solid $border-color;
+  border-radius: $radius-df;
   overflow: hidden;
 }
 
 .record-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--text-xs);
+  font-size: 0.75rem;
 
   thead tr {
-    background: var(--hover-bg-color);
+    background: $hover-bg-color;
   }
 
   th, td {
     padding: 10px 8px;
     text-align: center;
-    border-bottom: 1px solid var(--line-color);
-    color: var(--font-color);
+    border-bottom: 1px solid $border-color;
+    color: $font-color;
   }
 
   tbody tr:last-child td {
@@ -500,18 +500,18 @@ onMounted(async () => {
   }
 
   tbody tr:hover td {
-    background: var(--hover-bg-color);
+    background: $hover-bg-color;
   }
 }
 
 .col-no     { width: 36px; }
 .col-date   { text-align: left; padding-left: 12px !important; }
-.col-time   { width: 56px; color: var(--main-color); font-weight: 600; }
+.col-time   { width: 56px; color: $green-600; font-weight: 600; }
 .col-status { width: 60px; }
 
 .empty-row {
   text-align: center;
-  color: var(--font-color-light);
+  color: $font-color-light;
   padding: 24px 0 !important;
 }
 </style>

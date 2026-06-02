@@ -1,131 +1,115 @@
 <template>
-  <div class="attendance-qr-page">
+  <div style="position: relative">
 
-    <!-- 강의 정보 헤더 -->
-    <div class="lecture-info-card">
-      <div class="lecture-info-row">
-        <span class="info-label">강의명</span>
-        <span class="info-value">{{ lecture.lectureName || '정보 로딩 중...' }}</span>
-      </div>
-      <template v-if="lecture.schedules?.length">
-        <div v-for="(sch, i) in lecture.schedules" :key="i" class="lecture-info-row">
-          <span class="info-label">{{ i === 0 ? '강의실' : '' }}</span>
-          <span class="info-value">{{ sch.dayOfWeek }}요일 {{ sch.startPeriod }}-{{ sch.endPeriod }}교시 · {{ sch.lectureRoom }}</span>
+    <!-- 강의 정보 -->
+    <section class="card">
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="info-key">강의명</span>
+          <span class="info-val">{{ lecture.lectureName || '정보 로딩 중...' }}</span>
         </div>
-      </template>
-      <div v-else class="lecture-info-row">
-        <span class="info-label">강의실</span>
-        <span class="info-value">-</span>
+        <div class="info-item">
+          <span class="info-key">수업일</span>
+          <span class="info-val">{{ todayFormatted }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-key">강의실</span>
+          <span class="info-val pre-line">{{ scheduleRoomText(lecture.schedules) }}</span>
+        </div>
       </div>
-      <div class="lecture-info-row">
-        <span class="info-label">수업일</span>
-        <span class="info-value">{{ todayFormatted }}</span>
-      </div>
-    </div>
+    </section>
 
-    <!-- 대기 상태: 세션 시작 전 -->
-    <div v-if="!isSessionActive && !isSessionEnded && !isClassCancelled" class="standby-section">
-      <p class="standby-text">
+    <!-- 대기 상태 -->
+    <template v-if="!isSessionActive && !isSessionEnded && !isClassCancelled">
+      <p class="card tac">
         {{ isTodayCompleted ? '오늘 출석이 이미 완료되었습니다.' : '출석 시작 버튼을 누르면 QR이 활성화됩니다.' }}
       </p>
-      <div class="standby-buttons">
-        <!-- 오늘 출석 완료 → 출석완료(비활성) + 출석현황으로 이동 -->
-        <template v-if="isTodayCompleted">
-          <button class="btn btn-completed" disabled>출석완료</button>
-          <button class="btn btn-nav" @click="goToList">출석 현황 보기</button>
-        </template>
-        <!-- 아직 시작 전 → 정상 버튼 3개 -->
-        <template v-else>
-          <button class="btn btn-start" @click="handleStartSession" :disabled="isLoading">
-            {{ isLoading ? '세션 생성 중...' : '출석 시작' }}
-          </button>
-          <button class="btn btn-cancel-class" @click="handleCancelClass" :disabled="isLoading">
-            휴강처리
-          </button>
-          <button class="btn btn-makeup" @click="handleOpenMakeupModal" :disabled="isLoading">
-            보강 QR 생성
-          </button>
-        </template>
-        <button class="btn btn-back" @click="goToLectureList">목록으로</button>
+      <div class="page-footer">
+        <button class="btn btn-default" @click="goToLectureList">← 목록으로</button>
+        <div class="action-group">
+          <template v-if="isTodayCompleted">
+            <button class="btn btn-default" disabled>출석완료</button>
+            <button class="btn btn-submit" @click="goToList">출석 현황 보기</button>
+          </template>
+          <template v-else>
+            <button class="btn btn-default" @click="handleCancelClass" :disabled="isLoading">휴강처리</button>
+            <button class="btn btn-line point" @click="handleOpenMakeupModal" :disabled="isLoading">보강 QR 생성</button>
+            <button class="btn btn-submit" @click="handleStartSession" :disabled="isLoading">
+              {{ isLoading ? '세션 생성 중...' : '출석 시작' }}
+            </button>
+          </template>
+        </div>
       </div>
-    </div>
+    </template>
 
     <!-- 출석 진행 중 -->
-    <div v-if="isSessionActive" class="active-section">
+    <template v-if="isSessionActive">
       <div v-if="isMakeupSession" class="makeup-badge">
         보강 수업 — 원래 수업일: {{ makeupOriginalDateFormatted }}
       </div>
 
       <div class="qr-wrapper">
-        <p class="qr-guide">학생들이 아래 QR을 스캔하도록 안내해주세요.</p>
-        <qrcode-vue
-          v-if="currentToken"
-          :value="currentToken"
-          :size="280"
-          level="H"
-          class="qr-image"
-        />
+        <p class="empty-text" style="padding: 0">학생들이 아래 QR을 스캔하도록 안내해주세요.</p>
+        <qrcode-vue v-if="currentToken" :value="currentToken" :size="280" level="H" class="qr-image" />
         <div v-else class="qr-loading">QR 생성 중...</div>
         <div class="countdown-bar-wrap">
           <div class="countdown-bar" :style="{ width: countdownWidth + '%' }"></div>
         </div>
-        <p class="countdown-text">{{ countdown }}초 후 QR이 자동으로 갱신됩니다</p>
+        <p class="empty-text" style="padding: 0;">{{ countdown }}초 후 QR이 자동으로 갱신됩니다</p>
       </div>
-
-      <div class="end-section">
-        <p class="end-warning">⚠️ 종료 시 미스캔 학생은 자동으로 결석 처리됩니다.</p>
-        <button class="btn btn-end" @click="handleEndSession" :disabled="isLoading">
+      <div class="page-footer">
+        <button class="btn btn-default" @click="goToLectureList">← 목록으로</button>
+        <p class="notice-caution" style="text-align: center">종료 시 미스캔 학생은 자동으로 결석 처리됩니다.</p>
+        <button class="btn btn-submit" @click="handleEndSession" :disabled="isLoading">
           {{ isLoading ? '처리 중...' : '출석 종료' }}
         </button>
-        <button class="btn btn-back" @click="goToLectureList">목록으로</button>
       </div>
-    </div>
+    </template>
 
     <!-- 출석 종료 완료 -->
-    <div v-if="isSessionEnded" class="result-section">
-      <h3 class="result-title">✅ 출석이 마감되었습니다</h3>
-      <p class="result-text">종료 시각: <strong>{{ endedAtFormatted }}</strong></p>
-      <p class="result-sub">
-        미스캔 학생은 결석 처리되었습니다. 수동 수정이 필요한 경우 출석 현황 수정 화면을 이용해주세요.
-      </p>
-      <div class="result-actions">
-        <button class="btn btn-nav" @click="goToLectureList">강의 목록으로</button>
-        <button class="btn btn-nav btn-nav-primary" @click="goToList">출석 현황 보기</button>
+    <template v-if="isSessionEnded">
+      <div class="result-section">
+        <p class="status-title success">
+          <font-awesome-icon icon="fa-solid fa-circle-check" /> 출석이 마감되었습니다
+        </p>
+        <p>종료 시각: <strong>{{ endedAtFormatted }}</strong></p>
+        <p class="empty-text" style="padding: 0">미스캔 학생은 결석 처리되었습니다. 수동 수정이 필요한 경우 출석 페이지를 이용해주세요.</p>
       </div>
-    </div>
+      <div class="page-footer">
+        <button class="btn btn-default" @click="goToLectureList">← 목록으로</button>
+        <button class="btn btn-submit" @click="goToList">출석 현황</button>
+      </div>
+    </template>
 
     <!-- 휴강 처리 완료 -->
-    <div v-if="isClassCancelled" class="cancel-section">
-      <h3 class="cancel-title">🚫 오늘 수업이 휴강 처리되었습니다</h3>
-      <p class="cancel-sub">수강 학생 전원의 출석 상태가 휴강으로 등록됩니다.</p>
-      <button class="btn btn-back" @click="goToLectureList">목록으로</button>
-    </div>
+    <template v-if="isClassCancelled">
+      <div class="card tac">
+        <p class="status-title">오늘 수업이 휴강 처리되었습니다</p>
+        <p class="empty-text" style="padding: 0">수강 학생 전원의 출석 상태가 휴강으로 등록됩니다.</p>
+      </div>
+        <div class="page-footer">
+          <button class="btn btn-default" style="margin-left: auto" @click="goToLectureList">← 목록으로</button>
+        </div>
+    </template>
 
     <!-- 보강 날짜 선택 모달 -->
     <div v-if="showMakeupModal" class="modal-backdrop" @click.self="showMakeupModal = false">
       <div class="modal-box">
-        <h3 class="modal-title">보강할 휴강 날짜 선택</h3>
-
+        <p class="card-label">보강할 휴강 날짜 선택</p>
         <ul class="cancel-date-list">
           <li
             v-for="item in cancelledDates"
             :key="item.cancelDate"
             class="cancel-date-item"
             :class="{ selected: selectedCancelDate === item.cancelDate }"
-            @click="selectedCancelDate = item.cancelDate"
-          >
-            <span class="cancel-date-text">{{ formatCancelDate(item.cancelDate) }}</span>
-            <span class="cancel-date-badge">보강 미완료</span>
+            @click="selectedCancelDate = item.cancelDate">
+            <span style="font-weight: 600">{{ formatCancelDate(item.cancelDate) }}</span>
+            <span class="badge-pending">보강 미완료</span>
           </li>
         </ul>
-
-        <div class="modal-actions">
-          <button class="btn btn-gray" @click="showMakeupModal = false">취소</button>
-          <button
-            class="btn btn-start"
-            :disabled="!selectedCancelDate || isLoading"
-            @click="handleStartMakeupSession"
-          >
+        <div class="action-buttons">
+          <button class="btn btn-default" @click="showMakeupModal = false">취소</button>
+          <button class="btn btn-submit" :disabled="!selectedCancelDate || isLoading" @click="handleStartMakeupSession">
             {{ isLoading ? '생성 중...' : '보강 QR 시작' }}
           </button>
         </div>
@@ -168,6 +152,12 @@ const countdown = ref(5)
 const showMakeupModal    = ref(false)
 const cancelledDates     = ref([])
 const selectedCancelDate = ref('')
+
+// ── 강의실 표시 헬퍼 (template에서 사용) ──────────────────────────
+const scheduleRoomText = (schedules) => {
+  if (!schedules?.length) return '-'
+  return schedules.map(s => `${s.dayOfWeek}요일 ${s.startPeriod}-${s.endPeriod}교시 · ${s.lectureRoom}`).join('\n')
+}
 
 // ── computed ────────────────────────────────────────────────────
 // toISOString()은 UTC 기준이라 KST 새벽 0~9시에는 날짜가 1일 어긋남 → 로컬 날짜 사용
@@ -455,196 +445,31 @@ onUnmounted(() => stopStream())
 </script>
 
 <style scoped lang="scss">
-.attendance-qr-page {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 24px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
+.info-grid{grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));}
+/* 출석 완료 결과 */
+.result-section { background: $green-50; border: 1px solid $green-300; border-radius: $radius-sm; padding: 24px; text-align: center; display: flex; flex-direction: column; gap: 8px; }
 
-/* 강의 정보 카드 */
-.lecture-info-card {
-  background: #f8f9fa;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.lecture-info-row { display: flex; gap: 12px; }
-.info-label { width: 60px; font-size: 13px; color: #888; flex-shrink: 0; }
-.info-value { font-size: 14px; font-weight: 600; color: #222; }
-
-/* 대기 상태 */
-.standby-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  padding: 40px 0;
-}
-.standby-text { font-size: 15px; color: #555; }
-.standby-buttons {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-/* 보강 배지 */
-.active-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
-}
-.makeup-badge {
-  background: #fff3cd;
-  border: 1px solid #ffc107;
-  border-radius: 8px;
-  padding: 8px 16px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #856404;
-  width: 100%;
-  text-align: center;
-}
+/* 보강 안내 배지 */
+.makeup-badge {  background: $warning-bg;  border: 1px solid $warning; border-radius: $radius-xs; padding: 8px 16px; font-weight: 600; color: $warning; width: 100%; text-align: center; margin-bottom: $sm;}
 
 /* QR 영역 */
-.qr-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  background: #fff;
-  border: 2px solid #4a7cf7;
-  border-radius: 16px;
-  padding: 24px;
-  width: 100%;
-}
-.qr-guide { font-size: 14px; color: #555; margin: 0; }
-.qr-image { border-radius: 8px; }
-.qr-loading {
-  width: 280px; height: 280px;
-  display: flex; align-items: center; justify-content: center;
-  background: #f4f6ff; border-radius: 8px;
-  font-size: 14px; color: #888;
-}
+.qr-wrapper { display: flex; flex-direction: column; align-items: center; gap: 12px; background: #fff;  border: 1px solid $border-color; border-radius: 8px; padding: 24px; width: 100%;}
+.qr-image   { border-radius: 8px; overflow: hidden;}
+.qr-loading {  width: 280px; height: 280px; display: flex; align-items: center; justify-content: center; background: #f4f6ff; border-radius: 8px; font-size: $fs-xs; color: $font-color-light;}
 .countdown-bar-wrap {
-  width: 280px; height: 6px;
-  background: #e8e8e8; border-radius: 3px; overflow: hidden;
+  width: 280px; height: 6px; background: $border-color; border-radius: 3px; overflow: hidden;
+  .countdown-bar { height: 100%; background: $green-600; border-radius: 3px; transition: width 0.9s linear;}
 }
-.countdown-bar {
-  height: 100%; background: #4a7cf7;
-  border-radius: 3px; transition: width 0.9s linear;
-}
-.countdown-text { font-size: 12px; color: #888; margin: 0; }
 
-/* 종료 구역 */
-.end-section {
-  display: flex; flex-direction: column;
-  align-items: center; gap: 12px; width: 100%;
-}
-.end-warning { font-size: 13px; color: #e05c00; margin: 0; }
-
-/* 결과 화면 */
-.result-section {
-  background: #f0faf0; border: 1px solid #b2dfdb;
-  border-radius: 12px; padding: 24px; text-align: center;
-  display: flex; flex-direction: column; gap: 8px;
-}
-.result-title { font-size: 18px; font-weight: 700; color: #2e7d32; margin: 0; }
-.result-text { font-size: 15px; color: #333; margin: 0; }
-.result-sub { font-size: 12px; color: #888; margin-top: 8px; }
-
-/* 휴강 완료 화면 */
-.cancel-section {
-  background: #fff5f5; border: 1px solid #ffcdd2;
-  border-radius: 12px; padding: 24px; text-align: center;
-  display: flex; flex-direction: column; gap: 8px;
-}
-.cancel-title { font-size: 18px; font-weight: 700; color: #c62828; margin: 0; }
-.cancel-sub { font-size: 13px; color: #888; }
-
-/* 보강 날짜 선택 모달 */
-.modal-backdrop {
-  position: fixed; inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 1000;
-}
-.modal-box {
-  background: #fff; border-radius: 16px;
-  padding: 28px 24px; width: 340px; max-width: 90vw;
-  display: flex; flex-direction: column; gap: 16px;
-}
-.modal-title { font-size: 16px; font-weight: 700; color: #222; margin: 0; }
-
-.cancel-date-list {
-  list-style: none; margin: 0; padding: 0;
-  display: flex; flex-direction: column; gap: 8px;
-}
+/* 보강 날짜 모달 */
+.modal-backdrop {  position: fixed; inset: 0;  background: rgba(0,0,0,0.45);  display: flex; align-items: center; justify-content: center;  z-index: 1000;}
+.modal-box {  background: #fff; border-radius: 16px;  padding: 28px 24px; width: 340px; max-width: 90vw;  display: flex; flex-direction: column; gap: 16px;}
+.cancel-date-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .cancel-date-item {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 14px; border: 2px solid #e0e0e0;
+  padding: 12px 14px; border: 1px solid $border-color;
   border-radius: 10px; cursor: pointer; transition: border-color 0.15s;
-  &:hover { border-color: #4a7cf7; }
-  &.selected { border-color: #4a7cf7; background: #f0f4ff; }
-}
-.cancel-date-text { font-size: 14px; font-weight: 600; color: #222; }
-.cancel-date-badge {
-  font-size: 11px; padding: 2px 8px; border-radius: 20px;
-  background: #fff3e0; color: #e65100;
-}
-
-.modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
-
-/* 공용 버튼 */
-.btn {
-  padding: 12px 24px; border: none; border-radius: 8px;
-  font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity 0.2s;
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
-  &.btn-start {
-    background: #4a7cf7; color: #fff;
-    &:hover:not(:disabled) { opacity: 0.85; }
-  }
-  &.btn-cancel-class {
-    background: #ff7043; color: #fff;
-    &:hover:not(:disabled) { opacity: 0.85; }
-  }
-  &.btn-makeup {
-    background: #66bb6a; color: #fff;
-    &:hover:not(:disabled) { opacity: 0.85; }
-  }
-  &.btn-end {
-    background: #e53935; color: #fff; width: 100%;
-    &:hover:not(:disabled) { opacity: 0.85; }
-  }
-  &.btn-gray {
-    background: #e0e0e0; color: #555;
-    &:hover:not(:disabled) { opacity: 0.85; }
-  }
-  &.btn-completed {
-    background: #9e9e9e; color: #fff; cursor: not-allowed; opacity: 0.7;
-  }
-  &.btn-nav {
-    background: #f0f4ff; color: #4a7cf7; border: 1px solid #4a7cf7;
-    &:hover { background: #e0e8ff; }
-  }
-  &.btn-back {
-    background: #f5f5f5; color: #666; border: 1px solid #ddd;
-    &:hover { background: #ebebeb; }
-  }
-  &.btn-nav-primary {
-    background: #4a7cf7; color: #fff; border: none;
-    &:hover { opacity: 0.85; }
-  }
-}
-
-.result-actions {
-  display: flex; gap: 12px; justify-content: center; margin-top: 8px;
+  &:hover   { border-color: $green-600; }
+  &.selected { border-color: $green-600; background: rgba($green-600, 0.06); }
 }
 </style>
