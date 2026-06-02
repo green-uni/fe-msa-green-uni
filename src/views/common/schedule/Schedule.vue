@@ -300,11 +300,9 @@ fetchSchedules()
           </button>
         </template>
       </div>
-      <div class="view-controls">
-        <div class="tab-area">
-          <button :class="['filter-btn', { active: !isYearView }]" @click="isYearView = false; fetchSchedules()">월간</button>
-          <button :class="['filter-btn', { active: isYearView }]" @click="isYearView = true; fetchSchedules()">연간</button>
-        </div>
+      <div class="btn-tab">
+        <button :class="{ active: !isYearView }" @click="isYearView = false; fetchSchedules()">월간</button>
+        <button :class="{ active: isYearView }" @click="isYearView = true; fetchSchedules()">연간</button>
       </div>
     </header>
 

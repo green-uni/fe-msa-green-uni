@@ -78,7 +78,7 @@ const pageSize = defineModel('pageSize', { default: 10 })
   input { min-width: 180px; }
 }
 .search-btn { 
-  display: flex; align-items: center; gap: 4px; transition: 0.2s; background: $green-600; color: #fff; padding: 7px 15px; 
+  display: flex; align-items: center; gap: 4px; transition: 0.2s; background: $green-600; color: #fff; padding: 8px 15px; 
   &:hover { box-shadow: 0 0 5px $green-600; border-color: $green-600; filter: brightness(1.1);
   }
 }
