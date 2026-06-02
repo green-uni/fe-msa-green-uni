@@ -43,7 +43,7 @@ onMounted(async () => {
     <template v-if="authStore.role === 'STUDENT'">
       <header class="dash-head">
         <div class="dash-greeting">
-          <p class="dash-name">안녕하세요, <strong>{{ authStore.name }}</strong> 학생님</p>
+          <p class="dash-title">안녕하세요, <strong>{{ authStore.name }}</strong> 학생님</p>
           <p class="dash-sub">
             {{ currentTerm }}
             <template v-if="profile">
@@ -56,14 +56,14 @@ onMounted(async () => {
           <ActiveScheduleBanner />
         </div>
       </header>
-      <div class="student-grid">
+      <div class="role-grid">
         <div class="">
           <TimetableWidget />
         </div>
-        <div class="student-side">
-          <div class="content-wrap"><StudentRequestsWidget /></div>
+        <div class="role-side">
           <div class="content-wrap"><AnnouncementWidget /></div>
           <div class="content-wrap"><MonthlyScheduleWidget /></div>
+          <div class="content-wrap"><StudentRequestsWidget /></div>
         </div>
       </div>
     </template>
@@ -72,7 +72,7 @@ onMounted(async () => {
     <template v-else-if="authStore.role === 'PROFESSOR'">
       <header class="dash-head">
         <div class="dash-greeting">
-          <p class="dash-name">안녕하세요, <strong>{{ authStore.name }}</strong> 교수님</p>
+          <p class="dash-title">안녕하세요, <strong>{{ authStore.name }}</strong> 교수님</p>
           <p class="dash-sub">
             {{ currentTerm }}
             <template v-if="profile">
@@ -85,11 +85,11 @@ onMounted(async () => {
           <ActiveScheduleBanner />
         </div>
       </header>
-      <div class="professor-grid">
+      <div class="role-grid">
         <div class="">
           <TimetableWidget />
         </div>
-        <div class="professor-side">
+        <div class="role-side">
           <div class="content-wrap"><TodayLectureWidget /></div>
           <div class="content-wrap"><AnnouncementWidget /></div>
           <div class="content-wrap"><MonthlyScheduleWidget /></div>
@@ -101,7 +101,7 @@ onMounted(async () => {
     <template v-else-if="authStore.role === 'ADMIN'">
       <header class="dash-head">
         <div class="dash-greeting">
-          <p class="dash-name">안녕하세요, <strong>{{ authStore.name }}</strong> 관리자님</p>
+          <p class="dash-title">안녕하세요, <strong>{{ authStore.name }}</strong> 관리자님</p>
           <p class="dash-sub">{{ currentTerm }}</p>
         </div>
         <div class="dash-banner">
@@ -134,12 +134,14 @@ onMounted(async () => {
 $gap: 16px;
 
 // ─── 전체 래퍼 ────────────────────────────────────────────
-.dashboard {  display: flex;  flex-direction: column;  gap: $gap;  height: 100%;}
+.dashboard {  display: flex;  flex-direction: column;  gap: $gap;  height: 100%;
+  .content-wrap{border: 1px solid $border-color;}
+}
 
 // ─── 헤더 (인삿말 + 배너) ─────────────────────────────────
 .dash-head {  display: grid;  grid-template-columns: 1fr 2fr; align-items: center;  gap: 24px;  flex-shrink: 0;
     .dash-greeting {  flex-shrink: 0;
-        .dash-name {  font-size: $fs-xl;   font-weight: 400;  color: $font-color;
+        .dash-title {  font-size: $fs-xl;   font-weight: 400;  color: $font-color;
             strong { font-weight: 700; }
         }
         .dash-sub {  font-size: $fs-sm;  color: $font-color-light;  margin-top: 4px;}
@@ -149,17 +151,9 @@ $gap: 16px;
 // ─── 세로 스택 컬럼 ──────────────────────────────────────
 .dash-col { display: flex;  flex-direction: column;  gap: $gap;  height: 100%;}
 
-// ─── 학생 레이아웃 ────────────────────────────────────────
-.student-grid {  flex: 1;  display: grid;  grid-template-columns: 2fr 1fr;  gap: $gap;  min-height: 0;}
-.student-main { overflow: hidden; display: flex; flex-direction: column; padding: $md; }
-.student-side {  display: flex;  flex-direction: column;  gap: $gap;
-  > .content-wrap { flex: 1; min-height: 0; overflow-y: auto; padding: $md; }
-}
-
-// ─── 교수 레이아웃 ────────────────────────────────────────
-.professor-grid {  flex: 1;  display: grid;  grid-template-columns: 2fr 1fr;  gap: $gap;  min-height: 0;}
-.professor-main { overflow: hidden; display: flex; flex-direction: column; padding: $md; }
-.professor-side {  display: flex;  flex-direction: column;  gap: $gap;
+// ─── 학생/교수 공통 레이아웃 ──────────────────────────────
+.role-grid { flex: 1; display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: $gap; min-height: 0; }
+.role-side { display: flex; flex-direction: column; gap: $gap;
   > .content-wrap { flex: 1; min-height: 0; overflow-y: auto; padding: $md; }
 }
 
@@ -191,62 +185,52 @@ $gap: 16px;
 }
 
 // ─── 위젯 공통 스타일 ─────────────────────────────────────
+// 위젯 헤더 레이아웃
+:deep(.widget-header) {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+}
 // 위젯 헤더 타이틀
 :deep(.widget-header h3),
-:deep(.tuition-header .title),
-:deep(.anno-title),
-:deep(.today-title),
-:deep(.timetable-title),
-:deep(.schedule-title) {
+:deep(.tuition-header .title) {
   font-size: $fs-df; font-weight: 700; color: $font-color; margin: 0;
 }
 
-// 더보기 링크 / 전체보기
-:deep(.view-all),
-:deep(.anno-more),
-:deep(.today-more),
-:deep(.schedule-more) {
-  font-size: $fs-xs; color: $font-color-light;
+// 전체보기 링크
+:deep(.view-all) {
+  font-size: $fs-xs; color: $font-color-light; text-decoration: none;
   &:hover { color: $green-600; }
 }
 
 // 빈 상태 메시지
 :deep(.empty-msg),
-:deep(.anno-empty),
-:deep(.today-empty),
-:deep(.timetable-empty),
-:deep(.schedule-empty) {
+:deep(.timetable-empty) {
   font-size: $fs-sm; color: $font-color-light; text-align: center; padding: 20px 0;
 }
 
-// 목록 항목 텍스트
-:deep(.anno-name),
-:deep(.today-name),
-:deep(.schedule-name) {
-  font-size: $fs-sm; color: $font-color; font-weight: 600;
-}
+// .type-name → .dash-title deep 규칙으로 통합됨
 
-// 보조 텍스트 (날짜, 시간, 장소 등)
-:deep(.anno-date),
-:deep(.today-room),
-:deep(.today-time),
-:deep(.schedule-date),
-:deep(.banner-date) {
-  font-size: $fs-xs; color: $font-color-light;
+// ─── 위젯 공통 리스트/행 ──────────────
+:deep(.dash-list) {
+  list-style: none; padding: 0 5px; margin: 0; display: flex; flex-direction: column;
+  .pointer { &:hover .dash-title { color: $green-600; } }
 }
-
-// 배지
-:deep(.type-badge) {
-  font-size: $fs-xs;
+:deep(.dash-item) {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 0; border-bottom: 1px solid #f0f0f0;
+  &:last-child { border-bottom: none; }
 }
-
-// 학생신청 위젯 타이틀
-:deep(.widget-header h3) {
-  font-size: $fs-df;
+:deep(.dash-title) {
+  flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
+  font-weight: 600; color: $font-color;
 }
-
-// 뱃지/상태 텍스트
-:deep(.category) { font-size: $fs-xs; color: $font-color-light; }
-:deep(.type-name) { font-size: $fs-sm; font-weight: 600; color: $font-color; }
-:deep(.item-date) { font-size: $fs-xs; color: $font-color-light; }
+:deep(.dash-dot) {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: $font-color-light; flex-shrink: 0;
+}
+:deep(.dash-date) {
+  font-size: $fs-xs; color: $font-color-light; flex-shrink: 0; white-space: nowrap;
+}
+:deep(.dash-badge){
+font-size: 11px; padding: 2px 5px;
+}
 </style>
