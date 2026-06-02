@@ -5,11 +5,24 @@ class AnnouncementService {
     #adminPath  = '/academic/admin/announcements'
     #publicPath = '/academic/public/announcements'
 
+    // 공지사항이 존재하는 연도 목록 (로그인 사용자)
+    async getYears() {
+        const res = await axios.get(`${this.#path}/years`)
+        return res.data.data
+    }
+
+    // 공지사항이 존재하는 연도 목록 (비로그인)
+    async getPublicYears() {
+        const res = await axios.get(`${this.#publicPath}/years`)
+        return res.data.data
+    }
+
     // 목록 조회 (학생/교수/관리자 - 역할별 자동 필터)
-    async getList({ page = 1, size = 10, targetRole = null, search = null } = {}) {
+    async getList({ page = 1, size = 10, targetRole = null, search = null, year = null } = {}) {
         const params = { page, size }
         if (targetRole) params.targetRole = targetRole
         if (search)     params.search     = search
+        if (year)       params.year       = year
         const res = await axios.get(this.#path, { params })
         return res.data.data
     }
@@ -39,8 +52,11 @@ class AnnouncementService {
     }
 
     // 공개 목록 (비로그인 - 로그인 화면 대시보드용)
-    async getPublicList({ page = 1, size = 5 } = {}) {
-        const res = await axios.get(this.#publicPath, { params: { page, size } })
+    async getPublicList({ page = 1, size = 5, search = null, year = null } = {}) {
+        const params = { page, size }
+        if (search) params.search = search
+        if (year)   params.year   = year
+        const res = await axios.get(this.#publicPath, { params })
         return res.data.data
     }
 

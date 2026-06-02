@@ -38,7 +38,6 @@ onMounted(fetchDetail)
         <div class="post-header">
           <h2>{{ anno.title }}</h2>
           <div class="post-meta">
-            <span>{{ anno.writerName }}</span>
             <span>조회 {{ anno.viewCount }}</span>
             <span>{{ formatDate(anno.createdAt) }}</span>
           </div>
