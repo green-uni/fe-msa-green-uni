@@ -134,7 +134,7 @@ onMounted(async () => {
 $gap: 16px;
 
 // ─── 전체 래퍼 ────────────────────────────────────────────
-.dashboard {  display: flex;  flex-direction: column;  gap: $gap;  height: 100%;
+.dashboard {  display: flex;  flex-direction: column;  gap: $gap;  height: 100%;  min-width: 1200px;
   .content-wrap{border: 1px solid $border-color;}
 }
 
@@ -158,7 +158,7 @@ $gap: 16px;
 }
 
 // ─── 관리자 레이아웃 ──────────────────────────────────────
-.admin-outer {  flex: 1;  display: grid;  grid-template-columns: 2fr 1fr;  gap: $gap;  min-height: 0; }
+.admin-outer {  flex: 1;  display: grid;  grid-template-columns: minmax(0, 1fr) 260px;  gap: $gap;  min-height: 0; }
 .admin-main { display: grid; grid-template-rows: 2fr 1fr; gap: $gap; min-height: 0;
     .admin-pending { display: grid;  grid-template-columns: repeat(3, 1fr); gap: $gap;}
     .admin-info { flex: 1; display: grid; grid-template-columns: 1.2fr 1fr; gap: $gap;  min-height: 0;}
@@ -222,8 +222,13 @@ $gap: 16px;
 }
 :deep(.dash-title) {
   flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
-  font-weight: 600; color: $font-color;
+  font-size: $fs-df; font-weight: 600; color: $font-color; transition: color 0.15s;
 }
+
+// ─── 관리자 승인 대기 위젯 공통 (3개 공유) ───────────────────
+:deep(.pend-item) { align-items: flex-start; }
+:deep(.pend-info) { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+:deep(.pend-sub)  { font-size: $fs-xs; color: $font-color-light; }
 :deep(.dash-dot) {
   width: 5px; height: 5px; border-radius: 50%;
   background: $font-color-light; flex-shrink: 0;
