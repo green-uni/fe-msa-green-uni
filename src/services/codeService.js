@@ -24,7 +24,7 @@ class codeListService {
   }
   // 관리자 상태 목록 조회
   async getAdminStatusList() {
-    const res = await axios.get(`${this.#memberPath}adminStatus`)
+    const res = await axios.get(`${this.#path}adminStatus`)
     return res.data;
   }
   // 교수 직위 목록 조회

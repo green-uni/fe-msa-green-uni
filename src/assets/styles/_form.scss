@@ -4,7 +4,7 @@
 .form-wrap { display: flex; flex-direction: column; border-radius: $radius-sm;gap: 16px;}
 .form-grid { display: grid; grid-template-columns: var(--grid-cols); row-gap: $md; padding: $size-df;}
 .form-wrap .content-wrap { 
-  padding: 0; gap: 0; border: 1px solid $border-color;overflow:hidden;
+  padding: 0; gap: 0; border: 1px solid $border-color;
   h3 { font-weight: 700; font-size: $fs-md; color: $font-color-bold; padding: 10px $md; border-bottom: 1px solid $border-color; display: flex; align-items: center; gap: 8px; background-color: $default-bg; }
 }
 .form-wrap .input-label  { white-space: normal; }
@@ -87,25 +87,46 @@ input[type='radio'] {
   &.absent:has(input:checked)      { &::before { border-color: #d32f2f; } &::after { background: #d32f2f; } }
   &.early-leave:has(input:checked) { &::before { border-color: #e65100; } &::after { background: #e65100; } }
 }
-.radio-tab {
+/* === Tab 공통 mixin === */
+@mixin tab-shell {
+  display: flex;
   border: 1px solid $border-color;
   border-radius: 7px;
   overflow: hidden;
   gap: 0;
+}
+@mixin tab-item-base {
+  padding: 10px 18px;
+  color: $font-color-light;
+  background: #fff;
+  border-left: 1px solid $border-color;
+  font-weight: 500;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+  line-height: 1;
+  cursor: pointer;
+  &:first-child { border-left: none; }
+}
+
+.radio-tab {
+  @include tab-shell;
 
   .radio-label {
-    padding: 10px 18px;
-    color: $font-color-light;
-    background: #fff;
-    border-left: 1px solid $border-color;
-    font-weight: 500;
-    justify-content: center;
-    transition: background 0.15s, color 0.15s;line-height: 1;
-
-    &:first-child { border-left: none; }
+    @include tab-item-base;
     &:hover:not(:has(input[type='radio']:checked)) { background: $default-hover-bg-color; color: $font-color; }
     &:has(input[type='radio']:checked) { background: $green-600; color: #fff; border-color: $green-600; }
     input[type='radio'] { display: none; }
     &:before, &:after { display: none; }
+  }
+}
+
+.btn-tab {
+  @include tab-shell;
+
+  button {
+    @include tab-item-base;
+    border: none;
+    &:hover:not(.active) { background: $default-hover-bg-color; color: $font-color; }
+    &.active { background: $green-600; color: #fff; border-color: $green-600; }
   }
 }

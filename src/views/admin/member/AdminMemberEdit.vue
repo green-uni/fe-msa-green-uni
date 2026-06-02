@@ -306,6 +306,14 @@ onMounted(async () => {
         <div class="pf-content d-grid g10 d-flex-grow1">
           <div class="content-wrap d-flex direct-col d-flex-grow1">
             <h3><font-awesome-icon icon="fa-solid fa-circle-info" /> 개인 정보</h3>
+            <div class="form-grid" style="--grid-cols: repeat(auto-fill, minmax(350px, 1fr));padding-bottom:0">
+              <div class="input-wrap">
+                <div class="input-label">회원코드</div>
+                <div class="input-content">
+                  <input type="text" :value="route.params.memberCode" disabled />
+                </div>
+              </div>
+            </div>
             <CommonFields :common="common" :mode="editMode" />
           </div>
           <div class="content-wrap d-flex direct-col d-flex-grow1">
@@ -322,10 +330,6 @@ onMounted(async () => {
           <div class="content-wrap d-flex direct-col d-flex-grow1">
             <h3><font-awesome-icon icon="fa-solid fa-circle-info" /> 상태 정보 수정</h3>
             <div class="form-grid" style="--grid-cols: repeat(auto-fill, minmax(350px, 1fr))">
-              <div class="input-wrap">
-                <div class="input-label">회원코드</div>
-                <div class="input-content">{{ route.params.memberCode }}</div>
-              </div>
               <div class="input-wrap">
                 <div class="input-label">현재 상태</div>
                 <div class="input-content">

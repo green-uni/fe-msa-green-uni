@@ -30,7 +30,9 @@ defineProps({
 </template>
 
 <style scoped lang="scss">
-.tbl-wrap { width: 100%; display: grid; }
+.tbl-wrap { width: 100%; display: grid; 
+  article{    box-shadow: 0 1px 2px rgba(15, 61, 46, 0.06);}
+}
 .tbl-head {
   display: grid; grid-template-columns: var(--grid-cols); align-items: center; text-align: center; font-size: $fs-xs;  font-weight: bold; background: #f5f5f5; border-radius: 5px;  margin-bottom: 5px; border: 1px solid $bold-border-color;
   div { padding:7px; }
