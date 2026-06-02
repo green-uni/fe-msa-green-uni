@@ -36,22 +36,22 @@ onMounted(async () => {
 
 <template>
   <div class="today-wrap">
-    <div class="today-header">
-      <span class="today-title">오늘 강의 목록</span>
-      <router-link to="/professor/lectures/my" class="today-more">전체보기</router-link>
+    <div class="widget-header">
+      <h3>오늘 강의 목록</h3>
+      <router-link to="/professor/lectures/my" class="view-all">전체보기</router-link>
     </div>
- 
-    <div v-if="loading" class="today-empty">불러오는 중...</div>
-    <div v-else-if="!lectures.length" class="today-empty">오늘 강의가 없습니다.</div>
- 
-    <ul v-else class="today-list">
-      <li v-for="lec in lectures" :key="lec.lectureId" class="today-item">
+
+    <div v-if="loading" class="empty-msg">불러오는 중...</div>
+    <div v-else-if="!lectures.length" class="empty-msg">오늘 강의가 없습니다.</div>
+
+    <ul v-else class="dash-list">
+      <li v-for="lec in lectures" :key="lec.lectureId" class="dash-item today-item">
         <div class="today-time">
           <span>{{ periodToTime(lec.startPeriod) }}</span>
           <span>{{ periodToTime(lec.endPeriod) }}</span>
         </div>
         <div class="today-info">
-          <span class="today-name">{{ lec.lectureName }}</span>
+          <span class="today-title">{{ lec.lectureName }}</span>
           <span class="today-room">{{ lec.building }} {{ lec.room }}</span>
         </div>
         <button
@@ -67,114 +67,21 @@ onMounted(async () => {
 </template>
 
 <style scoped lang="scss">
-.today-wrap {
-  width: 100%;
-}
- 
-.today-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
- 
-.today-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: $admin-font-color;
-}
- 
-.today-more {
-  font-size: 11px;
-  color: #999;
-  text-decoration: none;
- 
-  &:hover {
-    color: $green-600;
+.today-item { gap: 12px; }
+
+.today-time { display: flex; flex-direction: column; align-items: center; font-size: $fs-xs;  color: $font-color-light; min-width: 40px; gap: 2px;}
+.today-info { flex: 1; display: flex; flex-direction: column; gap: 2px;}
+.today-title { font-weight: 600; color: $font-color;}
+.today-room { font-size: $fs-xs; color: $font-color-light;} 
+.qr-btn { 
+  font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 4px; border: none; cursor: pointer; white-space: nowrap; 
+  &--start { 
+    background-color: #fff;  color: $green-600; border: 1px solid $green-600;
+    &:hover { background-color: $green-600; color: #fff; }
   }
-}
- 
-.today-empty {
-  font-size: 12px;
-  color: #999;
-  padding: 20px 0;
-  text-align: center;
-}
- 
-.today-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
- 
-.today-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  border: 1px solid #e8e8e8;
-  border-radius: 8px;
-  background-color: #fff;
-}
- 
-.today-time {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-size: 11px;
-  color: #888;
-  min-width: 40px;
-  gap: 2px;
-}
- 
-.today-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
- 
-.today-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: $admin-font-color;
-}
- 
-.today-room {
-  font-size: 11px;
-  color: #aaa;
-}
- 
-.qr-btn {
-  font-size: 12px;
-  font-weight: 600;
-  padding: 6px 14px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  white-space: nowrap;
- 
-  &--start {
-    background-color: #fff;
-    color: $green-600;
-    border: 1px solid $green-600;
- 
-    &:hover {
-      background-color: $green-600;
-      color: #fff;
-    }
-  }
- 
-  &--end {
-    background-color: $admin-font-color;
-    color: #fff;
- 
-    &:hover {
-      opacity: 0.85;
-    }
+  &--end { 
+    background-color: $font-color; color: #fff; 
+    &:hover { opacity: 0.85; }
   }
 }
 </style>
