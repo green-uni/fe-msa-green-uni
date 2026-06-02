@@ -6,10 +6,12 @@ import dayGridMonth from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import ScheduleService from '@/services/scheduleService' // ===== scheduleService =====
 import { useAuthStore } from '@/stores/authentication' // ===== pinia store =====
+import { useModalStore } from '@/stores/modal'
 
 // ===== 권한 확인 =====
 const authStore = useAuthStore()
 const isAdmin = computed(() => authStore.role === 'ADMIN')
+const modal = useModalStore()
 
 // ===== 데이터 =====
 const events = ref([])
@@ -89,9 +91,33 @@ const getSemester = (dateStr) => {
   return 'SECOND'
 }
 
+// ===== 시작일 변경 시 종료일 자동 세팅 =====
+const onNewStartDateChange = () => {
+  if (!newEvent.value.endDate || newEvent.value.endDate < newEvent.value.startDate) {
+    newEvent.value.endDate = newEvent.value.startDate
+  }
+}
+
+const onEditStartDateChange = () => {
+  if (!editEvent.value.endDate || editEvent.value.endDate < editEvent.value.startDate) {
+    editEvent.value.endDate = editEvent.value.startDate
+  }
+}
+
 // ===== API: 학사일정 등록 (관리자) =====
 const submitEvent = async () => {
-  if (!newEvent.value.title || !newEvent.value.startDate) return
+  if (!newEvent.value.title.trim()) {
+    await modal.showAlert('일정명을 작성해주세요.', 'warning')
+    return
+  }
+  if (!newEvent.value.startDate) {
+    await modal.showAlert('학사기간을 선택해주세요.', 'warning')
+    return
+  }
+  if (newEvent.value.endDate && newEvent.value.endDate < newEvent.value.startDate) {
+    await modal.showAlert('종료일이 시작일보다 빠릅니다.', 'warning')
+    return
+  }
   try {
     await ScheduleService.createSchedule({
       title: newEvent.value.title,
@@ -111,6 +137,18 @@ const submitEvent = async () => {
 
 // ===== API: 학사일정 수정 (관리자) =====
 const submitEdit = async () => {
+  if (!editEvent.value.title.trim()) {
+    await modal.showAlert('일정명을 작성해주세요.', 'warning')
+    return
+  }
+  if (!editEvent.value.startDate) {
+    await modal.showAlert('학사기간을 선택해주세요.', 'warning')
+    return
+  }
+  if (editEvent.value.endDate && editEvent.value.endDate < editEvent.value.startDate) {
+    await modal.showAlert('종료일이 시작일보다 빠릅니다.', 'warning')
+    return
+  }
   try {
     await ScheduleService.updateSchedule(editEvent.value.id, {
       title: editEvent.value.title,
@@ -311,7 +349,7 @@ fetchSchedules()
             <textarea v-model="newEvent.title" class="form-textarea" placeholder="학사일정(title)"></textarea>
             <div class="form-date-row">
               <label>시작날짜</label>
-              <input type="date" v-model="newEvent.startDate" class="form-date" />
+              <input type="date" v-model="newEvent.startDate" class="form-date" @change="onNewStartDateChange" />
             </div>
             <div class="form-date-row">
               <label>종료날짜</label>
@@ -332,7 +370,7 @@ fetchSchedules()
             <textarea v-model="editEvent.title" class="form-textarea"></textarea>
             <div class="form-date-row">
               <label>시작날짜</label>
-              <input type="date" v-model="editEvent.startDate" class="form-date" />
+              <input type="date" v-model="editEvent.startDate" class="form-date" @change="onEditStartDateChange" />
             </div>
             <div class="form-date-row">
               <label>종료날짜</label>
