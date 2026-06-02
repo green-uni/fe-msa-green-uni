@@ -57,7 +57,7 @@ onMounted(async () => {
         </div>
       </header>
       <div class="role-grid">
-        <div class="">
+        <div class="timetable-col">
           <TimetableWidget />
         </div>
         <div class="role-side">
@@ -86,7 +86,7 @@ onMounted(async () => {
         </div>
       </header>
       <div class="role-grid">
-        <div class="">
+        <div class="timetable-col">
           <TimetableWidget />
         </div>
         <div class="role-side">
@@ -171,7 +171,8 @@ $gap: 16px;
 .placeholder-cell {  flex: 1;  min-height: 150px;  background-color: $default-bg !important;  border: 1px dashed $border-color !important;  box-shadow: none !important;}
 
 // ─── timetable height 체인 ────────────────────────────────
-:deep(.timetable-wrap) { width: 100%; height: 100%; }
+.timetable-col { display: flex; flex-direction: column; min-height: 0;     box-shadow: 0 1px 2px rgba(15, 61, 46, 0.06);}
+:deep(.timetable-wrap) { width: 100%; flex: 1; min-height: 0; }
 
 // content-wrap 안에서 이중 카드 방지 (border·padding·배경 제거)
 :deep(.widget-card),
