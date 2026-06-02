@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import lectureService from '@/services/lectureService.js'
 import { useAuthStore } from '@/stores/authentication'
+import { BUILDING_LABEL } from '@/utils/constants'
  
 const authStore = useAuthStore()
  
@@ -99,7 +100,7 @@ onMounted(async () => {
               <div v-if="getCell(day, period.num) && !getCell(day, period.num).hidden" class="cell-content">
                 <span class="cell-name">{{ getCell(day, period.num).lectureName }}</span>
                 <span class="cell-room">
-                  {{ getCell(day, period.num).building }} {{ getCell(day, period.num).room }}
+                  {{ BUILDING_LABEL[getCell(day, period.num).building] ?? getCell(day, period.num).building }} {{ getCell(day, period.num).room }}
                 </span>
               </div>
             </td>
