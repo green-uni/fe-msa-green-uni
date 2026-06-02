@@ -27,7 +27,6 @@ export const routes = [
       ...memberRoutes,
       ...lectureRoutes,
       ...evaluationRoutes,
-      ...scheduleRoutes,
       ...tuitionRoutes,
       ...courseRoutes,
       ...gradeRoutes,
@@ -35,6 +34,7 @@ export const routes = [
       ...announcementRoutes,
       ...attendanceRoutes,
       ...publicAnnouncementRoutes,
+      ...scheduleRoutes,
     ],
   },
   // 관리자 레이아웃
@@ -46,10 +46,10 @@ export const routes = [
       ...adminMemberRoutes,
       ...adminAnnouncementRoutes,
       ...adminLectureRoutes,
-      ...adminScheduleRoutes,
       ...adminMajorRoutes,
       ...adminTuitionRoutes,
-      ...adminScholarshipRoutes
+      ...adminScholarshipRoutes,
+      ...adminScheduleRoutes,
     ],
   },
   // 모바일 출석 화면 (학생 전용, /student/* 경로)
