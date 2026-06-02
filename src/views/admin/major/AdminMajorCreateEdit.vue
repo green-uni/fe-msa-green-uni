@@ -228,7 +228,7 @@ watch(() => form.active, async (newVal) => {
   }
 })
 
-// ↓ [추가] 화면 표시용 교수 리스트 정의 ('이름(코드)' 형태)
+// 화면 표시용 교수 리스트 정의 ('이름(코드)' 형태)
 const displayProfessorList = computed(() => {
   return professorList.value.map(prof => ({
     ...prof,
@@ -236,6 +236,12 @@ const displayProfessorList = computed(() => {
     displayName: `${prof.name} (${prof.memberCode})`
   }))
 })
+
+// 학과장 지정 취소(초기화) 함수
+function clearProfessor() {
+  form.chairProfessorCode = null
+  professorKeyword.value = ''
+}
 </script>
 
 <template>
@@ -279,7 +285,7 @@ const displayProfessorList = computed(() => {
 
           <div class="input-wrap">
             <div class="input-label">학과장명</div>
-            <div class="input-content" :class="{ 'disabled-style': !isEdit }">
+            <div class="input-content professor-search-wrap" :class="{ 'disabled-style': !isEdit }">
               <SearchInput
                 v-model="professorKeyword"
                 :list="displayProfessorList"
@@ -290,6 +296,15 @@ const displayProfessorList = computed(() => {
                 :disabled="!isEdit"
                 @select="onSelectProfessor"
               />
+              <button 
+                v-if="isEdit && (form.chairProfessorCode || professorKeyword)" 
+                type="button" 
+                class="btn-clear-prof" 
+                @click="clearProfessor"
+                title="학과장 지정 취소"
+              >
+                <font-awesome-icon icon="fa-solid fa-trash-can" />
+              </button>
             </div>
           </div>
 
@@ -385,5 +400,35 @@ const displayProfessorList = computed(() => {
   cursor: not-allowed;
   opacity: 0.7;
   pointer-events: none; /* 클릭 이벤트 통째로 막기 */
+}
+
+.professor-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+
+  :deep(.search-input-container) {
+    width: 100%;
+  }
+
+  .btn-clear-prof {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+
+    &:hover {
+      color: #c0392b;
+    }
+  }
 }
 </style>
