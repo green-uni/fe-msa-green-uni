@@ -41,7 +41,7 @@ const fetchList = async () => {
     });
     state.list = res.data.content ?? [];
     maxPage.value = res.data.totalPages ?? 1;
-    totalCount.value = res.data.totalElements ?? 0;
+    totalCount.value = Number(res.data.totalElements ?? 0);
   } catch (err) {
     console.error('목록 로드 실패:', err);
   } finally {

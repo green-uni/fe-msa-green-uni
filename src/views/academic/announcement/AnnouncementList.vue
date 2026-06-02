@@ -15,13 +15,23 @@ const maxPage       = ref(1)
 const totalElements = ref(0)
 const pageSize      = ref(10)
 const isLoading     = ref(false)
+const searchQuery   = ref('')
+const searchInput   = ref('')
+const yearFilter    = ref('')
 
-const GRID_COLS = '60px 1fr 100px 80px 120px'
+const yearOptions = ref([])
+
+const GRID_COLS = '60px 1fr 80px 120px'
 
 const fetchList = async (page = 1) => {
     isLoading.value = true
     try {
-        const res = await AnnouncementService.getList({ page, size: pageSize.value })
+        const res = await AnnouncementService.getList({
+            page,
+            size:   pageSize.value,
+            search: searchInput.value || null,
+            year:   yearFilter.value  || null,
+        })
         annoList.value      = res.content ?? []
         maxPage.value       = res.totalPages ?? 1
         totalElements.value = res.totalElements ?? 0
@@ -33,32 +43,49 @@ const fetchList = async (page = 1) => {
     }
 }
 
-const onPageSizeChange = () => {
-    fetchList(1)
-}
+const onSearch      = () => { searchInput.value = searchQuery.value; fetchList(1) }
+const onYearChange  = () => fetchList(1)
+const onPageSizeChange = () => fetchList(1)
 
-const rowNum = (idx) => (currentPage.value - 1) * 10 + idx + 1
+const rowNum     = (idx) => (currentPage.value - 1) * 10 + idx + 1
 const formatDate = (dateStr) => dateStr?.slice(0, 10) ?? ''
+const truncate   = (text, max = 20) => text?.length > max ? text.slice(0, max) + '...' : (text ?? '')
 
-onMounted(() => fetchList(1))
+onMounted(async () => {
+    yearOptions.value = await AnnouncementService.getYears().catch(() => [])
+    fetchList(1)
+})
 </script>
 
 <template>
   <div style="position: relative;">
     <FilterBar
+      v-model:searchQuery="searchQuery"
       v-model:pageSize="pageSize"
-      :show-search="false"
+      :show-search="true"
       :hasFilter="false"
       :show-count="true"
       :count="totalElements"
       :show-page-size="true"
       :page-size-options="[10, 20, 30]"
+      placeholder="제목 검색"
+      @search="onSearch"
       @pageSizeChange="onPageSizeChange"
-    />
+    >
+      <div class="filter-item">
+        <div class="input-label">연도</div>
+        <div class="input-content">
+          <select v-model="yearFilter" @change="onYearChange">
+            <option value="">전체</option>
+            <option v-for="y in yearOptions" :key="y" :value="y">{{ y }}년</option>
+          </select>
+        </div>
+      </div>
+    </FilterBar>
     <LoadingSpinner v-if="isLoading" :overlay="true" size="md" />
 
     <DataTable
-      :columns="['번호', '제목', '작성자', '조회수', '등록일']"
+      :columns="['번호', '제목', '조회수', '등록일']"
       :rows="annoList"
       :gridCols="GRID_COLS"
       :isLoading="isLoading"
@@ -71,8 +98,7 @@ onMounted(() => fetchList(1))
         @click="router.push(`/announcements/${anno.annoId}`)"
       >
         <div>{{ rowNum(idx) }}</div>
-        <div class="tal">{{ anno.title }}</div>
-        <div class="tbl-meta">{{ anno.writerName }}</div>
+        <div style="display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center; width:100%">{{ truncate(anno.title) }}</div>
         <div class="tbl-meta">{{ anno.viewCount }}</div>
         <div class="tbl-meta">{{ formatDate(anno.createdAt) }}</div>
       </article>

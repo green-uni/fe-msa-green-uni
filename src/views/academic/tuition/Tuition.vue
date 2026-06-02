@@ -19,6 +19,7 @@ const fetchTuitionDetail = async () => {
     isLoading.value = true;
     console.log('--- [시작] 데이터 동적 로딩 및 순서 보정 ---');
 
+    // 1. 학사 일정 조회 (납부 기한 가져오기)
     let deadlineDate = '-';
     try {
       const periodResponse = await tuitionService.getStudentPaymentPeriod();
@@ -29,34 +30,75 @@ const fetchTuitionDetail = async () => {
       deadlineDate = '-';
     }
 
+    // ✨ [수정] 납부 기간이 아니거나 기간 데이터를 가져오지 못했다면 프로세스 중단
+    if (deadlineDate === '-') {
+      console.log('현재 등록금 납부 기간이 아닙니다.');
+      isPeriod.value = false;
+      return; // 이후 등록금 목록 및 상세 조회를 하지 않고 종료
+    }
+
+    // 2. 내 등록금 목록 조회
     const listResponse = await tuitionService.getMyTuitionList();
     console.log('2. 내 등록금 목록 조회 성공:', listResponse);
 
-    const listData = listResponse?.data;
+    const responseData = listResponse?.data;
+    
+    let listData = [];
+    if (responseData) {
+      if (responseData.content && Array.isArray(responseData.content)) {
+        listData = responseData.content;
+      } else if (Array.isArray(responseData)) {
+        listData = responseData;         
+      } else {
+        listData = [responseData];       
+      }
+    }
 
+    // 3. 데이터 검증 및 연동
     if (listData && listData.length > 0) {
-      isPeriod.value = true;
-
+      // isPeriod.value = true; // ❌ 무조건 true로 만들던 기존 코드는 제거하거나 위치 변경
+      
       const targetTuition = listData[0];
-      currentTuitionId.value = targetTuition.tuitionId;
+      const tId = targetTuition.tuitionId || targetTuition.tuition_id;
 
-      if (route.params.tuitionId !== String(currentTuitionId.value)) {
-        router.replace(`/tuitions/${currentTuitionId.value}`);
+      if (!tId) {
+        console.error('데이터 구조 내에 tuitionId 속성이 누락되었습니다.', targetTuition);
+        isPeriod.value = false;
+        return;
       }
 
+      currentTuitionId.value = tId;
+
+      if (route.params.tuitionId !== String(currentTuitionId.value)) {
+        console.log(`올바른 고지서 주소(/tuitions/${currentTuitionId.value})로 이동합니다.`);
+        router.replace(`/tuitions/${currentTuitionId.value}`);
+        return; 
+      }
+
+      // 4. 등록금 상세 내역 조회
       const detailResponse = await tuitionService.getMyTuitionDetail(currentTuitionId.value);
       console.log('3. 등록금 상세 내역 조회 성공:', detailResponse);
 
       const rawDetail = detailResponse?.data || {};
 
+      // 최종 데이터 바인딩 시점에 상단 조건 통과했으므로 true 설정
+      isPeriod.value = true; 
+
       tuitionDetail.value = {
         ...targetTuition,
         ...rawDetail,
+        tuitionId: tId,
+        baseAmount: targetTuition.baseAmount || targetTuition.base_amount || rawDetail.baseAmount,
+        totalDiscount: targetTuition.totalDiscount || targetTuition.total_discount || rawDetail.totalDiscount,
+        finalAmount: targetTuition.finalAmount || targetTuition.final_amount || rawDetail.finalAmount,
+        status: targetTuition.status || rawDetail.status,
+        year: targetTuition.year || rawDetail.year,
+        semester: targetTuition.semester || rawDetail.semester,
         deadline: deadlineDate
       };
 
     } else {
-      console.log('고지된 등록금 내역이 존재하지 않습니다.');
+      console.log('고지된 등록금 내역이 존재하지 않습니다. (listData 배열이 비어있음)');
       isPeriod.value = false;
     }
   } catch (error) {
@@ -121,13 +163,9 @@ onMounted(() => { fetchTuitionDetail(); });
               <dt>최종 납부금액</dt>
               <dd>{{ formatCurrency(tuitionDetail.finalAmount) }}원</dd>
             </dl>
-            <dl class="req-row">
-              <dt>납부 기한</dt>
+            <dl class="req-row full">
+              <dt>납부 마감기한</dt>
               <dd>{{ formatDate(tuitionDetail.deadline) }}</dd>
-            </dl>
-            <dl class="req-row">
-              <dt>납부 상태</dt>
-              <dd>미납</dd>
             </dl>
           </div>
         </div>

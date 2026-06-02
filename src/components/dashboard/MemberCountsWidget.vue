@@ -36,7 +36,7 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .counts-grid { display: grid; grid-template-columns: repeat(3, 1fr);  gap: 16px;}
-.count-card { display: flex; flex-direction: column; gap: 20px;text-align: center;justify-content: center;padding-top: 10px;
+.count-card { display: flex; flex-direction: column; gap: 20px;text-align: center;justify-content: center;padding-top: 10px; border: 1px solid $border-color;
   &-label { font-weight: 600; font-size: 1.1em; }
   &-icon {  background: #ddd;padding: 2px;border-radius: 50%; width: 45px;height: 45px;display: flex; justify-content: center; align-items: center; align-self: center;
     svg{font-size: 1.5em;}

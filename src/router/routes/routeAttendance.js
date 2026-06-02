@@ -55,18 +55,18 @@ export const attendanceRoutes = [
 
   // ── 학생 화면 ───────────────────────────────────────────────
 
-  {
-    // 학생 본인 출석 조회 화면 (API-ATTD-04)
-    // URL 예시: /attendances/my
-    path: `${url}/my`,
-    component: () => import('@/views/attendance/AttendanceMyList.vue'),
-    meta: {
-      title: '내 출석 조회',
-      groupTitle: '출석',
-      navSection: '학사정보',
-      auth: ['STUDENT'],
-    },
-  },
+  // {
+  //   // 학생 본인 출석 조회 화면 (API-ATTD-04)
+  //   // URL 예시: /attendances/my
+  //   path: `${url}/my`,
+  //   component: () => import('@/views/attendance/AttendanceMyList.vue'),
+  //   meta: {
+  //     title: '내 출석 조회',
+  //     groupTitle: '출석',
+  //     navSection: '학사정보',
+  //     auth: ['STUDENT'],
+  //   },
+  // },
 
 ]
 
