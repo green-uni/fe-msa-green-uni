@@ -45,6 +45,9 @@ const pageSize = defineModel('pageSize', { default: 10 })
             @enter="emit('search')"
             @select="(item) => emit('select', item)"
           />
+          <button class="btn search-btn" @click="emit('search')">
+            <font-awesome-icon icon="fa-solid fa-magnifying-glass" /> 검색
+          </button>
         </template>
         <template v-else>
           <div class="input-content">
