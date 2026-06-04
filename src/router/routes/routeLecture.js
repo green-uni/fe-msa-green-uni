@@ -15,7 +15,7 @@ export const lectureRoutes = [
     path: `${url}/my`,
     component: () => import('@/views/academic/lecture/MyLectureList.vue'),
     meta: {
-      title: '나의 강의 관리',
+      title: '내 강의 관리',
       groupTitle: '강의 관리',
       navSection: '학사정보',
       auth: ['STUDENT', 'PROFESSOR'],

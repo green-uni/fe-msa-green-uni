@@ -193,7 +193,7 @@ onMounted(() => {
     />
 
     <div class="card notice-panel" style="margin-top: 16px;">
-      <h3 class="notice-title">나의 강의평가</h3>
+      <h3 class="notice-title">내 강의평가</h3>
       <p class="notice-desc">목록에서 강의를 선택하면 상세 내용을 확인할 수 있습니다.</p>
       <div class="tbl-scroll">
         <table class="data-tbl">
