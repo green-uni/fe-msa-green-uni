@@ -35,7 +35,9 @@ const currentPage = ref(1)
 const pageSize = 10
 const isLoading = ref(false)
 
+// 🎯 메일 발송 전용 로딩 상태 추가
 const isMailModalOpen = ref(false)
+const isMailSending = ref(false) 
 
 async function fetchTuitionList() {
   isLoading.value = true
@@ -96,14 +98,18 @@ function openMailModal() {
   isMailModalOpen.value = true
 }
 
+// 🎯 메일 발송 함수 수정
 async function confirmSendMail() {
+  isMailSending.value = true // 로딩 시작
   try {
     await tuitionService.sendReminderMails(filter.year, filter.semester)
     await modal.showAlert('미납자 독촉 메일 발송이 완료되었습니다.', 'success')
     isMailModalOpen.value = false
   } catch (error) {
     console.error(error)
-    modal.showAlert('메일 발송에 실패했습니다.', 'error')
+    modal.showAlert('메일 발송에 실패했습니다. (SMTP 설정을 확인하세요)', 'error')
+  } finally {
+    isMailSending.value = false // 로딩 종료
   }
 }
 
@@ -146,14 +152,14 @@ onMounted(() => {
   <div style="position: relative">
     <LoadingSpinner v-if="isLoading" :overlay="true" size="md" />
 
-      <FilterBar
-        v-model:searchQuery="searchInput"
-        :hasFilter="false"
-        placeholder="이름 또는 학번을 입력하세요"
-        :show-count="true"
-        :count="Number(totalElements)" @search="onSearch"
-        @reset="resetFilter"
-      >
+    <FilterBar
+      v-model:searchQuery="searchInput"
+      :hasFilter="false"
+      placeholder="이름 또는 학번을 입력하세요"
+      :show-count="true"
+      :count="Number(totalElements)" @search="onSearch"
+      @reset="resetFilter"
+    >
       <div class="tab-area">
         <button
           v-for="tab in tabs"
@@ -227,12 +233,21 @@ onMounted(() => {
       <button class="btn btn-default" @click="openMailModal">미납자 메일 발송</button>
     </div>
 
-    <!-- 미납자 메일 발송 모달 -->
-    <div v-if="isMailModalOpen" class="modal-overlay" @click.self="isMailModalOpen = false">
-      <div class="mail-modal">
+    <div v-if="isMailModalOpen" class="modal-overlay" @click.self="!isMailSending && (isMailModalOpen = false)">
+      <div class="mail-modal" style="position: relative;">
+        
+        <div v-if="isMailSending" class="sending-overlay">
+          <LoadingSpinner size="md" />
+          <div class="sending-msg">
+            <p class="main-msg">미납 안내 이메일을 발송하고 있습니다.</p>
+            <p class="sub-msg">대량 발송 중에는 다소 시간이 걸릴 수 있습니다. 잠시만 기다려주세요.</p>
+            <p class="count-msg">대상자: {{ totalElements }}명</p>
+          </div>
+        </div>
+
         <header class="modal-header">
           <h3>미납 안내 메일 발송</h3>
-          <button class="btn-close" @click="isMailModalOpen = false">&times;</button>
+          <button class="btn-close" :disabled="isMailSending" @click="isMailModalOpen = false">&times;</button>
         </header>
 
         <main class="modal-body">
@@ -277,8 +292,8 @@ onMounted(() => {
         </main>
 
         <footer class="modal-footer">
-          <button class="btn btn-default" @click="isMailModalOpen = false">취소</button>
-          <button class="btn btn-submit" @click="confirmSendMail">메일 발송</button>
+          <button class="btn btn-default" :disabled="isMailSending" @click="isMailModalOpen = false">취소</button>
+          <button class="btn btn-submit" :disabled="isMailSending" @click="confirmSendMail">메일 발송</button>
         </footer>
       </div>
     </div>
@@ -343,5 +358,43 @@ onMounted(() => {
 .modal-footer {
   padding: 12px 20px; background: #fff; border-top: 1px solid $border-color;
   display: flex; justify-content: flex-end; gap: 8px;
+}
+/* 기존 스타일 하단에 추가 */
+.sending-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(2px);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+
+  .sending-msg {
+    text-align: center;
+    
+    .main-msg {
+      font-size: 16px;
+      font-weight: 600;
+      color: $font-color-bold;
+      margin: 0 0 6px 0;
+    }
+    .sub-msg {
+      font-size: 13px;
+      color: $font-color-light;
+      margin: 0 0 10px 0;
+    }
+    .count-msg {
+      font-size: 13px;
+      font-weight: bold;
+      color: $error;
+      margin: 0;
+    }
+  }
 }
 </style>
