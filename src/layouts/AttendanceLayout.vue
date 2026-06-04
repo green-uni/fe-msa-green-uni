@@ -27,7 +27,7 @@ onUnmounted(() => document.body.classList.remove('pwa-view'))
   min-height: 100dvh;     // 모던 브라우저
   display: flex;
   flex-direction: column;
-  background: var(--default-bg);
+  background: $default-bg;
   // iOS 노치 safe area
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);

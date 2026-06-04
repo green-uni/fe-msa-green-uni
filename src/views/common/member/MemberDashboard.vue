@@ -43,7 +43,7 @@ onMounted(async () => {
     <template v-if="authStore.role === 'STUDENT'">
       <header class="dash-head">
         <div class="dash-greeting">
-          <p class="dash-name">안녕하세요, <strong>{{ authStore.name }}</strong> 학생님</p>
+          <p class="dash-title">안녕하세요, <strong>{{ authStore.name }}</strong> 학생님</p>
           <p class="dash-sub">
             {{ currentTerm }}
             <template v-if="profile">
@@ -56,15 +56,14 @@ onMounted(async () => {
           <ActiveScheduleBanner />
         </div>
       </header>
-      <div class="student-grid">
-        <div class="content-wrap student-main">
+      <div class="role-grid">
+        <div class="timetable-col">
           <TimetableWidget />
         </div>
-        <div class="student-side">
-          <div class="content-wrap placeholder-cell">이번 학기 출석 현황</div>
-          <div class="content-wrap"><StudentRequestsWidget /></div>
+        <div class="role-side">
           <div class="content-wrap"><AnnouncementWidget /></div>
           <div class="content-wrap"><MonthlyScheduleWidget /></div>
+          <div class="content-wrap"><StudentRequestsWidget /></div>
         </div>
       </div>
     </template>
@@ -73,7 +72,7 @@ onMounted(async () => {
     <template v-else-if="authStore.role === 'PROFESSOR'">
       <header class="dash-head">
         <div class="dash-greeting">
-          <p class="dash-name">안녕하세요, <strong>{{ authStore.name }}</strong> 교수님</p>
+          <p class="dash-title">안녕하세요, <strong>{{ authStore.name }}</strong> 교수님</p>
           <p class="dash-sub">
             {{ currentTerm }}
             <template v-if="profile">
@@ -86,13 +85,12 @@ onMounted(async () => {
           <ActiveScheduleBanner />
         </div>
       </header>
-      <div class="professor-grid">
-        <div class="content-wrap professor-main">
+      <div class="role-grid">
+        <div class="timetable-col">
           <TimetableWidget />
         </div>
-        <div class="professor-side">
+        <div class="role-side">
           <div class="content-wrap"><TodayLectureWidget /></div>
-          <div class="content-wrap placeholder-cell">오늘 강의별 출석현황</div>
           <div class="content-wrap"><AnnouncementWidget /></div>
           <div class="content-wrap"><MonthlyScheduleWidget /></div>
         </div>
@@ -103,7 +101,7 @@ onMounted(async () => {
     <template v-else-if="authStore.role === 'ADMIN'">
       <header class="dash-head">
         <div class="dash-greeting">
-          <p class="dash-name">안녕하세요, <strong>{{ authStore.name }}</strong> 관리자님</p>
+          <p class="dash-title">안녕하세요, <strong>{{ authStore.name }}</strong> 관리자님</p>
           <p class="dash-sub">{{ currentTerm }}</p>
         </div>
         <div class="dash-banner">
@@ -136,45 +134,45 @@ onMounted(async () => {
 $gap: 16px;
 
 // ─── 전체 래퍼 ────────────────────────────────────────────
-.dashboard {  display: flex;  flex-direction: column;  gap: $gap;  height: 100%;}
+.dashboard {  display: flex;  flex-direction: column;  gap: $gap;  height: 100%;  min-width: 1200px;
+  .content-wrap{border: 1px solid $border-color;}
+}
 
 // ─── 헤더 (인삿말 + 배너) ─────────────────────────────────
 .dash-head {  display: grid;  grid-template-columns: 1fr 2fr; align-items: center;  gap: 24px;  flex-shrink: 0;
     .dash-greeting {  flex-shrink: 0;
-        .dash-name {  font-size: 1.286em;   font-weight: 400;  color: $font-color;
+        .dash-title {  font-size: $fs-xl;   font-weight: 400;  color: $font-color;
             strong { font-weight: 700; }
         }
-        .dash-sub {  font-size: 0.929em;  color: $font-color-light;  margin-top: 4px;}
+        .dash-sub {  font-size: $fs-sm;  color: $font-color-light;  margin-top: 4px;}
     }
     .dash-banner {  flex: 1;  min-width: 0;}
 }
 // ─── 세로 스택 컬럼 ──────────────────────────────────────
 .dash-col { display: flex;  flex-direction: column;  gap: $gap;  height: 100%;}
 
-// ─── 학생 레이아웃 ────────────────────────────────────────
-.student-grid {  flex: 1;  display: grid;  grid-template-columns: 1fr 2fr;  gap: $gap;  min-height: 0;}
-.student-main { overflow: auto; }
-.student-side {  display: grid;  grid-template-columns: 1fr 1fr;  grid-template-rows: 1fr 1fr;  gap: $gap;}
-
-// ─── 교수 레이아웃 ────────────────────────────────────────
-.professor-grid {  flex: 1;  display: grid;  grid-template-columns: 1fr 2fr;  gap: $gap;  min-height: 0;}
-.professor-main { overflow: auto; }
-.professor-side {  display: grid;  grid-template-columns: 1fr 1fr;  grid-template-rows: 1fr 1fr;  gap: $gap;}
+// ─── 학생/교수 공통 레이아웃 ──────────────────────────────
+.role-grid { flex: 1; display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: $gap; min-height: 0; }
+.role-side { display: flex; flex-direction: column; gap: $gap;
+  > .content-wrap { flex: 1; min-height: 0; overflow-y: auto; padding: $md; }
+}
 
 // ─── 관리자 레이아웃 ──────────────────────────────────────
-.admin-outer {  flex: 1;  display: grid;  grid-template-columns: 2fr 1fr;  gap: $gap;  min-height: 0; }
-.admin-main { display: grid; grid-template-rows: 2fr 1fr; gap: $gap;
+.admin-outer {  flex: 1;  display: grid;  grid-template-columns: minmax(0, 1fr) 260px;  gap: $gap;  min-height: 0; }
+.admin-main { display: grid; grid-template-rows: 2fr 1fr; gap: $gap; min-height: 0;
     .admin-pending { display: grid;  grid-template-columns: repeat(3, 1fr); gap: $gap;}
     .admin-info { flex: 1; display: grid; grid-template-columns: 1.2fr 1fr; gap: $gap;  min-height: 0;}
 }
-.admin-side {  display: grid; grid-template-rows:  1fr 1fr;  gap: $gap;  height: 100%;
+.admin-side {  display: grid; grid-template-rows: 1fr 1fr;  gap: $gap;  min-height: 0;
+  > .content-wrap { min-height: 0; overflow-y: auto; padding: $md; }
 }
 
 // ─── 플레이스홀더 ────────────────────────────────────────
-.placeholder-cell {  flex: 1;  min-height: 150px;  background-color: $bg !important;  border: 1px dashed $line !important;  box-shadow: none !important;}
+.placeholder-cell {  flex: 1;  min-height: 150px;  background-color: $default-bg !important;  border: 1px dashed $border-color !important;  box-shadow: none !important;}
 
-// ─── 컴포넌트 너비·사이즈 제약 해제 ──────────────────────
-:deep(.timetable-wrap) { width: 100%; }
+// ─── timetable height 체인 ────────────────────────────────
+.timetable-col { display: flex; flex-direction: column; min-height: 0;     box-shadow: 0 1px 2px rgba(15, 61, 46, 0.06);}
+:deep(.timetable-wrap) { width: 100%; flex: 1; min-height: 0; }
 
 // content-wrap 안에서 이중 카드 방지 (border·padding·배경 제거)
 :deep(.widget-card),
@@ -187,9 +185,58 @@ $gap: 16px;
   box-shadow: none;
 }
 
-// ─── 제목 크기 통일 (13px) ────────────────────────────────
+// ─── 위젯 공통 스타일 ─────────────────────────────────────
+// 위젯 헤더 레이아웃
+:deep(.widget-header) {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+}
+// 위젯 헤더 타이틀
 :deep(.widget-header h3),
-:deep(.tuition-header .title) { 
-font-weight: 600; color: $font-color; margin: 0;
+:deep(.tuition-header .title) {
+  font-size: $fs-df; font-weight: 700; color: $font-color; margin: 0;
+}
+
+// 전체보기 링크
+:deep(.view-all) {
+  font-size: $fs-xs; color: $font-color-light; text-decoration: none;
+  &:hover { color: $green-600; }
+}
+
+// 빈 상태 메시지
+:deep(.empty-msg),
+:deep(.timetable-empty) {
+  font-size: $fs-sm; color: $font-color-light; text-align: center; padding: 20px 0;
+}
+
+// .type-name → .dash-title deep 규칙으로 통합됨
+
+// ─── 위젯 공통 리스트/행 ──────────────
+:deep(.dash-list) {
+  list-style: none; padding: 0 5px; margin: 0; display: flex; flex-direction: column;
+  .pointer { &:hover .dash-title { color: $green-600; } }
+}
+:deep(.dash-item) {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 0; border-bottom: 1px solid #f0f0f0;
+  &:last-child { border-bottom: none; }
+}
+:deep(.dash-title) {
+  flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
+  font-size: $fs-df; font-weight: 600; color: $font-color; transition: color 0.15s;
+}
+
+// ─── 관리자 승인 대기 위젯 공통 (3개 공유) ───────────────────
+:deep(.pend-item) { align-items: flex-start; }
+:deep(.pend-info) { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+:deep(.pend-sub)  { font-size: $fs-xs; color: $font-color-light; }
+:deep(.dash-dot) {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: $font-color-light; flex-shrink: 0;
+}
+:deep(.dash-date) {
+  font-size: $fs-xs; color: $font-color-light; flex-shrink: 0; white-space: nowrap;
+}
+:deep(.dash-badge){
+font-size: 11px; padding: 2px 5px;
 }
 </style>

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 
 const props = defineProps({
   memberCode: [Number, String],
@@ -15,9 +15,9 @@ const emit = defineEmits(['update:pic'])
 const fileInput = ref(null)
 const previewUrl = ref(null)
 const sizeError = ref(false)
+const imgLoadError = ref(false)
 
 const MAX_SIZE = 5 * 1024 * 1024 // 5MB
-
 
 // 이미지 주소: 기존 사진 or 미리보기 or 빈값
 const imgSrc = computed(() => {
@@ -25,6 +25,8 @@ const imgSrc = computed(() => {
   if (props.existPic && props.memberCode) return `/file/member/${props.memberCode}/${props.existPic}`  // 기존 이미지
   return ''  // 없음
 })
+
+watch(imgSrc, () => { imgLoadError.value = false })
 
 const openFileSelector = () => {
   if (props.editable) fileInput.value.click()
@@ -49,7 +51,11 @@ const handlePicChanged = (e) => {
 <template>
   <div class="pf-profile-pic d-flex direct-col g10 w100p">
     <div class="pic-box" :class="{ pointer: editable }" @click="openFileSelector">
-      <img v-if="imgSrc" :src="imgSrc" />
+      <img v-if="imgSrc && !imgLoadError" :src="imgSrc" @error="imgLoadError = true" />
+      <div v-else-if="imgSrc && imgLoadError" class="img-error">
+        <font-awesome-icon icon="fa-solid fa-circle-exclamation" />
+        <span>사진을 불러오는데<br />실패했습니다</span>
+      </div>
       <font-awesome-icon v-else icon="fa-solid fa-camera" />
     </div>
     <div v-if="editable" @click="openFileSelector" class="btn btn-line point">
@@ -72,12 +78,20 @@ const handlePicChanged = (e) => {
   .btn { text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px;}
 }
 
-.pic-hint { font-size: 0.78rem; color: $font-color-light; text-align: center;
+.pic-hint { font-size: $fs-xs; color: $font-color-light; text-align: center;
   &.error { color: $error; font-weight: 500; }
 }
 
-.pic-box { max-width: 160px; width: 100%; aspect-ratio: 3 / 4; border: 1px solid #ddd; background-color: var(--hover-bg-color); display: flex;  justify-content: center; align-items: center; border-radius: 5px; overflow: hidden;
+.pic-box { max-width: 160px; width: 100%; aspect-ratio: 3 / 4; border: 1px solid #ddd; background-color: $hover-bg-color; display: flex;  justify-content: center; align-items: center; border-radius: 5px; overflow: hidden;
    img { width: 100%; height: 100%; object-fit: cover;}
-    svg { font-size: 5rem; color: var(--main-color);}
+    svg { font-size: 5rem; color: $green-600;}
+}
+
+.profile-img-wrap:has(.img-error){width: 100%;}
+.img-error {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  color: $font-color-light; text-align: center;
+  svg { font-size: 2rem; color: $font-color-light; }
+  span { font-size: $fs-xs; line-height: 1.5; }
 }
 </style>

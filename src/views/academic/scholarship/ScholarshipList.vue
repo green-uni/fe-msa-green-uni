@@ -9,7 +9,7 @@ const scholarships = ref([])
 const isLoading = ref(false)
 const currentPage = ref(1)   // Pagination 컴포넌트용 (1-based)
 const totalElements = ref(0)
-const pageSize = ref(10)     // FilterBar v-model 연동
+const pageSize = ref(10)
 
 // 💡 실시간 필터링을 위한 단일 ref 정의 (참고 스타일 반영)
 const selectedYear = ref('')
@@ -101,7 +101,6 @@ async function fetchData() {
   }
 }
 
-// 페이지 사이즈 변경 시 데이터를 새로 받아옴
 function onPageSizeChange() {
   currentPage.value = 1
   fetchData()
@@ -124,30 +123,19 @@ function formatDate(dateStr) {
   })
 }
 
-// 배지 디자인 매핑
-const BADGE_MAP = {
-  성적: 'badge--grade',
-  편입학: 'badge--transfer',
-  보훈: 'badge--veteran',
-  다자녀: 'badge--multi',
-}
-function badgeClass(type) {
-  return BADGE_MAP[type] ?? 'badge--default'
-}
-
 onMounted(fetchData)
 </script>
 
 <template>
   <div>
-    <FilterBar 
+    <FilterBar
       v-model:pageSize="pageSize"
-      :hasFilter="hasSearchFilter" 
+      :hasFilter="hasSearchFilter"
       :show-search="false"
-      :show-count="false"
-      :count="totalElements"
-      :showPageSize="false"
-      :pageSizeOptions="[10, 20, 30, 50]"
+      :show-count="true"
+      :count="filteredScholarships.length"
+      :show-page-size="true"
+      :page-size-options="[10, 20, 30]"
       @reset="resetFilter"
       @pageSizeChange="onPageSizeChange"
     >
@@ -186,13 +174,6 @@ onMounted(fetchData)
       </div>
     </FilterBar>
 
-    <div class="summary-bar">
-      <div class="result-count">
-        조회 결과: <strong>{{ filteredScholarships.length }}</strong>건
-      </div>
-      <p>해당 합계: <strong>{{ totalAmountFormatted }}</strong>원</p>
-    </div>
-
     <DataTable
       :columns="['연도', '학기', '유형', '금액', '지급일']"
       :rows="filteredScholarships"
@@ -208,67 +189,24 @@ onMounted(fetchData)
         >
           <div>{{ item.parsedYear ? `${item.parsedYear}년` : '-' }}</div>
           <div>{{ item.parsedSemester ? `${item.parsedSemester}학기` : '-' }}</div>
-          <div>
-            <span class="badge" :class="badgeClass(item.scholarshipType)">
-              {{ item.scholarshipType }}
-            </span>
-          </div>
+          <div>{{ item.scholarshipType }} 장학금</div>
           <div>{{ formatAmount(item.scholarshipAmount) }}원</div>
           <div>{{ formatDate(item.createdAt) }}</div>
         </article>
       </template>
     </DataTable>
+    <div class="tbl-summary">
+      <div class="tbl-summary-item">
+        합계 금액 <span class="tbl-summary-value">{{ totalAmountFormatted }}원</span>
+      </div>
+    </div>
 
     <Pagination
       :currentPage="currentPage"
       :maxPage="maxPage"
-      :pageGroupSize="5"
+      :pageGroupSize="10"
       @goToPage="goPage"
     />
   </div>
 </template>
 
-<style scoped lang="scss">
-.summary-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: var(--text-sm);
-  color: var(--font-color-light);
-  margin-bottom: 12px;
-  strong { color: #16a34a; font-weight: 700; }
-}
-
-.filter-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  
-  .input-label {
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: #333;
-  }
-  
-  select {
-    padding: 6px 10px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    outline: none;
-    font-size: 0.9rem;
-  }
-}
-
-.badge {
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: var(--text-sm);
-  font-weight: 600;
-}
-.badge--grade    { background: #dbeafe; color: #1d4ed8; }
-.badge--transfer { background: #ede9fe; color: #6d28d9; }
-.badge--veteran  { background: #dcfce7; color: #15803d; }
-.badge--multi    { background: #fef9c3; color: #a16207; }
-.badge--default  { background: #f3f4f6; color: #6b7280; }
-</style>

@@ -28,12 +28,12 @@ const state = reactive({
 
 const TAB_LIST = [
   { label: '전체', value: 'ALL' },
-  { label: '정상', value: 'NORMAL' },
+  { label: '정상', value: 'RUNNING' },
   { label: '폐지', value: 'CLOSED' },
 ]
 
 const STATUS_MAP = {
-  NORMAL: { label: '정상', cls: 'badge-running' },
+  RUNNING: { label: '정상', cls: 'badge-running' },
   CLOSED: { label: '폐지', cls: 'badge-closed'  },
 }
 
@@ -68,18 +68,12 @@ function getStatusBadge(active) {
 }
 
 // ─── 서버 사이드 페이징 데이터 fetch ─────────────────────────────
-
-/**
- * status 탭: 'ALL' → null (파라미터 미전송), 'NORMAL'/'CLOSED' → 그대로 전송
- * search: searchInput 값 (공백이면 null)
- * page: 0-based (Spring Pageable 기본)
- */
 async function fetchMajorList() {
   state.isLoading = true
   try {
     const status = state.activeTab === 'ALL' ? null : state.activeTab
     const search = searchInput.value.trim() || null
-    const page   = state.currentPage - 1   // 0-based
+    const page   = state.currentPage
 
     const res = await majorService.getMajorList({
       status,
@@ -216,7 +210,7 @@ const gridCols = '1.4fr 1fr 1.2fr 1.2fr 100px 80px 80px 100px'
       :currentPage="state.currentPage"
       :maxPage="state.totalPages"
       :pageGroupSize="5"
-      @goToPage="onPageChange"
+      @goToPage="onPageChange($event)"
     />
   </div>
 </template>

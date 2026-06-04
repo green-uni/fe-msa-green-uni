@@ -60,8 +60,11 @@ button, input, select, textarea{
   white-space: nowrap;
   outline: none;
 }
-input:not([type='radio']), textarea, select {
-  border: 1px solid $bold-border-color; border-radius: 4px; padding: 6px 8px; outline: none; transition: border-color 0.2s; background: #fafafa; color: $font-color;
+input:not([type='radio']):not([type='checkbox']), textarea, select {
+  font-size: $fs-df;border: 1px solid $bold-border-color; border-radius: 4px; padding: 6px 8px; outline: none; transition: border-color 0.2s; background: #fafafa; color: $font-color;line-height: 1; box-sizing: border-box;
+}
+input:not([type='radio']):not([type='checkbox']), select {
+  height: 32px;
 }
 input:focus,
 textarea:focus,

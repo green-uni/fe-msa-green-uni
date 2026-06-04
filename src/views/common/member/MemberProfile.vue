@@ -198,11 +198,10 @@ onMounted(async () => {
             </div>
           </div>
         </section>
-
         <!-- 개인 정보 -->
         <section class="card">
           <div class="card-label">개인 정보</div>
-          <div class="info-grid">
+          <div class="info-grid" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr))">
             <div class="info-item">
               <span class="info-key">생년월일</span>
               <span class="info-val">{{ birthDate(state.profileInfo.birth) || '-' }}</span>
@@ -254,21 +253,10 @@ onMounted(async () => {
 </template>
 
 <style scoped lang="scss">
-.profile-sidebar {
-  width: 210px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-  text-align: center;
-  padding: 20px 16px;
+.profile-sidebar { width: 210px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; padding: 20px 16px; border: 1px solid $border-color}
+.profile-info { 
+  h2 { font-size: $fs-xl; font-weight: 700; margin: 0; }
+  span { color: $font-color-light; font-size: $fs-sm; }
 }
-
-.profile-info {
-  h2 { font-size: 1.15em; font-weight: 700; margin: 0; }
-  span { color: $font-color-light; font-size: 0.88em; }
-}
-
 .info-key { min-width: 90px; }
 </style>

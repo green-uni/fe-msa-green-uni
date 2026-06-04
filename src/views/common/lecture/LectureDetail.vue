@@ -183,8 +183,10 @@ const updateStatus = async (newStatus) => {
   const isConfirmed = await modal.showConfirm('이 강의를 승인하시겠습니까?', 'success');
   if (!isConfirmed) return;
   try {
-    await LectureService.updateLectureStatus(id, { status: newStatus });
+    await LectureService.updateLectureStatus(id, { status: newStatus, adminName: authStore.name });
     state.data.status = '승인';
+    state.data.approverName = authStore.name;
+    state.data.approverCode = authStore.memberCode;
   } catch (error) {
     console.error('승인 실패:', error);
   }
@@ -206,10 +208,14 @@ const submitRejection = async () => {
   try {
     await LectureService.updateLectureStatus(id, {
       status: 'REJECTED',
-      reason: rejectionInput.value
+      reason: rejectionInput.value,
+      adminName: authStore.name
     });
     state.data.status = '반려';
     state.data.rejectionReason = rejectionInput.value;
+    state.data.rejectorName = authStore.name;
+    state.data.rejectorCode = authStore.memberCode;
+    state.data.rejectionAt = new Date().toISOString();
     showRejectionBox.value = false;
     rejectionInput.value = '';
   } catch (error) {
@@ -301,7 +307,7 @@ onMounted(async () => {
         <div class="info-grid">
           <div class="info-item">
             <span class="info-key">교수명</span>
-            <span class="info-val">{{ state.data.proName }}</span>
+            <span class="info-val">{{ state.data.proName }}({{ state.data.memberCode }})</span>
           </div>
           <div class="info-item">
             <span class="info-key">학년/학기</span>
@@ -361,17 +367,39 @@ onMounted(async () => {
             <dd class="reason-text">{{ state.data.weeklyPlan || '-' }}</dd>
           </div>
         </dl>
-        <!-- 반려사유 -->
-        <div v-if="state.data.status === '반려' && state.data.rejectionReason" class="result-box rejected">
-          <p class="result-title"><font-awesome-icon :icon="['fas', 'triangle-exclamation']" /> 반려 사유</p>
-          <p class="result-body">{{ state.data.rejectionReason }}</p>
-          <p class="result-at" v-if="state.data.rejectionAt">{{ new Date(state.data.rejectionAt).toLocaleString() }}</p>
-        </div>
         <!-- 폐강사유 -->
         <div v-if="state.data.status === '취소' && state.data.cancelReason" class="result-box rejected">
           <p class="result-title"><font-awesome-icon :icon="['fas', 'triangle-exclamation']" /> 폐강 사유</p>
           <p class="result-body">{{ state.data.cancelReason }}</p>
           <p class="result-at" v-if="state.data.cancelAt">{{ new Date(state.data.cancelAt).toLocaleString() }}</p>
+        </div>
+      </section>
+
+      <!-- Card 3: 처리 정보 (교수/관리자 + 승인 or 반려 상태일 때만) -->
+      <section
+        v-if="(authStore.role === 'PROFESSOR' || authStore.role === 'ADMIN') && ['승인', '반려'].includes(state.data.status)"
+        class="card"
+      >
+        <div class="card-label">{{ state.data.status === '승인' ? '승인 정보' : '반려 정보' }}</div>
+        <div class="info-grid" style="grid-template-columns: 1fr">
+          <div class="info-item" v-if="state.data.status === '반려'">
+            <span class="info-key">반려사유</span>
+            <span class="info-val">{{ state.data.rejectionReason || '-' }}</span>
+          </div>
+          <div class="info-item" v-if="state.data.status === '반려'">
+            <span class="info-key">처리일</span>
+            <span class="info-val">{{ formatDate(state.data.rejectionAt) || '-' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-key">처리자</span>
+            <span class="info-val">
+              <template v-if="state.data.approverName || state.data.rejectorName">
+                {{ state.data.approverName || state.data.rejectorName }}
+                ({{ state.data.approverCode || state.data.rejectorCode }})
+              </template>
+              <template v-else>-</template>
+            </span>
+          </div>
         </div>
       </section>
 
@@ -438,7 +466,7 @@ onMounted(async () => {
         <div class="action-group">
           <!-- 관리자: 승인 / 반려 (대기 상태) -->
           <template v-if="canApprove">
-            <button class="btn btn-submit" @click="updateStatus('APPROVED')">승인</button>
+            <button v-if="!showRejectionBox" class="btn btn-submit" @click="updateStatus('APPROVED')">승인</button>
             <button v-if="!showRejectionBox" class="btn btn-default" @click="openRejectionBox">반려</button>
           </template>
           <!-- 관리자: 더보기 (수동폐강 / 교수변경, 승인 상태) -->
@@ -488,26 +516,26 @@ onMounted(async () => {
   text-align: left;
   background: none;
   border: none;
-  font-size: var(--text-sm);
+  font-size: $fs-xs;
   cursor: pointer;
   color: #334155;
 }
 .more-dropdown button:hover { background: #f1f5f9; }
 
 /* 교수 변경 폼 */
-.pf-label { font-size: 0.875em; color: #64748b; font-weight: 500; }
+.pf-label { font-size: $fs-xs; color: #64748b; font-weight: 500; }
 .professor-field :deep(input),
 .professor-field .pf-input {
-  border: 1px solid var(--table-border-color);
+  border: 1px solid $bold-border-color;
   border-radius: 4px;
   padding: 8px 10px;
   width: 100%;
   background: #fcfcfc;
-  color: var(--color-font);
+  color: $font-color;
   box-sizing: border-box;
   appearance: none;
   -webkit-appearance: none;
-  font-size: var(--text-sm);
+  font-size: $fs-xs;
   font-family: inherit;
 }
 </style>

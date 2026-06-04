@@ -99,7 +99,7 @@ const isTransitioning = computed(() =>
     gap: 14px;
 
     .sub {
-      font-size: .9em;
+      font-size: $fs-xs;
       letter-spacing: .18em;
       text-transform: uppercase;
       opacity: .85;

@@ -19,18 +19,23 @@ const {
 const annoList   = ref([])
 const maxPage    = ref(1)
 const totalCount = ref(0)
+const pageSize   = ref(10)
 const isLoading  = ref(false)
+const yearFilter = ref('')
 
-const GRID_COLS = '60px 1fr 80px 120px'
+const yearOptions = ref([])
+
+const GRID_COLS = '60px 1fr 120px 80px 120px'
 
 const fetchList = async () => {
     isLoading.value = true
     try {
         const res = await AnnouncementService.getList({
             page:       currentPage.value,
-            size:       10,
+            size:       pageSize.value,
             targetRole: filter.targetRole || null,
             search:     searchQuery.value  || null,
+            year:       yearFilter.value   || null,
         })
         annoList.value   = res.content ?? []
         maxPage.value    = res.totalPages ?? 1
@@ -42,12 +47,19 @@ const fetchList = async () => {
     }
 }
 
-const rowNum = (idx) => (currentPage.value - 1) * 10 + idx + 1
+const rowNum = (idx) => totalCount.value - ((currentPage.value - 1) * pageSize.value + idx)
+
+function onPageSizeChange() {
+    currentPage.value = 1
+    fetchList()
+}
 const formatDate = (dateStr) => dateStr?.slice(0, 10) ?? ''
+const truncate   = (text, max = 20) => text?.length > max ? text.slice(0, max) + '...' : (text ?? '')
 
 watch(() => route.query, fetchList, { immediate: false })
 
-onMounted(() => {
+onMounted(async () => {
+    yearOptions.value = await AnnouncementService.getYears().catch(() => [])
     const hasUrlQuery = Object.keys(route.query).length > 0
     const stored = sessionStorage.getItem(`listFilter:${route.path}`)
     if (hasUrlQuery || !stored) fetchList()
@@ -60,12 +72,16 @@ onMounted(() => {
 
     <FilterBar
       v-model:searchQuery="searchQuery"
+      v-model:pageSize="pageSize"
       :hasFilter="hasFilter"
       placeholder="제목 검색"
-      :showCount="true"
+      :show-count="true"
       :count="totalCount"
+      :show-page-size="true"
+      :page-size-options="[10, 20, 30]"
       @search="onSearch"
       @reset="resetFilter"
+      @pageSizeChange="onPageSizeChange"
     >
       <div class="tab-area">
         <button class="filter-btn" :class="{ active: !filter.targetRole }"
@@ -74,17 +90,24 @@ onMounted(() => {
           @click="filter.targetRole = 'STUDENT'; onFilterChange()">학생</button>
         <button class="filter-btn" :class="{ active: filter.targetRole === 'PROFESSOR' }"
           @click="filter.targetRole = 'PROFESSOR'; onFilterChange()">교수</button>
+        <button class="filter-btn" :class="{ active: filter.targetRole === 'MEMBER' }"
+          @click="filter.targetRole = 'MEMBER'; onFilterChange()">교내 전체</button>
+        <button class="filter-btn" :class="{ active: filter.targetRole === 'ALL' }"
+          @click="filter.targetRole = 'ALL'; onFilterChange()">전체공개</button>
+      </div>
+      <div class="filter-item">
+        <div class="input-label">연도</div>
+        <div class="input-content">
+          <select v-model="yearFilter" @change="() => { currentPage = 1; fetchList() }">
+            <option value="">전체</option>
+            <option v-for="y in yearOptions" :key="y" :value="y">{{ y }}년</option>
+          </select>
+        </div>
       </div>
     </FilterBar>
 
-    <div class="list-actions">
-      <button class="btn-create" @click="router.push('/admin/announcements/create')">
-        + 공지 등록
-      </button>
-    </div>
-
     <DataTable
-      :columns="['번호', '제목', '조회수', '등록일']"
+      :columns="['번호', '제목', '작성자', '조회수', '등록일']"
       :rows="annoList"
       :gridCols="GRID_COLS"
       :isLoading="isLoading"
@@ -97,21 +120,19 @@ onMounted(() => {
         @click="router.push(`/admin/announcements/${anno.annoId}`)"
       >
         <div>{{ rowNum(idx) }}</div>
-        <div>{{ anno.title }}</div>
-        <div>{{ anno.viewCount }}</div>
-        <div>{{ formatDate(anno.createdAt) }}</div>
+        <div style="display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center; width:100%">{{ truncate(anno.title) }}</div>
+        <div class="tbl-meta">{{ anno.writerName }} ({{ anno.writerCode }})</div>
+        <div class="tbl-meta">{{ anno.viewCount }}</div>
+        <div class="tbl-meta">{{ formatDate(anno.createdAt) }}</div>
       </article>
     </DataTable>
 
-    <Pagination :currentPage="currentPage" :maxPage="maxPage" :pageGroupSize="10" @goToPage="goToPage" />
+    <div class="page-footer page-left">
+      <Pagination :currentPage="currentPage" :maxPage="maxPage" :pageGroupSize="10" @goToPage="goToPage" />
+      <button class="btn btn-submit" @click="router.push('/admin/announcements/create')">
+        <font-awesome-icon icon="fa-solid fa-plus" /> 공지 등록
+      </button>
+    </div>
   </div>
 </template>
 
-<style scoped lang="scss">
-.list-actions { display: flex; justify-content: flex-end; margin: 8px 0; }
-.btn-create {
-  padding: 6px 14px; background: #2d8659; color: #fff;
-  border: none; border-radius: 6px; font-size: 0.875rem; cursor: pointer;
-  &:hover { background: #246b47; }
-}
-</style>

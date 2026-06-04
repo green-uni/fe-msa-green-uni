@@ -11,7 +11,7 @@ const isLoading = ref(false)
 const searched = ref(false)
 const currentPage = ref(1)
 const totalElements = ref(0)
-const pageSize = 10
+const pageSize = ref(10)
 
 const searchInput = ref('') // FilterBar의 내부 검색어와 동기화될 변수
 const searchKeyword = ref('')
@@ -43,14 +43,21 @@ const filteredScholarships = computed(() => {
 })
 
 const isFilterValid = computed(() => filter.year && filter.semester !== '')
-const displayCount = computed(() => totalElements.value)
-const maxPage = computed(() => Math.ceil(totalElements.value / pageSize) || 1)
+const hasFilter = computed(() =>
+  filter.semester !== '' || filter.scholarshipType !== '' ||
+  filter.deptName !== '' || filter.academicYear !== '' || searchInput.value.trim() !== ''
+)
+const maxPage = computed(() => Math.ceil(totalElements.value / pageSize.value) || 1)
 
 function onSearch() {
   // 필수 필터 조건(연도, 학기)이 충족되지 않은 경우 프론트 단에서 요청 방지
   if (!isFilterValid.value) return
-  
   searchKeyword.value = searchInput.value.trim()
+  currentPage.value = 1
+  fetchData()
+}
+
+function onPageSizeChange() {
   currentPage.value = 1
   fetchData()
 }
@@ -74,7 +81,7 @@ async function fetchData() {
       filter.year,
       filter.semester,
       currentPage.value - 1,
-      pageSize
+      pageSize.value
     )
     
     scholarships.value = data.content ?? []
@@ -113,16 +120,6 @@ function formatDate(dateStr) {
   })
 }
 
-const BADGE_MAP = {
-  성적: 'badge--grade',
-  편입학: 'badge--transfer',
-  보훈: 'badge--veteran',
-  다자녀: 'badge--multi',
-}
-function badgeClass(type) {
-  return BADGE_MAP[type] ?? 'badge--default'
-}
-
 onMounted(() => {
   fetchDepartments()
 })
@@ -130,11 +127,17 @@ onMounted(() => {
 
 <template>
   <div>
-    <FilterBar 
-      v-model:searchQuery="searchInput" 
-      :hasFilter="false"
-      @search="onSearch" 
+    <FilterBar
+      v-model:searchQuery="searchInput"
+      v-model:pageSize="pageSize"
+      :hasFilter="hasFilter"
+      :show-count="true"
+      :count="totalElements"
+      :show-page-size="true"
+      :page-size-options="[10, 20, 30]"
+      @search="onSearch"
       @reset="resetFilter"
+      @pageSizeChange="onPageSizeChange"
     >
       <div class="filter-item">
         <div class="input-label">연도</div>
@@ -188,8 +191,6 @@ onMounted(() => {
     <p v-if="!searched" class="guide-text">연도와 학기를 선택한 후 조회하세요.</p>
 
     <template v-else>
-      <div><p>전체: {{ displayCount }}명</p></div>
-
       <DataTable
         :columns="['학번', '이름', '학과', '유형', '금액', '지급일']"
         :rows="filteredScholarships"  
@@ -206,11 +207,7 @@ onMounted(() => {
             <div>{{ item.memberCode }}</div>
             <div>{{ item.studentName }}</div>
             <div>{{ item.deptName }}</div>
-            <div>
-              <span class="badge" :class="badgeClass(item.scholarshipType)">
-                {{ item.scholarshipType }}
-              </span>
-            </div>
+            <div>{{ item.scholarshipType }}</div>
             <div>{{ formatAmount(item.scholarshipAmount) }}원</div>
             <div>{{ formatDate(item.createdAt) }}</div>
           </article>
@@ -220,34 +217,10 @@ onMounted(() => {
       <Pagination
         :currentPage="currentPage"
         :maxPage="maxPage"
-        :pageGroupSize="5"
+        :pageGroupSize="10"
         @goToPage="goPage"
       />
     </template>
   </div>
 </template>
 
-<style scoped lang="scss">
-// 🎯 무관한 타이틀 및 브레드크럼 CSS 제거 완료
-.guide-text {
-  text-align: center;
-  padding: 60px 0;
-  color: var(--font-color-light);
-  font-size: var(--text-sm);
-}
-
-.badge {
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: var(--text-sm);
-  font-weight: 600;
-}
-.badge--grade    { background: #dbeafe; color: #1d4ed8; }
-.badge--transfer { background: #ede9fe; color: #6d28d9; }
-.badge--veteran  { background: #dcfce7; color: #15803d; }
-.badge--multi    { background: #fef9c3; color: #a16207; }
-.badge--default  { background: #f3f4f6; color: #6b7280; }
-
-// 🎯 불필요한 .filter-header, .filter-group, .search-area 스타일 모두 삭제 완료
-</style>

@@ -7,7 +7,7 @@ import FilterBar from '@/components/common/FilterBar.vue';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import Pagination from '@/components/common/Pagination.vue';
 import { useAuthStore } from '@/stores/authentication';
-import { BUILDING_LABEL } from '@/utils/constants';
+import { scheduleText, roomText } from '@/utils/scheduleHelpers';
 
 const authStore = useAuthStore();
 const route = useRoute();
@@ -26,7 +26,8 @@ const getCurrentTerm = () => {
 };
 
 // ── 상태 ────────────────────────────────────────
-const PAGE_SIZE = 10;
+const pageSize = ref(10)
+const pageSizeOptions = [10, 20, 30]
 
 const state = reactive({
   list: [],
@@ -59,20 +60,6 @@ const LECTURE_TYPE_LABEL = {
 };
 const lectureTypeLabel = (code) => LECTURE_TYPE_LABEL[code] || code;
 
-// ── schedule 표시용 헬퍼 ──────────────────────────
-const scheduleText = (schedules) => {
-  if (!schedules || schedules.length === 0) return '-';
-  return schedules
-    .map(s => `${s.dayOfWeek} ${s.startPeriod}~${s.endPeriod}교시`)
-    .join(',\n');
-};
-
-const roomText = (schedules) => {
-  if (!schedules || schedules.length === 0) return '-';
-  // 강의실이 모두 같으면 하나만, 다르면 첫 번째만 표시
-  const rooms = [...new Set(schedules.map(s => `${BUILDING_LABEL[s.building] ?? s.building ?? ''} ${s.room ?? ''}`.trim()))];
-  return rooms.join(',\n');
-};
 
 
 // ── API 호출 ─────────────────────────────────────
@@ -86,7 +73,7 @@ const fetchList = async () => {
       proName: searchInput.value || undefined,
       majorId: filter.majorId || undefined,
       page: state.currentPage,
-      size: PAGE_SIZE,
+      size: pageSize.value,
     };
     // 빈 값 제거
     Object.keys(params).forEach(k => params[k] === undefined && delete params[k]);
@@ -94,7 +81,7 @@ const fetchList = async () => {
     const res = await LectureService.getAllLectures(params);
     const page = res.data ?? {};
     state.list       = page.content ?? [];
-    state.totalCount = page.totalElements ?? 0;
+    state.totalCount = Number(page.totalElements ?? 0);
     maxPage.value    = page.totalPages ?? 1;
 
 
@@ -165,6 +152,8 @@ const moveToDetail = (id) => {
   });
 };
 
+watch(pageSize, () => { state.currentPage = 1; pushQuery() })
+
 // ── watch: query 변경 시 fetch ─────────────────────
 watch(
   () => route.query,
@@ -219,6 +208,10 @@ onMounted(() => {
       placeholder="강의명 또는 교수명 검색"
       :showCount="true"
       :count="state.totalCount"
+      :showPageSize="true"
+      v-model:pageSize="pageSize"
+      :pageSizeOptions="pageSizeOptions"
+      @pageSizeChange="() => { state.currentPage = 1 }"
       v-model:searchQuery="searchQuery"
       @search="onSearch"
       @select="(item) => { searchInput.value = item.lectureName; searchQuery.value = item.lectureName; state.currentPage = 1; }"
@@ -261,8 +254,8 @@ onMounted(() => {
         <div>{{ item.majorName }}</div>
         <div>{{ item.lectureName }}</div>
         <div>{{ item.proName }}</div>
-        <div style="white-space: pre-line;">{{ scheduleText(item.schedules) }}</div>
-        <div style="white-space: pre-line;">{{ roomText(item.schedules) }}</div>
+        <div class="pre-line">{{ scheduleText(item.schedules) }}</div>
+        <div class="pre-line">{{ roomText(item.schedules) }}</div>
         <div>{{ item.credit }}</div>
         <div>{{ item.academicYear }}학년</div>
       </article>

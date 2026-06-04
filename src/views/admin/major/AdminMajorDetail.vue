@@ -55,20 +55,13 @@ onMounted(fetchDetail)
 
 <template>
   <div class="detail-wrap">
-    <LoadingSpinner v-if="state.isLoading" />
+    <LoadingSpinner v-if="state.isLoading" :overlay="true" size="md" />
 
     <template v-if="!state.isLoading && state.detail">
 
       <!-- Card 1: 학과 기본 정보 -->
-      <section class="card">
-        <div class="card-label">
-          <span>
-            {{ state.detail.name }}
-            <span :class="state.detail.active === '정상' ? 'badge-running' : 'badge-closed'">
-              {{ state.detail.active ?? '-' }}
-            </span>
-          </span>
-        </div>
+      <div class="card">
+        <div class="card-label">{{ state.detail.name }}</div>
         <div class="info-grid">
           <div class="info-item">
             <span class="info-key">소속대학</span>
@@ -102,23 +95,21 @@ onMounted(fetchDetail)
             <span class="info-key">개설일</span>
             <span class="info-val">{{ state.detail.foundedDate ?? '-' }}</span>
           </div>
+          <div class="info-item">
+            <span class="info-key">상태</span>
+            <span class="info-val">{{ state.detail.active ?? '-' }}</span>
+          </div>
           <div class="info-item" v-if="state.detail.closedDate">
             <span class="info-key">폐지일</span>
             <span class="info-val">{{ state.detail.closedDate }}</span>
           </div>
         </div>
-      </section>
+      </div>
 
       <!-- Card 2: 학과 소개 -->
-      <section class="card">
-        <div class="card-label">학과 소개</div>
-        <dl class="req-list">
-          <div class="req-row full">
-            <dt>학과정보</dt>
-            <dd class="reason-text">{{ state.detail.info || '-' }}</dd>
-          </div>
-        </dl>
-      </section>
+      <div class="card">
+        <p class="reason-text">{{ state.detail.info || '-' }}</p>
+      </div>
 
       <!-- 페이지 푸터 -->
       <div class="page-footer">

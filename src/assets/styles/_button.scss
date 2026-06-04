@@ -21,7 +21,7 @@
   cursor: pointer;
   border: 1px solid $border-color;
   font-weight: 500;
-  font-size: 13px;
+  font-size: $fs-sm;
   transition: filter 0.15s;
   line-height: 1;
 }
@@ -30,7 +30,7 @@
    [ 표준2 ] 크기
    ===================================================== */
 /* 소형 버튼 */
-.btn.btn-sm { padding: 4px 12px; font-size: 0.8em; font-weight: 400; border-radius: 3px;}
+.btn.btn-sm { padding: 5px 12px 4px; font-size: $fs-xs; font-weight: 400; border-radius: 3px;}
 
 /* =====================================================
    [ 표준3 ] 색상 / 용도
@@ -50,7 +50,7 @@
 }
 
 /* 비활성 상태 */
-.btn:disabled { background: #94a3b8; border-color: #94a3b8; color: #fff; cursor: not-allowed; filter: none; }
+.btn:disabled { background: #dedfe2; border-color: #d1d9e4; color: $font-color-light; cursor: not-allowed; filter: none; }
 
 /* 레이아웃 유틸 */
 .btn-row { display: flex; justify-content: center; gap: 12px; }

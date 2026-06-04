@@ -40,9 +40,9 @@ defineExpose({ checks })
 </template>
 
 <style scoped lang="scss">
-.pw-check-list{font-size: .8em;color: #ccc;display: flex;gap: 2px;padding:1px;margin-top:5px;
-  li{background: var(--error-bg);color: var(--error);padding: 2px 5px;border-radius: 5px;transition: 0.4s;
-    &.pass{color: var(--success);background-color: var(--success-bg);}
+.pw-check-list{font-size: $fs-xs;color: #ccc;display: flex;gap: 2px;padding:1px;margin-top:5px;
+  li{background: $error-bg;color: $error;padding: 2px 5px;border-radius: 5px;transition: 0.4s;
+    &.pass{color: $green-600;background-color: $success-bg;}
   }
 }
 </style>

@@ -94,6 +94,7 @@ disconnect() {
   stompClient = null
   notifications.value = []
   unreadCount.value = 0
+  isPanelOpen.value = false
 },
   
   // ── 공유 상태 ──────────────────────────────────────
