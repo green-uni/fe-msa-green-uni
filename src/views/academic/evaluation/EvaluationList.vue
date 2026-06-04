@@ -110,20 +110,20 @@ const getEvalStatus = (item) => {
 
 const getStudentBadge = (item) => {
   const status = getEvalStatus(item);
-  if (status === 'before') return { label: '강의진행중', cls: 'before' };
+  if (status === 'before') return { label: '강의진행중', cls: 'badge-pending' };
   if (status === 'active') return item.isEvaluated
-    ? { label: '완료', cls: 'done' }
-    : { label: '미작성', cls: 'pending' };
+    ? { label: '완료', cls: 'badge-approved' }
+    : { label: '미작성', cls: 'badge-rejected' };
   return item.isEvaluated
-    ? { label: '완료', cls: 'done' }
-    : { label: '만료', cls: 'expired' };
+    ? { label: '완료', cls: 'badge-approved' }
+    : { label: '만료', cls: 'badge-closed' };
 };
 
 const getProfessorBadge = (item) => {
   const status = getEvalStatus(item);
-  if (status === 'before') return { label: '강의진행중', cls: 'before' };
-  if (status === 'active') return { label: '진행중', cls: 'pending' };
-  return { label: '평가완료', cls: 'done' };
+  if (status === 'before') return { label: '강의진행중', cls: 'badge-pending' };
+  if (status === 'active') return { label: '진행중', cls: 'badge-running' };
+  return { label: '평가완료', cls: 'badge-approved' };
 };
 
 const getBadge = (item) =>
@@ -221,12 +221,6 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
-.badge { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; white-space: nowrap; }
-.badge.before  { color: $font-color-light; }
-.badge.pending { color: #c62828; }
-.badge.done    { color: $font-color-bold; }
-.badge.expired { color: $font-color-light; }
-
 :deep(.tbl-row div.txt-left) { justify-content: flex-start; }
 :deep(.tbl-row div.txt-ellipsis) { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; display: block; padding: 10px; }
 </style>

@@ -294,4 +294,4 @@ onMounted(fetchData);
 .choice-score { font-weight: normal; opacity: 0.5; }
 .free-text-label { margin-bottom: 8px; text-align: left; }
 .comment-box { padding: 10px 14px; background: $default-bg; border-radius: 6px; margin-bottom: 8px; }
-</style>
+</style> 
