@@ -1,6 +1,7 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import NotificationService from '@/services/notificationService.js'
+import { useAuthStore } from '@/stores/authentication'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Autoplay, Pagination, EffectFade } from 'swiper/modules'
 import 'swiper/css'
@@ -9,19 +10,20 @@ import 'swiper/css/effect-fade'
 import ScheduleService from '@/services/scheduleService.js'
 
 const SCHEDULE_MAP = {
-  COURSE_REGISTRATION:  { label: '수강신청',     link: '/courses' },
-  COURSE_MODIFICATION:  { label: '수강정정',     link: '/courses' },
-  GRADE_INPUT:          { label: '성적입력',     link: '/grades' },
-  GRADE_VIEW:           { label: '성적조회',     link: '/grades/my' },
-  GRADE_APPEAL:         { label: '성적이의신청',  link: '/grades/appeal/my' },
-  LECTURE_EVALUATION:   { label: '강의평가',     link: '/evaluations' },
-  TUITION_PAYMENT:      { label: '등록금납부',    link: '/tuitions/my' },
-  LECTURE_REGISTRATION: { label: '강의개설신청',  link: '/lectures' },
-  MAJOR_CHANGE:         { label: '전공변경신청',  link: '/members/major-request' },
-  SEMESTER_START:       { label: '학기시작',     link: null },
-  ETC:                  { label: '기타',         link: null },
+  COURSE_REGISTRATION:  { label: '수강신청',    roles: ['STUDENT'],                    links: { STUDENT: '/courses',                       PROFESSOR: null,               ADMIN: null } },
+  COURSE_MODIFICATION:  { label: '수강정정',    roles: ['STUDENT'],                    links: { STUDENT: '/courses',                       PROFESSOR: null,               ADMIN: null } },
+  GRADE_INPUT:          { label: '성적입력',    roles: ['PROFESSOR'],                  links: { STUDENT: null,                             PROFESSOR: '/professor/grades', ADMIN: null } },
+  GRADE_VIEW:           { label: '성적조회',    roles: ['STUDENT', 'PROFESSOR'],       links: { STUDENT: '/grades',                        PROFESSOR: '/professor/grades', ADMIN: null } },
+  GRADE_APPEAL:         { label: '성적이의신청', roles: ['STUDENT', 'PROFESSOR'],      links: { STUDENT: '/grades/appeals/my',             PROFESSOR: '/professor/grades/appeals', ADMIN: null } },
+  LECTURE_EVALUATION:   { label: '강의평가',    roles: ['STUDENT', 'PROFESSOR'],       links: { STUDENT: '/evaluations',                   PROFESSOR: '/evaluations',     ADMIN: null } },
+  TUITION_PAYMENT:      { label: '등록금납부',   roles: ['STUDENT', 'ADMIN'],          links: { STUDENT: '/tuitions/my',                   PROFESSOR: null,               ADMIN: '/admin/tuition' } },
+  LECTURE_REGISTRATION: { label: '강의개설신청', roles: ['PROFESSOR', 'ADMIN'],        links: { STUDENT: null,                             PROFESSOR: '/lectures/my',     ADMIN: '/admin/lectures/my' } },
+  MAJOR_CHANGE:         { label: '전공변경신청', roles: ['STUDENT', 'ADMIN'],          links: { STUDENT: '/members/major-request',         PROFESSOR: null,               ADMIN: '/admin/members/major-request' } },
+  SEMESTER_START:       { label: '학기시작',    roles: ['STUDENT', 'PROFESSOR', 'ADMIN'], links: { STUDENT: null,                          PROFESSOR: null,               ADMIN: null } },
+  ETC:                  { label: '기타',        roles: ['STUDENT', 'PROFESSOR', 'ADMIN'], links: { STUDENT: null,                          PROFESSOR: null,               ADMIN: null } },
 }
 
+const role = computed(() => useAuthStore().role)
 const modules = [Autoplay, Pagination, EffectFade]
 const schedules = ref([])
 
@@ -48,9 +50,10 @@ const fetchBanner = async () => {
       .map((s) => {
         const mapped = SCHEDULE_MAP[s.type]
         if (!mapped) return null
+        if (!mapped.roles.includes(role.value)) return null
         return {
           label: mapped.label,
-          link: mapped.link,
+          link: mapped.links[role.value] ?? null,
           dateRange: `${formatDate(s.startDate)}~${formatDate(s.endDate)}`,
           daysLeft: calcDaysLeft(s.endDate),
         }
@@ -85,6 +88,9 @@ onUnmounted(() => {
       :slides-per-view="1"
       effect="fade"
       :fadeEffect="{ crossFade: true }"
+      :preventClicks="false"
+      :preventClicksPropagation="false"
+      :allowTouchMove="false"
       class="banner-swiper"
     >
       <SwiperSlide v-for="(item, i) in schedules" :key="i">
@@ -116,6 +122,9 @@ onUnmounted(() => {
 .banner-swiper {
   border-radius: 8px;
   border: 1px solid #c2e8d4;
+  :deep(.swiper-slide:not(.swiper-slide-active)) {
+    pointer-events: none;
+  }
 }
 
 .banner-wrap {

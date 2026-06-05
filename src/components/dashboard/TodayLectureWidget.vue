@@ -19,6 +19,10 @@ const periodToTime = (period) => PERIOD_TIME[period] ?? ''
 const onQrClick = (lec) => {
   router.push(`/attendances/${lec.lectureId}/qr`)
 }
+
+const onLectureClick = (lec) => {
+  router.push({ path: `/lectures/${lec.lectureId}`, query: { from: 'DASHBOARD' } })
+}
  
 onMounted(async () => {
   if (authStore.role !== 'PROFESSOR') return
@@ -50,7 +54,7 @@ onMounted(async () => {
           <span>{{ periodToTime(lec.startPeriod) }}</span>
           <span>{{ periodToTime(lec.endPeriod) }}</span>
         </div>
-        <div class="today-info">
+        <div class="today-info pointer" @click="onLectureClick(lec)">
           <span class="today-title">{{ lec.lectureName }}</span>
           <span class="today-room">{{ lec.building }} {{ lec.room }}</span>
         </div>
@@ -70,7 +74,7 @@ onMounted(async () => {
 .today-item { gap: 12px; }
 
 .today-time { display: flex; flex-direction: column; align-items: center; font-size: $fs-xs;  color: $font-color-light; min-width: 40px; gap: 2px;}
-.today-info { flex: 1; display: flex; flex-direction: column; gap: 2px;}
+.today-info { flex: 1; display: flex; flex-direction: column; gap: 2px; &.pointer { cursor: pointer; &:hover .today-title { color: $green-600; } } }
 .today-title { font-weight: 600; color: $font-color;}
 .today-room { font-size: $fs-xs; color: $font-color-light;} 
 .qr-btn { 
