@@ -72,7 +72,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authentication'
 import AuthService from '@/services/authService'
@@ -93,33 +93,6 @@ async function doLogOut() {
 const majorName = computed(() => authStore.major || '-')
 const userName  = computed(() => authStore.name  || '-')
 
-// ── PWA 설치 감지 ──────────────────────────────────────────────────────────────
-// standalone: 이미 PWA로 설치되어 실행 중인 경우 → 설치 안내 불필요
-const isInstalledPwa = window.matchMedia('(display-mode: standalone)').matches
-                    || window.navigator.standalone === true  // iOS Safari PWA 감지
-
-const isIos     = /iPhone|iPad|iPod/i.test(navigator.userAgent)
-const isAndroid = /Android/i.test(navigator.userAgent)
-
-// 설치 안내: 미설치 상태에서만 표시
-const showInstallGuide = ref(!isInstalledPwa)
-
-// ── Android: beforeinstallprompt 이벤트 (Chrome 전용) ────────────────────────
-let deferredPrompt = ref(null)
-
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault()
-  deferredPrompt.value = e
-})
-
-async function installPwa() {
-  if (!deferredPrompt.value) return
-  deferredPrompt.value.prompt()
-  const { outcome } = await deferredPrompt.value.userChoice
-  if (outcome === 'accepted') showInstallGuide.value = false
-  deferredPrompt.value = null
-}
-
 // ── 이벤트 핸들러 ──────────────────────────────────────────────────────────────
 function goToMyAttend() { router.push('/student/attendances/my') }
 function goToQrScan()   { router.push('/student/attendances/scan') }
@@ -136,58 +109,6 @@ function goToQrScan()   { router.push('/student/attendances/scan') }
   margin: 0 auto;
   box-sizing: border-box;
   overflow: hidden;
-}
-
-/* ── PWA 설치 안내 배너 ── */
-.install-guide {
-  background: #fff;
-  border: 1.5px solid $green-600;
-  border-radius: $radius-sm;
-  margin-bottom: 16px;
-  overflow: hidden;
-}
-
-.install-guide-inner {
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.install-guide-title {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: $font-color;
-}
-
-.install-guide-step {
-  font-size: 0.75rem;
-  color: $font-color-light;
-  line-height: 1.6;
-  strong { color: $font-color; }
-}
-
-.btn-install-main {
-  width: 100%;
-  padding: 10px 0;
-  background: $green-600;
-  color: #fff;
-  border: none;
-  border-radius: $radius-sm;
-  font-size: 0.875rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.btn-dismiss-guide {
-  align-self: flex-end;
-  background: none;
-  border: none;
-  font-size: 0.75rem;
-  color: $font-color-light;
-  cursor: pointer;
-  text-decoration: underline;
-  padding: 0;
 }
 
 /* ── 헤더 ── */
