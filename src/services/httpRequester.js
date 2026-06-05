@@ -31,7 +31,7 @@ axios.interceptors.response.use(
         authStore.logOut() //로그아웃 처리
         router.push(redirectPath)
       } else if (err.response.status === 401) { // 401 UnAuthorized > 토큰 미존재
-        if (authStore.isLogin) { // 로그인 상태인데 401 응답 >> AT 만료 >> AT 재발행  
+        if (authStore.isLogin) { // 로그인 상태인데 401 응답 >> AT 만료 >> AT 재발행
           if (!reissuePromise) {
             //AccessToken 재발행 시도
             reissuePromise = AuthService.reissue().finally(() => {
@@ -41,6 +41,11 @@ axios.interceptors.response.use(
           await reissuePromise
           // 중단된 요청을(에러난 요청)을 토큰 갱신 후 재요청
           return await axios.request(err.config)
+        } else if (['/auth/login', '/auth/admin/login'].includes(err.config.url)) {
+          // 로그인 시도 자체의 401 → 모달 표시
+          const message = err.response.data?.message || '코드와 비밀번호를 확인해주세요.'
+          const modalStore = useModalStore()
+          modalStore.showAlert(message, 'error')
         } else { // 미로그인 상태 >> 로그인 페이지로 이동
           router.push(authStore.role === 'ADMIN' ? '/admin/login' : '/login')
         }
