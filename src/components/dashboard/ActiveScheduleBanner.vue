@@ -17,10 +17,8 @@ const SCHEDULE_MAP = {
   GRADE_APPEAL:         { label: '성적이의신청', roles: ['STUDENT', 'PROFESSOR'],      links: { STUDENT: '/grades/appeals/my',     PROFESSOR: '/professor/grades/appeals' } },
   LECTURE_EVALUATION:   { label: '강의평가',    roles: ['STUDENT', 'PROFESSOR'],       links: { STUDENT: '/evaluations',           PROFESSOR: '/evaluations' } },
   TUITION_PAYMENT:      { label: '등록금납부',   roles: ['STUDENT', 'ADMIN'],          links: { STUDENT: '/tuitions/my',           ADMIN: '/admin/tuition' } },
-  LECTURE_REGISTRATION: { label: '강의개설신청', roles: ['PROFESSOR', 'ADMIN'],        links: { PROFESSOR: '/lectures/my',         ADMIN: '/admin/lectures/my' } },
-  MAJOR_CHANGE:         { label: '전공변경신청', roles: ['STUDENT', 'ADMIN'],          links: { STUDENT: '/members/major-request', ADMIN: '/admin/members/major-request' } },
-  SEMESTER_START:       { label: '학기시작',    roles: ['STUDENT', 'PROFESSOR', 'ADMIN'], links: {} },
-  ETC:                  { label: '기타',        roles: ['STUDENT', 'PROFESSOR', 'ADMIN'], links: {} },
+  LECTURE_REGISTRATION: { label: '강의개설신청', btnLabel: '강의개설현황', roles: ['PROFESSOR', 'ADMIN'],        links: { PROFESSOR: '/lectures/my',         ADMIN: '/admin/lectures/my' } },
+  MAJOR_CHANGE:         { label: '전공변경신청', btnLabel: '변경신청현황', roles: ['STUDENT', 'ADMIN'],          links: { STUDENT: '/members/major-request', ADMIN: '/admin/members/major-request' } },
 }
 
 const role = computed(() => useAuthStore().role)
@@ -53,6 +51,7 @@ const fetchBanner = async () => {
         if (!mapped.roles.includes(role.value)) return null
         return {
           label: mapped.label,
+          btnLabel: mapped.btnLabel ?? mapped.label,
           link: mapped.links[role.value], // 해당 role 키 없으면 undefined → v-if에서 자동 숨김
           dateRange: `${formatDate(s.startDate)}~${formatDate(s.endDate)}`,
           daysLeft: calcDaysLeft(s.endDate),
@@ -104,7 +103,7 @@ onUnmounted(() => {
           </div>
           <!-- item.link가 undefined면 렌더링 안됨 -->
           <router-link v-if="item.link" :to="item.link" class="banner-btn">
-            {{ item.label }} 바로가기 →
+            {{ item.btnLabel }} 바로가기 →
           </router-link>
         </div>
       </SwiperSlide>
