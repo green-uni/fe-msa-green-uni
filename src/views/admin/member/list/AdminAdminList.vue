@@ -54,7 +54,7 @@ const fetchOptions = async () => {
   }
 };
 
-const GRID_COLS = '120px 150px 1fr 1fr 90px'
+const GRID_COLS = '120px minmax(150px, 1fr) minmax(100px, 1fr) minmax(100px, 1fr) 100px';
 
 const moveToDetail = (id) => router.push(`/admin/members/${id}`)
 

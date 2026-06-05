@@ -73,4 +73,7 @@ button:focus-visible {
   outline: 2px solid $green-600;
   outline-offset: 2px;
 }
+input:not([type='radio']):not([type='checkbox'])::placeholder, textarea::placeholder, select::placeholder{
+color: #a0a8af;
+}
 dl, dt { white-space: nowrap; }

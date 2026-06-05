@@ -26,6 +26,16 @@ const file = ref(null);
 const fileInput = ref(null);
 
 const isAbsence = computed(() => form.type === 'ABSENCE');
+const isQuit = computed(() => form.type === 'QUIT');
+const isReturn = computed(() => form.type === 'RETURN');
+
+const STATUS_TYPE_ALLOW = {
+  ENROLLED: ['ABSENCE', 'QUIT'],
+  ABSENCE: ['RETURN', 'QUIT'],
+};
+const filteredTypeOptions = computed(() =>
+  typeOptions.value.filter(opt => (STATUS_TYPE_ALLOW[authStore.status] ?? []).includes(opt.code))
+);
 
 const returnYearOptions = computed(() => {
     const years = [];
@@ -215,15 +225,15 @@ onMounted(async () => {
               </div>
             </div>
             <div class="input-wrap">
-              <div class="input-label">신청 유형</div>
+              <div class="input-label">신청 유형<span class="required">*</span></div>
               <div class="input-content radio-group">
-                <label class="radio-label" v-for="opt in typeOptions" :key="opt.code">
+                <label class="radio-label" v-for="opt in filteredTypeOptions" :key="opt.code">
                   <input type="radio" v-model="form.type" :value="opt.code" />{{ opt.value }}
                 </label>
               </div>
             </div>
             <div class="input-wrap">
-              <div class="input-label">시작일</div>
+              <div class="input-label">시작일<span class="required">*</span></div>
               <div class="input-content">
                 <input type="date" v-model="form.startDate" />
               </div>
@@ -243,21 +253,54 @@ onMounted(async () => {
               </div>
             </div>
             <div class="input-wrap input-grid-full">
-              <div class="input-label">신청 사유</div>
+              <div class="input-label">신청 사유<span class="required">*</span></div>
               <div class="input-content">
                 <textarea v-model="form.reason" placeholder="신청 사유를 입력해주세요." />
               </div>
             </div>
-            <div class="input-wrap input-grid-full">
+            <div class="input-wrap input-grid-full input-file">
               <div class="input-label">첨부 파일</div>
               <div class="input-content file-row">
-                <button type="button" class="btn btn-line" @click="fileInput.click()">서류 선택</button>
+                <button type="button" class="btn btn-line point" @click="fileInput.click()">서류 선택</button>
                 <input type="text" :value="file?.name ?? ''" placeholder="업로드된 파일 없음" disabled />
                 <input ref="fileInput" type="file" class="hidden" accept=".pdf,.jpg,.jpeg,.png" @change="onFileChange" />
+                <div class="file-info" v-if="isAbsence">
+                  <span>※ 휴학 필수 서류</span>    
+                  <div class="tbl-scroll"> 
+                    <table class="data-tbl">
+                      <colgroup>
+                        <col style=""/>
+                        <col/>
+                      </colgroup>
+                      <tbody>
+                          <tr><th>질병 휴학</th><td class="tal">4주 이상 진단서 1부</td></tr>
+                          <tr><th>육아 휴학</th><td class="tal">임신, 출산 및 육아 등 관련 사실을 입증할 증빙서류</td></tr>
+                          <tr><th>군입대 휴학</th><td class="tal">군입영통지서 사본 1부  (입대 후는 군복무확인서)</td></tr>
+                          <tr><th>창업 휴학</th><td class="tal">(필수)사업자등록증 사본 (해당자)성적증명서, (해당자)창업동아리증명서 </td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="file-info" v-if="isReturn">
+                  <span>※ 복학 필수 서류</span>      
+                  <div class="tbl-scroll"> 
+                  <table class="data-tbl">
+                    <colgroup>
+                      <col style=""/>
+                      <col/>
+                    </colgroup>
+                    <tbody>
+                        <tr><th>일반 복학</th><td class="tal">필수 서류 없음</td></tr>
+                        <tr><th>전역자(소집해제자)</th><td class="tal">전역증(군 경력증명서), 병적증명서 또는 주민등록초본, 병역증(후면 반드시 첨부)</td></tr>
+                        <tr><th>전역예정자(소집해제예정자)</th><td class="tal">(현역) 부대 발행 전역예정증명서 / (사회복무요원 등) 복무확인서</td></tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
         </div>
+      </div>
       </template>
     </div>
 
@@ -279,3 +322,9 @@ onMounted(async () => {
     </div>
   </div>
 </template>
+
+<style scoped lang="scss">
+.input-file .input-label{align-self:self-start;padding-top: 6px;}
+.file-row{flex-wrap:wrap;}
+.file-info{width: 100%; span{display: block;margin-bottom: 4px;}}
+</style>

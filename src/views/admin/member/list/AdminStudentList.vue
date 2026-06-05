@@ -73,7 +73,7 @@ const fetchOptions = async () => {
   }
 };
 
-const GRID_COLS = '100px 150px 170px 1fr 1fr 90px 90px'
+const GRID_COLS = '120px minmax(150px, 1fr) minmax(120px, 1fr) minmax(120px, 1fr) minmax(120px, 1fr) 90px 100px';
 
 const onCollegeChange = () => { filter.majorName = ''; onFilterChange() }
 const moveToDetail = (id) => router.push(`/admin/members/${id}`)

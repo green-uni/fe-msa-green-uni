@@ -325,12 +325,19 @@ input.tbl-input {
     text-align: center; vertical-align: middle;
     small{font-size: $fs-xs;display: block;color: $font-color-light;}
   }
-  tr:last-child td { border-bottom: none; }
+  tr:last-child th, tr:last-child td { border-bottom: none; }
   tr:has(button, input) td { padding-top: 6px; padding-bottom:6px; }
 
   tr.row--error td  { background-color: #fde8e8; }
   tr.row--sample td { background-color: #fefce8; color: $font-color-light; font-style: italic; }
   .empty-cell       { text-align: center; color: $font-color-light; padding: 32px; }
+  ul{
+    margin-top: 5px;
+    li{
+      line-height: 1.2;margin-top: 2px;
+      &.head{font-weight: bold;}
+    }
+  }
 }
 
 /* === 목록 요약 박스  === */

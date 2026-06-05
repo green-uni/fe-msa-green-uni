@@ -184,7 +184,6 @@ const submit = async () => {
     const res = role.value === 'STUDENT' ? await MemberService.createStudent(formData)
       : role.value === 'PROFESSOR' ? await MemberService.createProfessor(formData)
         : await MemberService.createAdmin(formData)
-    console.log(res.data)
     localStorage.removeItem(DRAFT_KEY)
     pageState.setContent(false)
     await modal.showAlert(res.message + '\n' + '회원코드: ' + res.data.memberCode, 'success')

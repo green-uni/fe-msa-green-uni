@@ -104,7 +104,7 @@ onMounted(fetchGrades)
             :columns="['학년도', '학기', '구분', '교과목명', '학점', '등급', '평점']"
             :rows="grades"
             :isLoading="isLoading"
-            gridCols="90px 70px 110px minmax(140px,1fr) 60px 80px 70px"
+            gridCols="90px 70px 110px minmax(140px,1fr) 60px 80px 80px"
             emptyMessage="성적 데이터가 없습니다.">
 
             <article
@@ -113,8 +113,8 @@ onMounted(fetchGrades)
                 class="tbl-row">
                 <div>{{ g.lectureYear }}</div>
                 <div>{{ g.lectureSemester }}학기</div>
-                <div>{{ g.lectureType }}</div>
-                <div class="tal">{{ g.lectureName }}</div>
+                <div class="tbl-meta">{{ g.lectureType }}</div>
+                <div>{{ g.lectureName }}</div>
                 <div>{{ g.lectureCredit }}</div>
 
                 <!-- 강의평가 미완료: 2칸 병합 버튼 -->

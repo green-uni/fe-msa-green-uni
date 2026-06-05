@@ -146,10 +146,10 @@ onMounted(() => Promise.all([fetchPeriodStatus(), fetchList()]));
       >
         <article class="tbl-row pointer" v-for="item in pagedList" :key="item.requestId"
                  @click="selectItem(item.requestId)">
-                 <div>{{ formatDateTime(item.createdAt) }}</div>
+          <div class="tbl-meta">{{ formatDateTime(item.createdAt) }}</div>
           <div>{{ MAJOR_REQUEST_TYPE[item.type] ?? item.type }}</div>
           <div>{{ item.targetMajorName }}</div>
-          <div>{{ APPROVAL_STATUS[item.status] ?? item.status }}</div>
+          <div class="tbl-meta">{{ APPROVAL_STATUS[item.status] ?? item.status }}</div>
         </article>
       </DataTable>
 
@@ -179,23 +179,19 @@ onMounted(() => Promise.all([fetchPeriodStatus(), fetchList()]));
           전과 및 부전공 신청서를 작성할 수 있습니다.<br />
           목록에서 신청 내역을 클릭하면 상세 내용을 확인할 수 있습니다.
         </p>
-        <table class="notice-table">
-          <colgroup>
-            <col style="width: 72px" />
-            <col />
-          </colgroup>
-          <tbody>
-            <tr>
-              <th>전과</th>
-              <td>현재 소속 학과에서 다른 학과로 전과 신청합니다. 관련 서류가 있는 경우 첨부해 주세요.</td>
-            </tr>
-            <tr>
-              <th>부전공</th>
-              <td>주전공 외에 부전공을 추가로 이수하는 신청입니다. 관련 서류가 있는 경우 첨부해 주세요.</td>
-            </tr>
-          </tbody>
-        </table>
-        <p class="notice-caution">대기 중인 신청서가 있는 경우 새로운 신청이 불가합니다.</p>
+        <div class="tbl-scroll">
+          <table class="data-tbl">
+            <colgroup>
+              <col style="width: 72px"/>
+              <col/>
+            </colgroup>
+            <tbody>
+                <tr><th>전과</th><td class="tal">현재 소속 학과에서 다른 학과로 전과 신청합니다. 관련 서류가 있는 경우 첨부해 주세요.</td></tr>
+                <tr><th>부전공</th><td class="tal">주전공 외에 부전공을 추가로 이수하는 신청입니다. 관련 서류가 있는 경우 첨부해 주세요.</td></tr>
+            </tbody>
+          </table>
+        </div>   
+        <p class="notice-caution">대기 중인 신청서가 있는 경우 새로운 신청이 불가합니다.</p>    
       </div>
     </div>
   </div>

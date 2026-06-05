@@ -42,7 +42,7 @@ onMounted(async () => {
   <div class="today-wrap">
     <div class="widget-header">
       <h3>오늘 강의 목록</h3>
-      <router-link to="/professor/lectures/my" class="view-all">전체보기</router-link>
+      <router-link to="/attendances/professor" class="view-all">전체보기</router-link>
     </div>
 
     <div v-if="loading" class="empty-msg">불러오는 중...</div>

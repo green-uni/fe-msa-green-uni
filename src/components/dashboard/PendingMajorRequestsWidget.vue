@@ -55,6 +55,5 @@ onMounted(async () => {
 </template>
 
 <style scoped lang="scss">
-// pend-item/info/top/sub/dash-title → MemberDashboard :deep() 관리
 .count { color: $font-color-light; font-weight: 400; }
 </style>

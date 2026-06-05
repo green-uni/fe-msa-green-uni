@@ -48,7 +48,6 @@
     &:hover { background: $green-600; color: #fff; }
   }
 }
-
 /* 비활성 상태 */
 .btn:disabled { background: #dedfe2; border-color: #d1d9e4; color: $font-color-light; cursor: not-allowed; filter: none; }
 

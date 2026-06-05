@@ -44,7 +44,7 @@ const fetchList = async () => {
     });
     state.list = res.data.content ?? [];
     maxPage.value = res.data.totalPages ?? 1;
-    totalCount.value = res.data.totalElements ?? 0;
+    totalCount.value = Number(res.data.totalElements ?? 0);
   } catch (err) {
     console.error('신청서 목록 로드 실패:', err);
   } finally {
@@ -141,9 +141,9 @@ onMounted(() => {
         <div>{{ item.academicYear }}학년</div>
         <div>{{ item.semester }}학기</div>
         <div>{{ STATUS_REQUEST_TYPE[item.type] ?? item.type }}</div>
-        <div>{{ formatDateTime(item.createdAt) }}</div>
+        <div class="tbl-meta">{{ formatDateTime(item.createdAt) }}</div>
         <div>{{ item.updaterName ?? '-' }}</div>
-        <div>{{ APPROVAL_STATUS[item.status] ?? item.status }}</div>
+        <div class="tbl-meta">{{ APPROVAL_STATUS[item.status] ?? item.status }}</div>
       </article>
     </DataTable>
 

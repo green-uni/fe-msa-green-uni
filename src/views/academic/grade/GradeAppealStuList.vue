@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import DataTable from '@/components/common/DataTable.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import GradeService from '@/services/gradeService'
+import { formatDateTime } from '@/utils/dateNumber';
 
 const router     = useRouter()
 const isLoading  = ref(false)
@@ -17,8 +18,6 @@ const selectedItem = computed(() =>
 const statusLabel = (s) => ({ PENDING: '검토 중', APPROVED: '승인', REJECTED: '반려' }[s] ?? s)
 const statusBadge = (s) => ({ PENDING: 'badge-pending', APPROVED: 'badge-approved', REJECTED: 'badge-rejected' }[s] ?? '')
 const statusText  = (s) => ({ PENDING: 'text-pending', APPROVED: 'text-approved', REJECTED: 'text-rejected' }[s] ?? '')
-const formatDate  = (dt) =>
-    dt ? new Date(dt).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '-'
 
 const selectItem = (courseId) => {
     selectedId.value = selectedId.value === courseId ? null : courseId
@@ -28,6 +27,7 @@ onMounted(async () => {
     isLoading.value = true
     try {
         appealList.value = await GradeService.getStudentAppealList()
+        console.log(appealList.value)
     } catch {
         // 에러 모달은 httpRequester 인터셉터가 처리
     } finally {
@@ -56,8 +56,8 @@ onMounted(async () => {
                         class="tbl-row pointer"
                         :class="{ 'row-selected': selectedId === item.courseId }"
                         @click="selectItem(item.courseId)">
-                        <div class="tal">{{ item.lectureName }}</div>
-                        <div>{{ formatDate(item.createdAt) }}</div>
+                        <div>{{ item.lectureName }}</div>
+                        <div class="tbl-meta">{{ formatDateTime(item.createdAt) }}</div>
                         <div>
                             <span :class="['text-badge', statusText(item.appealStatus)]">
                                 {{ statusLabel(item.appealStatus) }}

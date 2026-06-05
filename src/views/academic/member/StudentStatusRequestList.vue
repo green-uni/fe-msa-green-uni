@@ -86,7 +86,7 @@ const downloadFile = async () => {
   }
 };
 
-const GRID_COLS = '1fr 1fr 80px 80px 1fr';
+const GRID_COLS = '1fr 1fr 80px 80px 80px';
 const TABLE_COLUMN = ['일자', '유형', '학년', '학기', '상태']
 onMounted(fetchList);
 </script>
@@ -116,11 +116,11 @@ onMounted(fetchList);
         <DataTable :columns="TABLE_COLUMN" :rows="pagedList" :gridCols="GRID_COLS" :isLoading="state.isLoading"
           emptyMessage="신청 내역이 없습니다.">
           <article class="tbl-row pointer" v-for="item in pagedList" :key="item.requestId" @click="selectItem(item.requestId)">
-            <div>{{ formatDateTime(item.createdAt) }}</div>
+            <div class="tbl-meta">{{ formatDateTime(item.createdAt) }}</div>
             <div>{{ STATUS_REQUEST_TYPE[item.type] ?? item.type }}</div>
             <div>{{ item.academicYear }}학년</div>
             <div>{{ item.semester }}학기</div>
-            <div>{{ APPROVAL_STATUS[item.status] ?? item.status }}</div>
+            <div class="tbl-meta">{{ APPROVAL_STATUS[item.status] ?? item.status }}</div>
           </article>
         </DataTable>
 
@@ -149,27 +149,34 @@ onMounted(fetchList);
           <p class="notice-desc">
             휴학, 복학, 자퇴 신청서를 작성할 수 있습니다.<br />
             목록에서 신청 내역을 클릭하면 상세 내용을 확인할 수 있습니다.
-          </p>
-          <table class="notice-table">
-            <colgroup>
-              <col style="width: 72px" />
-              <col />
-            </colgroup>
-            <tbody>
-              <tr>
-                <th>휴학</th>
-                <td>복학 예정 연도·학기 입력이 필요합니다. 휴학 사유서를 첨부해 주세요.</td>
-              </tr>
-              <tr>
-                <th>복학</th>
-                <td>휴학 기간이 종료된 후 신청 가능합니다. 별도 서류는 필요하지 않습니다.</td>
-              </tr>
-              <tr>
-                <th>자퇴</th>
-                <td>자퇴 사유서를 첨부해 주세요.</td>
-              </tr>
-            </tbody>
-          </table>
+          </p>          
+          <div class="tbl-scroll">
+            <table class="data-tbl">
+              <colgroup>
+                <col style="width: 72px"/>
+                <col/>
+              </colgroup>
+              <tbody>
+                  <tr><th>휴학</th><td class="tal">복학 예정 연도·학기 입력이 필요합니다.
+                    <ul>
+                      <li class="head">※ 필수 서류</li>
+                      <li>질병 휴학: 4주 이상 진단서 1부</li>
+                      <li>육아 휴학: 임신, 출산 및 육아 등 관련 사실을 입증할 증빙서류</li>
+                      <li>군입대 휴학: 군입영통지서 사본 1부  (입대 후는 군복무확인서)</li>
+                      <li>창업 휴학: (필수)사업자등록증 사본 (해당자)성적증명서, (해당자)창업동아리증명서</li>
+                    </ul>
+                  </td></tr>
+                  <tr><th>복학</th><td class="tal">휴학 기간이 종료된 후 신청 가능합니다.
+                    <ul>
+                      <li class="head">※ 필수 서류</li>
+                      <li>전역자(소집해제자): 전역증(군 경력증명서), 병적증명서 또는 주민등록초본, 병역증(후면 반드시 첨부)</li>
+                      <li>전역예정자(소집해제예정자): (현역) 부대 발행 전역예정증명서 / (사회복무요원 등) 복무확인서</li>
+                    </ul>
+                  </td></tr>
+                  <tr><th>자퇴</th><td class="tal">자퇴 사유서를 첨부해 주세요.</td></tr>
+              </tbody>
+            </table>
+          </div>   
           <p class="notice-caution">대기 중인 신청서가 있는 경우 새로운 신청이 불가합니다.</p>
         </div>
       </div>

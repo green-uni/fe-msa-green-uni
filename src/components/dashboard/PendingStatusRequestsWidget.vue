@@ -22,7 +22,7 @@ onMounted(async () => {
 <template>
   <div class="widget-card">
     <div class="widget-header">
-      <h3>학적 변경 승인 대기 <span class="count">({{ totalCount }}건)</span></h3>
+      <h3>학적 변동 승인 대기 <span class="count">({{ totalCount }}건)</span></h3>
       <RouterLink to="/admin/members/status-request" class="view-all">전체보기</RouterLink>
     </div>
 
@@ -44,6 +44,5 @@ onMounted(async () => {
 </template>
 
 <style scoped lang="scss">
-// pend-item/info/top/sub/dash-title → MemberDashboard :deep() 관리
 .count { color: $font-color-light; font-weight: 400; }
 </style>

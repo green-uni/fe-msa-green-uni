@@ -19,7 +19,7 @@ const isMobile = route.path.startsWith('/student/');
 // 섹션 표시 순서 정의
 const SECTION_ORDER = isAdmin
   ? ['나의 정보', '회원 관리', '학사 관리', '재정 관리', '커뮤니티']
-  : ['홈', '학사정보', '나의 정보', '커뮤니티']
+  : ['홈', '학사정보', '커뮤니티', '나의 정보']
 
 const doLogOut = async () => {
   try {
@@ -147,7 +147,7 @@ watch(() => route.path, () => {
     </div>
 
     <div class="login-info">
-      <p class="name">{{ authStore.name }} <span class="role">{{ userRole }}</span></p>
+      <p class="name">{{ authStore.name }}</p>
       <div class="login-info-detail">
         <p class="member-code">{{ authStore.memberCode }}</p>
         <p class="major" v-if="authStore.major">{{ authStore.major }}</p>

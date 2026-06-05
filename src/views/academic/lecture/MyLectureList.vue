@@ -113,7 +113,7 @@ const tableConfig = computed(() => {
   // 학생
   return {
     cols: ['이수구분', '강의명', '교수명', '강의시간', '강의실', '학점'],
-    grid: '90px 4fr 100px 200px 150px 60px',
+    grid: 'minmax(90px, 1fr) 4fr minmax(200px, 1fr) minmax(200px, 1fr) minmax(150px, 1fr) minmax(60px, 1fr)',
   };
 });
 
@@ -285,9 +285,7 @@ onMounted(() => {
       placeholder="강의명을 입력하세요"
       :showCount="true"
       :count="state.totalCount"
-      :showPageSize="true"
       v-model:pageSize="pageSize"
-      :pageSizeOptions="pageSizeOptions"
       @pageSizeChange="() => { state.currentPage = 1 }"
       v-model:searchQuery="searchQuery"
       @search="onSearch"
@@ -346,13 +344,13 @@ onMounted(() => {
         :key="item.lectureId"
         @click="moveToDetail(item.lectureId)"
       >
-        <div>{{ lectureTypeLabel(item.lectureType) }}</div>
+        <div class="tbl-meta">{{ lectureTypeLabel(item.lectureType) }}</div>
         <div>{{ item.lectureName }}</div>
         <!-- 교수: 전공명 / 학생: 교수명 -->
         <div v-if="isProfessor">{{ item.majorName }}</div>
         <div v-else>{{ item.proName }}</div>
-        <div class="pre-line">{{ scheduleText(item.schedules) }}</div>
-        <div class="pre-line">{{ roomText(item.schedules) }}</div>
+        <div class="pre-line tbl-meta">{{ scheduleText(item.schedules) }}</div>
+        <div class="pre-line tbl-meta">{{ roomText(item.schedules) }}</div>
         <div>{{ item.credit }}</div>
         <!-- 교수 추가 컬럼 -->
         <template v-if="isProfessor">

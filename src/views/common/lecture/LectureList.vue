@@ -208,9 +208,7 @@ onMounted(() => {
       placeholder="강의명 또는 교수명 검색"
       :showCount="true"
       :count="state.totalCount"
-      :showPageSize="true"
       v-model:pageSize="pageSize"
-      :pageSizeOptions="pageSizeOptions"
       @pageSizeChange="() => { state.currentPage = 1 }"
       v-model:searchQuery="searchQuery"
       @search="onSearch"
@@ -240,7 +238,7 @@ onMounted(() => {
     <DataTable
       :columns="['이수구분', '전공명', '강의명', '교수명', '강의시간', '강의실', '학점', '대상학년']"
       :rows="state.list"
-      gridCols="90px 150px 3fr 90px 180px 150px 60px 70px"
+      gridCols="minmax(90px, 0.5fr) 150px minmax(200px, 3fr) minmax(90px, 0.5fr) 180px 150px minmax(60px, 0.5fr) minmax(70px, 0.5fr)"
       :isLoading="state.isLoading"
       emptyMessage="조회된 강의가 없습니다."
     >
@@ -250,14 +248,14 @@ onMounted(() => {
         :key="item.lectureId"
         @click="moveToDetail(item.lectureId)"
       >
-        <div>{{ lectureTypeLabel(item.lectureType) }}</div>
+        <div class="tbl-meta">{{ lectureTypeLabel(item.lectureType) }}</div>
         <div>{{ item.majorName }}</div>
         <div>{{ item.lectureName }}</div>
         <div>{{ item.proName }}</div>
-        <div class="pre-line">{{ scheduleText(item.schedules) }}</div>
-        <div class="pre-line">{{ roomText(item.schedules) }}</div>
+        <div class="pre-line tbl-meta">{{ scheduleText(item.schedules) }}</div>
+        <div class="pre-line tbl-meta">{{ roomText(item.schedules) }}</div>
         <div>{{ item.credit }}</div>
-        <div>{{ item.academicYear }}학년</div>
+        <div class="tbl-meta">{{ item.academicYear }}학년</div>
       </article>
     </DataTable>
 

@@ -44,7 +44,7 @@ const fetchList = async () => {
     })
     state.list = res.data.content ?? []
     maxPage.value = res.data.totalPages ?? 1
-    totalCount.value = res.data.totalElements ?? 0
+    totalCount.value = Number(res.data.totalElements ?? 0)
   } catch (err) {
     console.error('신청서 목록 로드 실패:', err);
   } finally {
@@ -61,7 +61,8 @@ const fetchOptions = async () => {
   }
 };
 
-const GRID_COLS = '100px 90px 150px 90px 1fr 110px 110px 80px'
+const GRID_COLS = 'minmax(90px, 1fr) minmax(120px, 1fr) minmax(150px, 1fr) minmax(90px, 1fr) minmax(100px, 1fr) minmax(110px, 1fr) minmax(110px, 1fr) minmax(80px, 1fr)';
+const COLS_NAME = ['학번', '이름', '현재 전공', '신청 유형', '신청 학과', '신청일자', '처리자', '상태'];
 const moveToDetail = (id) => router.push(`/admin/members/major-request/${id}`)
 
 const selectStatus = (code) => {
@@ -127,7 +128,7 @@ onMounted(() => {
     </FilterBar>
 
     <DataTable
-      :columns="['학번', '이름', '현재 전공', '신청 유형', '신청 학과', '신청일자', '처리자', '상태']"
+      :columns="COLS_NAME"
       :rows="state.list"
       :gridCols="GRID_COLS"
       :isLoading="state.isLoading"
@@ -139,9 +140,9 @@ onMounted(() => {
         <div>{{ item.currentMajorName }} <template v-if="item.currentMinorName">/ {{ item.currentMinorName }}</template></div>
         <div>{{ MAJOR_REQUEST_TYPE[item.type] ?? item.type }}</div>
         <div>{{ item.targetMajorName }}</div>
-        <div>{{ formatDateTime(item.createdAt) }}</div>
+        <div class="tbl-meta">{{ formatDateTime(item.createdAt) }}</div>
         <div>{{ item.updaterName ?? '-' }}</div>
-        <div>{{ APPROVAL_STATUS[item.status] ?? item.status }}</div>
+        <div class="tbl-meta">{{ APPROVAL_STATUS[item.status] ?? item.status }}</div>
       </article>
     </DataTable>
 

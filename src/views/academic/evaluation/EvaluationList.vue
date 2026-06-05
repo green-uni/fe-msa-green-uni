@@ -44,7 +44,7 @@ const tableCols = computed(() =>
     : ['강의명', '평가기간', '상태']
 );
 const gridCols = computed(() =>
-  role.value === 'STUDENT' ? '1fr 130px 220px 110px' : '1fr 220px 110px'
+  role.value === 'STUDENT' ? '1fr 130px 220px 120px' : '1fr 220px 110px'
 );
 
 const fetchYearOptions = async () => {
@@ -184,10 +184,10 @@ onMounted(() => {
         :key="item.lectureId"
         @click="moveToDetail(item)"
       >
-        <div class="txt-left txt-ellipsis">{{ item.lectureName }}</div>
+        <div >{{ item.lectureName }}</div>
         <div v-if="role === 'STUDENT'">{{ item.proName }}</div>
-        <div>{{ formatPeriod(item) }}</div>
-        <div>{{ getBadge(item).label }}</div>
+        <div class="tbl-meta">{{ formatPeriod(item) }}</div>
+        <div class="tbl-meta">{{ getBadge(item).label }}</div>
       </article>
     </DataTable>
 
@@ -199,7 +199,7 @@ onMounted(() => {
     />
 
     <div class="card notice-panel" style="margin-top: 16px;">
-      <h3 class="notice-title">내 강의평가</h3>
+      <h3 class="notice-title">강의 평가 안내</h3>
       <p class="notice-desc">목록에서 강의를 선택하면 상세 내용을 확인할 수 있습니다.</p>
       <div class="tbl-scroll">
         <table class="data-tbl">
@@ -225,8 +225,3 @@ onMounted(() => {
     </div>
   </div>
 </template>
-
-<style lang="scss" scoped>
-:deep(.tbl-row div.txt-left) { justify-content: flex-start; }
-:deep(.tbl-row div.txt-ellipsis) { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; display: block; padding: 10px; }
-</style>

@@ -228,7 +228,7 @@ watch(
     <DataTable
       :columns="['이수구분', '강의명', '교수명', '전공명', '학점', '강의시간', '강의실', '대상학년', '승인상태']"
       :rows="state.list"
-      gridCols="90px 3fr 90px 130px 60px 180px 130px 70px 80px"
+      gridCols="90px minmax(200px,3fr) 90px 130px 60px 180px 130px 70px 80px"
       :isLoading="state.isLoading"
       emptyMessage="조회된 강의가 없습니다."
     >
@@ -238,15 +238,15 @@ watch(
         :key="item.lectureId"
         @click="moveToDetail(item.lectureId)"
       >
-        <div>{{ lectureTypeLabel(item.lectureType) }}</div>
+        <div class="tbl-meta">{{ lectureTypeLabel(item.lectureType) }}</div>
         <div>{{ item.lectureName }}</div>
         <div>{{ item.proName }}</div>
         <div>{{ item.majorName }}</div>
         <div>{{ item.credit }}</div>
-        <div class="pre-line">{{ scheduleText(item.schedules) }}</div>
-        <div class="pre-line">{{ roomText(item.schedules) }}</div>
-        <div>{{ item.academicYear }}학년</div>
-        <div>{{ STATUS_TO_LABEL[item.status] || item.status }}</div>
+        <div class="pre-line tbl-meta">{{ scheduleText(item.schedules) }}</div>
+        <div class="pre-line tbl-meta">{{ roomText(item.schedules) }}</div>
+        <div class="tbl-meta">{{ item.academicYear }}학년</div>
+        <div class="tbl-meta">{{ STATUS_TO_LABEL[item.status] || item.status }}</div>
       </article>
     </DataTable>
 
