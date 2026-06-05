@@ -1,9 +1,11 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import NotificationService from '@/services/notificationService.js'
 import { Swiper, SwiperSlide } from 'swiper/vue'
-import { Autoplay, Pagination } from 'swiper/modules'
+import { Autoplay, Pagination, EffectFade } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/pagination'
+import 'swiper/css/effect-fade'
 import ScheduleService from '@/services/scheduleService.js'
 
 const SCHEDULE_MAP = {
@@ -20,7 +22,7 @@ const SCHEDULE_MAP = {
   ETC:                  { label: '기타',         link: null },
 }
 
-const modules = [Autoplay, Pagination]
+const modules = [Autoplay, Pagination, EffectFade]
 const schedules = ref([])
 
 const formatDate = (dateStr) => {
@@ -38,7 +40,7 @@ const calcDaysLeft = (endDateStr) => {
   return Math.max(0, Math.ceil((end - today) / (1000 * 60 * 60 * 24)))
 }
 
-onMounted(async () => {
+const fetchBanner = async () => {
   try {
     const res = await ScheduleService.getActiveBannerSchedules()
     const items = res.data?.data ?? []
@@ -57,6 +59,19 @@ onMounted(async () => {
   } catch (e) {
     console.error('배너 조회 실패', e)
   }
+}
+
+let pollTimer = null
+
+onMounted(() => {
+  fetchBanner()
+  NotificationService.setBannerRefreshCallback(fetchBanner)
+  pollTimer = setInterval(fetchBanner, 60_000)
+})
+
+onUnmounted(() => {
+  NotificationService.setBannerRefreshCallback(null)
+  clearInterval(pollTimer)
 })
 </script>
 
@@ -68,6 +83,8 @@ onMounted(async () => {
       :pagination="{ clickable: true }"
       :loop="schedules.length > 1"
       :slides-per-view="1"
+      effect="fade"
+      :fadeEffect="{ crossFade: true }"
       class="banner-swiper"
     >
       <SwiperSlide v-for="(item, i) in schedules" :key="i">
