@@ -10,17 +10,15 @@ import 'swiper/css/effect-fade'
 import ScheduleService from '@/services/scheduleService.js'
 
 const SCHEDULE_MAP = {
-  COURSE_REGISTRATION:  { label: '수강신청',    roles: ['STUDENT'],                    links: { STUDENT: '/courses',                       PROFESSOR: null,               ADMIN: null } },
-  COURSE_MODIFICATION:  { label: '수강정정',    roles: ['STUDENT'],                    links: { STUDENT: '/courses',                       PROFESSOR: null,               ADMIN: null } },
-  GRADE_INPUT:          { label: '성적입력',    roles: ['PROFESSOR'],                  links: { STUDENT: null,                             PROFESSOR: '/professor/grades', ADMIN: null } },
-  GRADE_VIEW:           { label: '성적조회',    roles: ['STUDENT', 'PROFESSOR'],       links: { STUDENT: '/grades',                        PROFESSOR: '/professor/grades', ADMIN: null } },
-  GRADE_APPEAL:         { label: '성적이의신청', roles: ['STUDENT', 'PROFESSOR'],      links: { STUDENT: '/grades/appeals/my',             PROFESSOR: '/professor/grades/appeals', ADMIN: null } },
-  LECTURE_EVALUATION:   { label: '강의평가',    roles: ['STUDENT', 'PROFESSOR'],       links: { STUDENT: '/evaluations',                   PROFESSOR: '/evaluations',     ADMIN: null } },
-  TUITION_PAYMENT:      { label: '등록금납부',   roles: ['STUDENT', 'ADMIN'],          links: { STUDENT: '/tuitions/my',                   PROFESSOR: null,               ADMIN: '/admin/tuition' } },
-  LECTURE_REGISTRATION: { label: '강의개설신청', roles: ['PROFESSOR', 'ADMIN'],        links: { STUDENT: null,                             PROFESSOR: '/lectures/my',     ADMIN: '/admin/lectures/my' } },
-  MAJOR_CHANGE:         { label: '전공변경신청', roles: ['STUDENT', 'ADMIN'],          links: { STUDENT: '/members/major-request',         PROFESSOR: null,               ADMIN: '/admin/members/major-request' } },
-  SEMESTER_START:       { label: '학기시작',    roles: ['STUDENT', 'PROFESSOR', 'ADMIN'], links: { STUDENT: null,                          PROFESSOR: null,               ADMIN: null } },
-  ETC:                  { label: '기타',        roles: ['STUDENT', 'PROFESSOR', 'ADMIN'], links: { STUDENT: null,                          PROFESSOR: null,               ADMIN: null } },
+  COURSE_REGISTRATION:  { label: '수강신청',    roles: ['STUDENT'],                    links: { STUDENT: '/courses' } },
+  COURSE_MODIFICATION:  { label: '수강정정',    roles: ['STUDENT'],                    links: { STUDENT: '/courses' } },
+  GRADE_INPUT:          { label: '성적입력',    roles: ['PROFESSOR'],                  links: { PROFESSOR: '/professor/grades' } },
+  GRADE_VIEW:           { label: '성적조회',    roles: ['STUDENT', 'PROFESSOR'],       links: { STUDENT: '/grades',                PROFESSOR: '/professor/grades' } },
+  GRADE_APPEAL:         { label: '성적이의신청', roles: ['STUDENT', 'PROFESSOR'],      links: { STUDENT: '/grades/appeals/my',     PROFESSOR: '/professor/grades/appeals' } },
+  LECTURE_EVALUATION:   { label: '강의평가',    roles: ['STUDENT', 'PROFESSOR'],       links: { STUDENT: '/evaluations',           PROFESSOR: '/evaluations' } },
+  TUITION_PAYMENT:      { label: '등록금납부',   roles: ['STUDENT', 'ADMIN'],          links: { STUDENT: '/tuitions/my',           ADMIN: '/admin/tuition' } },
+  LECTURE_REGISTRATION: { label: '강의개설신청', btnLabel: '강의개설현황', roles: ['PROFESSOR', 'ADMIN'],        links: { PROFESSOR: '/lectures/my',         ADMIN: '/admin/lectures/my' } },
+  MAJOR_CHANGE:         { label: '전공변경신청', btnLabel: '변경신청현황', roles: ['STUDENT', 'ADMIN'],          links: { STUDENT: '/members/major-request', ADMIN: '/admin/members/major-request' } },
 }
 
 const role = computed(() => useAuthStore().role)
@@ -53,7 +51,8 @@ const fetchBanner = async () => {
         if (!mapped.roles.includes(role.value)) return null
         return {
           label: mapped.label,
-          link: mapped.links[role.value] ?? null,
+          btnLabel: mapped.btnLabel ?? mapped.label,
+          link: mapped.links[role.value], // 해당 role 키 없으면 undefined → v-if에서 자동 숨김
           dateRange: `${formatDate(s.startDate)}~${formatDate(s.endDate)}`,
           daysLeft: calcDaysLeft(s.endDate),
         }
@@ -102,8 +101,9 @@ onUnmounted(() => {
               <span class="banner-date">{{ item.dateRange }} · 종료까지 {{ item.daysLeft }}일 남음</span>
             </div>
           </div>
+          <!-- item.link가 undefined면 렌더링 안됨 -->
           <router-link v-if="item.link" :to="item.link" class="banner-btn">
-            {{ item.label }} 바로가기 →
+            {{ item.btnLabel }} 바로가기 →
           </router-link>
         </div>
       </SwiperSlide>
