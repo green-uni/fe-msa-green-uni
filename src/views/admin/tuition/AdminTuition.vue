@@ -35,7 +35,9 @@ const currentPage = ref(1)
 const pageSize = 10
 const isLoading = ref(false)
 
+// 🎯 메일 발송 전용 로딩 상태 추가
 const isMailModalOpen = ref(false)
+const isMailSending = ref(false) 
 
 async function fetchTuitionList() {
   isLoading.value = true
@@ -45,7 +47,8 @@ async function fetchTuitionList() {
       filter.semester,
       filter.status,
       currentPage.value - 1,
-      pageSize
+      pageSize,
+      searchKeyword.value
     )
     students.value = response.data?.content || []
     totalElements.value = response.data?.totalElements || 0
@@ -78,7 +81,7 @@ const filteredStudents = computed(() => {
 })
 
 async function handlePayment(student) {
-  const isConfirmed = await modal.showConfirm('납부 완료 상태로 처리하시겠습니까?', 'info')
+  const isConfirmed = await modal.showConfirm('납부 완료 처리하시겠습니까?', 'info')
   if (isConfirmed) {
     try {
       await tuitionService.updateTuitionStatus(student.tuitionId, '납부완료')
@@ -95,14 +98,18 @@ function openMailModal() {
   isMailModalOpen.value = true
 }
 
+// 🎯 메일 발송 함수 수정
 async function confirmSendMail() {
+  isMailSending.value = true // 로딩 시작
   try {
     await tuitionService.sendReminderMails(filter.year, filter.semester)
     await modal.showAlert('미납자 독촉 메일 발송이 완료되었습니다.', 'success')
     isMailModalOpen.value = false
   } catch (error) {
     console.error(error)
-    modal.showAlert('메일 발송에 실패했습니다.', 'error')
+    modal.showAlert('메일 발송에 실패했습니다. (SMTP 설정을 확인하세요)', 'error')
+  } finally {
+    isMailSending.value = false // 로딩 종료
   }
 }
 
@@ -150,8 +157,7 @@ onMounted(() => {
       :hasFilter="false"
       placeholder="이름 또는 학번을 입력하세요"
       :show-count="true"
-      :count="totalElements"
-      @search="onSearch"
+      :count="Number(totalElements)" @search="onSearch"
       @reset="resetFilter"
     >
       <div class="tab-area">
@@ -215,7 +221,7 @@ onMounted(() => {
           <div>{{ getStatusLabel(s.status) }}</div>
           <div>{{ formatDate(s.paidAt) }}</div>
           <div v-if="filter.status === 'PENDING'">
-            <button class="btn btn-default btn-sm" @click="handlePayment(s)">납부</button>
+            <button class="btn btn-default btn-sm" @click="handlePayment(s)">납부 확인</button>
           </div>
         </article>
       </template>
@@ -227,12 +233,21 @@ onMounted(() => {
       <button class="btn btn-default" @click="openMailModal">미납자 메일 발송</button>
     </div>
 
-    <!-- 미납자 메일 발송 모달 -->
-    <div v-if="isMailModalOpen" class="modal-overlay" @click.self="isMailModalOpen = false">
-      <div class="mail-modal">
+    <div v-if="isMailModalOpen" class="modal-overlay" @click.self="!isMailSending && (isMailModalOpen = false)">
+      <div class="mail-modal" style="position: relative;">
+        
+        <div v-if="isMailSending" class="sending-overlay">
+          <LoadingSpinner size="md" />
+          <div class="sending-msg">
+            <p class="main-msg">미납 안내 이메일을 발송하고 있습니다.</p>
+            <p class="sub-msg">대량 발송 중에는 다소 시간이 걸릴 수 있습니다. 잠시만 기다려주세요.</p>
+            <p class="count-msg">대상자: {{ totalElements }}명</p>
+          </div>
+        </div>
+
         <header class="modal-header">
           <h3>미납 안내 메일 발송</h3>
-          <button class="btn-close" @click="isMailModalOpen = false">&times;</button>
+          <button class="btn-close" :disabled="isMailSending" @click="isMailModalOpen = false">&times;</button>
         </header>
 
         <main class="modal-body">
@@ -264,9 +279,9 @@ onMounted(() => {
               <hr class="preview-divider" />
               <div class="mail-content">
                 <p>안녕하세요, 그린대학교 학사지원팀입니다.</p>
-                <p>아직 <span class="text-danger">{{ filter.year }}년 {{ filter.semester }}학기 등록금</span>이 납부되지 않았습니다.</p>
+                <p>아직 <span class="text-bold">{{ filter.year }}년 {{ filter.semester }}학기 등록금</span>이 납부되지 않았습니다.</p>
                 <p>납부기한까지 미납 시 수강이 취소될 수 있으니 빠른 시일 내에 납부해 주시기 바랍니다.</p>
-                <p class="margin-top-md">납부 문의: 학사지원팀 02-000-0000</p>
+                <p class="margin-top-md">납부 문의: green.uni502@gmail.com</p>
               </div>
             </div>
           </section>
@@ -277,8 +292,8 @@ onMounted(() => {
         </main>
 
         <footer class="modal-footer">
-          <button class="btn btn-default" @click="isMailModalOpen = false">취소</button>
-          <button class="btn btn-submit" @click="confirmSendMail">메일 발송</button>
+          <button class="btn btn-default" :disabled="isMailSending" @click="isMailModalOpen = false">취소</button>
+          <button class="btn btn-submit" :disabled="isMailSending" @click="confirmSendMail">메일 발송</button>
         </footer>
       </div>
     </div>
@@ -331,7 +346,7 @@ onMounted(() => {
   }
   .preview-divider { border: 0; border-top: 1px solid $border-color; margin: 12px 0; }
   .mail-content { color: $font-color; line-height: 1.6;
-    .text-danger { color: $error; font-weight: 500; }
+    .text-bold { font-weight: bold; }
     .margin-top-md { margin-top: 14px; }
   }
 }
@@ -343,5 +358,43 @@ onMounted(() => {
 .modal-footer {
   padding: 12px 20px; background: #fff; border-top: 1px solid $border-color;
   display: flex; justify-content: flex-end; gap: 8px;
+}
+/* 기존 스타일 하단에 추가 */
+.sending-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(2px);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+
+  .sending-msg {
+    text-align: center;
+    
+    .main-msg {
+      font-size: 16px;
+      font-weight: 600;
+      color: $font-color-bold;
+      margin: 0 0 6px 0;
+    }
+    .sub-msg {
+      font-size: 13px;
+      color: $font-color-light;
+      margin: 0 0 10px 0;
+    }
+    .count-msg {
+      font-size: 13px;
+      font-weight: bold;
+      color: $error;
+      margin: 0;
+    }
+  }
 }
 </style>

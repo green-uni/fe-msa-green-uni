@@ -254,28 +254,30 @@ class MemberService {
     return res.data
   }
 
-  // 대시보드 - 전공변경 신청 대기 목록 (최대 3건)
-  async getDashboardMajorRequests() {
-    const res = await axios.get(`${this.#adminPath}/requests/major`, {
-      params: { status: 'PENDING', size: 3, page: 1 }
-    })
-    return { data: res.data.content ?? [] }
-  }
-
   // 대시보드 - 학생 본인 신청서 목록 (전공+학적 통합, 최대 3건)
   async getDashboardStudentRequests() {
     const res = await axios.get(`${this.#path}/student/requests/dashboard`, {
-      params: { size: 3 }
+      params: { size: 4 }
     })
     return res.data
   }
 
-  // 대시보드 - 학적변경 신청 대기 목록 (최대 3건, 휴학)
+  // 대시보드 - 전공변경 신청 대기 목록 (최대 5건)
+  async getDashboardMajorRequests() {
+    const res = await axios.get(`${this.#adminPath}/requests/major`, {
+      params: { status: 'PENDING', size: 6, page: 1 }
+    })
+    const page = res.data?.data ?? {}
+    return { data: page.content ?? [], total: Number(page.totalElements) || 0 }
+  }
+
+  // 대시보드 - 학적변경 신청 대기 목록 (최대 5건, 전체 유형)
   async getDashboardStatusRequests() {
     const res = await axios.get(`${this.#adminPath}/requests/status`, {
-      params: { status: 'PENDING', type: 'ABSENCE', size: 3, page: 1 }
+      params: { status: 'PENDING', size: 6, page: 1 }
     })
-    return { data: res.data.content ?? [] }
+    const page = res.data?.data ?? {}
+    return { data: page.content ?? [], total: Number(page.totalElements) || 0 }
   }
 
   // 학적 변동 신청서 단건 조회 (관리자)

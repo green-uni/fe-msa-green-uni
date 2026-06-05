@@ -103,27 +103,33 @@ const getEvalStatus = (item) => {
   const today = new Date();
   const start = item.startDate ? new Date(item.startDate) : null;
   const end = item.endDate ? new Date(item.endDate) : null;
-  if (!start || !end || today < start) return 'before';
+  if (!start || !end) {
+    const cur = getCurrentTerm();
+    return (item.year < cur.year || (item.year === cur.year && item.semester < cur.semester))
+      ? 'done'
+      : 'before';
+  }
+  if (today < start) return 'before';
   if (today > end) return 'done';
   return 'active';
 };
 
 const getStudentBadge = (item) => {
   const status = getEvalStatus(item);
-  if (status === 'before') return { label: '강의진행중', cls: 'before' };
+  if (status === 'before') return { label: '강의진행중', cls: 'badge-pending' };
   if (status === 'active') return item.isEvaluated
-    ? { label: '완료', cls: 'done' }
-    : { label: '미작성', cls: 'pending' };
+    ? { label: '완료', cls: 'badge-approved' }
+    : { label: '미작성', cls: 'badge-rejected' };
   return item.isEvaluated
-    ? { label: '완료', cls: 'done' }
-    : { label: '만료', cls: 'expired' };
+    ? { label: '완료', cls: 'badge-approved' }
+    : { label: '만료', cls: 'badge-closed' };
 };
 
 const getProfessorBadge = (item) => {
   const status = getEvalStatus(item);
-  if (status === 'before') return { label: '강의진행중', cls: 'before' };
-  if (status === 'active') return { label: '진행중', cls: 'pending' };
-  return { label: '평가완료', cls: 'done' };
+  if (status === 'before') return { label: '강의진행중', cls: 'badge-pending' };
+  if (status === 'active') return { label: '진행중', cls: 'badge-running' };
+  return { label: '평가완료', cls: 'badge-approved' };
 };
 
 const getBadge = (item) =>
@@ -193,7 +199,7 @@ onMounted(() => {
     />
 
     <div class="card notice-panel" style="margin-top: 16px;">
-      <h3 class="notice-title">나의 강의평가</h3>
+      <h3 class="notice-title">내 강의평가</h3>
       <p class="notice-desc">목록에서 강의를 선택하면 상세 내용을 확인할 수 있습니다.</p>
       <div class="tbl-scroll">
         <table class="data-tbl">
@@ -221,12 +227,6 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
-.badge { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; white-space: nowrap; }
-.badge.before  { color: $font-color-light; }
-.badge.pending { color: #c62828; }
-.badge.done    { color: $font-color-bold; }
-.badge.expired { color: $font-color-light; }
-
 :deep(.tbl-row div.txt-left) { justify-content: flex-start; }
 :deep(.tbl-row div.txt-ellipsis) { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; display: block; padding: 10px; }
 </style>

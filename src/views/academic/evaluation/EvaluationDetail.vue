@@ -49,12 +49,26 @@ const evalForm = reactive({
   comment: '',
 });
 
+const getCurrentTerm = () => {
+  const now = new Date();
+  return {
+    year: now.getFullYear(),
+    semester: now.getMonth() + 1 >= 3 && now.getMonth() + 1 <= 8 ? 1 : 2,
+  };
+};
+
 const getEvalStatus = (item) => {
   if (!item) return 'before';
   const today = new Date();
   const start = item.startDate ? new Date(item.startDate) : null;
   const end = item.endDate ? new Date(item.endDate) : null;
-  if (!start || !end || today < start) return 'before';
+  if (!start || !end) {
+    const cur = getCurrentTerm();
+    return (item.year < cur.year || (item.year === cur.year && item.semester < cur.semester))
+      ? 'done'
+      : 'before';
+  }
+  if (today < start) return 'before';
   if (today > end) return 'done';
   return 'active';
 };
@@ -94,6 +108,7 @@ const submitEval = async () => {
 };
 
 const formatDate = (dt) => dt ? dt.slice(0, 10) : '-';
+const roundHalf = (v) => Math.round((v ?? 0) * 2) / 2;
 
 onMounted(fetchData);
 </script>
@@ -126,7 +141,7 @@ onMounted(fetchData);
                   <span class="star-half left" :class="{ active: (hoverScore || evalForm.score) >= n - 0.5 }">★</span>
                   <span class="star-half right" :class="{ active: (hoverScore || evalForm.score) >= n }">★</span>
                 </span>
-                <span class="score-text">{{ evalForm.score }} / 5.0</span>
+                <span class="score-text">{{ evalForm.score.toFixed(1) }} / 5.0</span>
               </div>
             </dd>
           </dl>
@@ -177,10 +192,10 @@ onMounted(fetchData);
             <dd>
               <div class="star-wrap readonly">
                 <span v-for="n in 5" :key="n" class="star-container">
-                  <span class="star-half left" :class="{ active: detail?.score >= n - 0.5 }">★</span>
-                  <span class="star-half right" :class="{ active: detail?.score >= n }">★</span>
+                  <span class="star-half left" :class="{ active: roundHalf(detail?.score) >= n - 0.5 }">★</span>
+                  <span class="star-half right" :class="{ active: roundHalf(detail?.score) >= n }">★</span>
                 </span>
-                <span class="score-text">{{ detail?.score }} / 5.0</span>
+                <span class="score-text">{{ roundHalf(detail?.score).toFixed(1) }} / 5.0</span>
               </div>
             </dd>
           </dl>
@@ -200,7 +215,7 @@ onMounted(fetchData);
         </table>
         </div>
         <div style="margin-top: 14px;">
-          <p class="section-title">강의평가</p>
+          <p class="section-title">한줄평</p>
           <div class="comment-box">{{ detail?.comment }}</div>
         </div>
       </div>
@@ -227,10 +242,10 @@ onMounted(fetchData);
               <dd>
                 <div class="star-wrap readonly">
                   <span v-for="n in 5" :key="n" class="star-container">
-                    <span class="star-half left" :class="{ active: detail.score >= n - 0.5 }">★</span>
-                    <span class="star-half right" :class="{ active: detail.score >= n }">★</span>
+                    <span class="star-half left" :class="{ active: roundHalf(detail.score) >= n - 0.5 }">★</span>
+                    <span class="star-half right" :class="{ active: roundHalf(detail.score) >= n }">★</span>
                   </span>
-                  <span class="score-text">{{ detail.score?.toFixed(1) ?? '-' }} / 5.0</span>
+                  <span class="score-text">{{ roundHalf(detail.score).toFixed(1) }} / 5.0</span>
                 </div>
               </dd>
             </dl>
@@ -257,7 +272,7 @@ onMounted(fetchData);
             </tbody>
           </table>
           <div style="margin-top: 14px;">
-            <p class="section-title">수강평가</p>
+            <p class="section-title">한줄평</p>
             <div v-for="(c, i) in detail.comments" :key="i" class="comment-box">{{ c }}</div>
             <p v-if="!detail.comments?.length" class="empty-text">작성된 수강평가가 없습니다.</p>
           </div>
@@ -294,4 +309,4 @@ onMounted(fetchData);
 .choice-score { font-weight: normal; opacity: 0.5; }
 .free-text-label { margin-bottom: 8px; text-align: left; }
 .comment-box { padding: 10px 14px; background: $default-bg; border-radius: 6px; margin-bottom: 8px; }
-</style>
+</style> 

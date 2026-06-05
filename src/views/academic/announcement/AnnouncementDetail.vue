@@ -35,7 +35,6 @@ onMounted(fetchDetail)
         <div class="post-header">
           <h2>{{ anno.title }}</h2>
           <div class="post-meta">
-            <span>{{ anno.writerName }}</span>
             <span>조회 {{ anno.viewCount }}</span>
             <span>{{ formatDate(anno.createdAt) }}</span>
           </div>
@@ -44,7 +43,7 @@ onMounted(fetchDetail)
       </div>
 
       <div class="page-footer">
-        <button class="btn btn-default" @click="router.back()">
+        <button class="btn btn-default" @click="router.push('/announcements')">
           <font-awesome-icon icon="fa-solid fa-list" /> 목록
         </button>
       </div>

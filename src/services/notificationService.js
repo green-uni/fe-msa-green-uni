@@ -9,6 +9,7 @@ const notifications = ref([])
 const unreadCount = ref(0)
 const isPanelOpen = ref(false)
 let stompClient = null
+let onBannerRefresh = null
 
 function addIfNew(noti) {
   if (!notifications.value.some((n) => n.notiId === noti.notiId)) {
@@ -71,6 +72,10 @@ const NotificationService = {
             addIfNew(JSON.parse(msg.body))
           })
         }
+        // 배너 실시간 갱신
+        stompClient.subscribe('/topic/banner', () => {
+          if (onBannerRefresh) onBannerRefresh()
+        })
       },
       onStompError: (frame) => console.error('STOMP error', frame),
     })
@@ -94,8 +99,13 @@ disconnect() {
   stompClient = null
   notifications.value = []
   unreadCount.value = 0
+  isPanelOpen.value = false
 },
   
+  setBannerRefreshCallback(cb) {
+    onBannerRefresh = cb
+  },
+
   // ── 공유 상태 ──────────────────────────────────────
   notifications,
   unreadCount,

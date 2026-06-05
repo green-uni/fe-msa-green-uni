@@ -129,7 +129,7 @@ onMounted(() => {
       @pageSizeChange="onPageSizeChange"
     >
       <div class="filter-item">
-        <div class="input-label">신청 연도</div>
+        <div class="input-label">연도</div>
         <div class="input-content">
           <select v-model="selectedYear">
             <option value="">전체</option>

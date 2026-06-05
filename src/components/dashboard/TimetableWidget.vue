@@ -1,9 +1,17 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import lectureService from '@/services/lectureService.js'
 import { useAuthStore } from '@/stores/authentication'
+import { BUILDING_LABEL } from '@/utils/constants'
  
 const authStore = useAuthStore()
+const router = useRouter()
+
+const goToDetail = (cell) => {
+  if (!cell || cell.hidden) return
+  router.push({ path: `/lectures/${cell.lectureId}`, query: { from: 'DASHBOARD' } })
+}
  
 const DAYS = ['월', '화', '수', '목', '금']
  
@@ -96,10 +104,14 @@ onMounted(async () => {
                 'td-today-filled': day === todayLabel && getCell(day, period.num) && !getCell(day, period.num).hidden
               }"
             >
-              <div v-if="getCell(day, period.num) && !getCell(day, period.num).hidden" class="cell-content">
+              <div
+                v-if="getCell(day, period.num) && !getCell(day, period.num).hidden"
+                class="cell-content"
+                @click="goToDetail(getCell(day, period.num))"
+              >
                 <span class="cell-name">{{ getCell(day, period.num).lectureName }}</span>
                 <span class="cell-room">
-                  {{ getCell(day, period.num).building }} {{ getCell(day, period.num).room }}
+                  {{ BUILDING_LABEL[getCell(day, period.num).building] ?? getCell(day, period.num).building }} {{ getCell(day, period.num).room }}
                 </span>
               </div>
             </td>
@@ -117,6 +129,10 @@ onMounted(async () => {
   height: 100%;
   display: flex;
   flex-direction: column;
+  border: 1px solid $border-color;
+  border-radius: $radius-sm;
+  overflow: hidden;
+  background: #fff;
 }
 
 .timetable-header {
@@ -157,7 +173,10 @@ onMounted(async () => {
   text-align: center;
   vertical-align: middle;
   padding: 4px 3px;
+  &:nth-of-type(1){border-left: none;}
+  &:nth-of-type(6){border-right: none;}
 }
+.timetable tr:nth-of-type(9) td{border-bottom:none;}
 
 .timetable thead th {
   background-color: $default-bg;
@@ -165,6 +184,7 @@ onMounted(async () => {
   color: $font-color;
   font-size: $fs-xs;
   padding: 6px 3px;
+  border-top: none;
 
   &.th-today {
     background-color: $green-600;
@@ -211,6 +231,8 @@ onMounted(async () => {
   height: 100%;
   gap: 3px;
   padding: 4px 3px;
+  cursor: pointer;
+  &:hover .cell-name { text-decoration: underline; }
 }
 
 .cell-name {

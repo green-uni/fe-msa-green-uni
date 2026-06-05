@@ -181,23 +181,21 @@ onMounted(() => {
 
     <template v-else>
       <DataTable
-        :columns="['정책 ID', '단과대학 명칭', '기본 등록금 책정액', '최종 수정일시', '수정자', '관리']"
+        :columns="['단과대학', '기본 등록금', '최종 수정일시', '관리']"
         :rows="policies"
         :isLoading="isLoading"
-        gridCols="120px 180px 1fr 180px 120px 140px"
+        gridCols="180px 1fr 1fr 100px"
         emptyMessage="해당 학기의 등록금 책정 정책 내역이 없습니다."
       >
         <template v-if="!isLoading && policies.length > 0">
-          <article class="tbl-row no-hover" :class="{ 'edit-row': policy.isEditing }" v-for="policy in policies" :key="policy.policyId">
-            <div>{{ policy.policyId }}</div>
+          <article class="tbl-row no-hover" v-for="policy in policies" :key="policy.policyId">
             <div>{{ policy.collegeName }}</div>
-            <div v-if="policy.isEditing" class="d-flex ai-center g5">
-              <input type="number" v-model.number="policy.editAmount" class="tbl-input edit-input" />
+            <div v-if="policy.isEditing" class="edit-form">
+              <input type="number" v-model.number="policy.editAmount" class="edit-input" />
               <span>원</span>
             </div>
             <div v-else>{{ formatPrice(policy.baseAmount) }}원</div>
             <div>{{ formatDateTime(policy.updatedAt) }}</div>
-            <div>{{ policy.updatedBy || '-' }}</div>
             <div v-if="policy.isEditing" class="d-flex g5 jc-center">
               <button class="btn btn-submit btn-sm" @click="savePolicy(policy)">저장</button>
               <button class="btn btn-default btn-sm" @click="cancelEdit(policy)">취소</button>
@@ -218,5 +216,6 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
-.edit-input { width: 120px; text-align: right; font-weight: bold; }
+.edit-form { gap: 4px;}
+.edit-input { width: 120px; padding: 4px 8px; text-align: right; font-weight: bold;}
 </style>

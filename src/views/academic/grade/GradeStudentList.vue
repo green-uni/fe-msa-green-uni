@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import DataTable from '@/components/common/DataTable.vue'
 import FilterBar from '@/components/common/FilterBar.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
-// import GradeService from '@/services/gradeService' // TODO: 목 데이터 제거 시 주석 해제
+import GradeService from '@/services/gradeService'
 
 const router = useRouter()
 
@@ -37,22 +37,12 @@ const allEvalCompleted = computed(() =>
     grades.value.length > 0 && grades.value.every(g => g.evalCompleted)
 )
 
-// TODO: 목 데이터 — 확인 후 제거
-const MOCK_GRADES = [
-    { courseId: 1, lectureYear: 2026, lectureSemester: 1, lectureType: '교양필수', lectureName: '글쓰기와 소통',   lectureCredit: 2, evalCompleted: false },
-    { courseId: 2, lectureYear: 2026, lectureSemester: 1, lectureType: '전공필수', lectureName: '자료구조',        lectureCredit: 3, evalCompleted: true,  lectureGrade: 'A+', lectureRating: 4.5 },
-    { courseId: 3, lectureYear: 2026, lectureSemester: 1, lectureType: '전공필수', lectureName: '알고리즘',        lectureCredit: 3, evalCompleted: true,  lectureGrade: 'B+', lectureRating: 3.5 },
-    { courseId: 4, lectureYear: 2026, lectureSemester: 1, lectureType: '전공선택', lectureName: '데이터베이스 설계', lectureCredit: 3, evalCompleted: true,  lectureGrade: null, lectureRating: null },
-    { courseId: 5, lectureYear: 2026, lectureSemester: 1, lectureType: '교양선택', lectureName: '영어회화 기초',   lectureCredit: 2, evalCompleted: false },
-]
 
 const fetchGrades = async () => {
     isLoading.value = true
     try {
-        // TODO: 목 데이터 — 확인 후 실제 API로 교체
-        grades.value = MOCK_GRADES
-        // const res   = await GradeService.getStudentGrades(filter.year, filter.semester)
-        // grades.value = res.gradeList ?? []
+        const res   = await GradeService.getStudentGrades(filter.year, filter.semester)
+        grades.value = res.gradeList ?? []
     } catch {
         // 에러 모달은 httpRequester 인터셉터가 처리
     } finally {
