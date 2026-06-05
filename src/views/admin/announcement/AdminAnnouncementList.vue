@@ -47,7 +47,7 @@ const fetchList = async () => {
     }
 }
 
-const rowNum = (idx) => (currentPage.value - 1) * pageSize.value + idx + 1
+const rowNum = (idx) => totalCount.value - ((currentPage.value - 1) * pageSize.value + idx)
 
 function onPageSizeChange() {
     currentPage.value = 1

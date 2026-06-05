@@ -9,14 +9,14 @@ const authStore = useAuthStore()
 const annoList = ref([])
 const loading = ref(false)
 
-// const listPath = computed(() => authStore.role === 'ADMIN' ? '/admin/announcements' : '/announcements')
-// const detailPath = (id) => authStore.role === 'ADMIN' ? `/admin/announcements/${id}` : `/announcements/${id}`
+const listPath = computed(() => authStore.role === 'ADMIN' ? '/admin/announcements' : '/announcements')
+const detailPath = (id) => authStore.role === 'ADMIN' ? `/admin/announcements/${id}` : `/announcements/${id}`
 
 onMounted(async () => {
   loading.value = true
   try {
-    // const res = await AnnouncementService.getList({ page: 1, size: 4 })
-    // annoList.value = res.content ?? []
+    const res = await AnnouncementService.getList({ page: 1, size: 4 })
+    annoList.value = res.content ?? []
   } catch (e) {
     console.error(e)
   } finally {

@@ -47,7 +47,7 @@ const onSearch      = () => { searchInput.value = searchQuery.value; fetchList(1
 const onYearChange  = () => fetchList(1)
 const onPageSizeChange = () => fetchList(1)
 
-const rowNum     = (idx) => (currentPage.value - 1) * 10 + idx + 1
+const rowNum     = (idx) => totalElements.value - ((currentPage.value - 1) * pageSize.value + idx)
 const formatDate = (dateStr) => dateStr?.slice(0, 10) ?? ''
 const truncate   = (text, max = 20) => text?.length > max ? text.slice(0, max) + '...' : (text ?? '')
 

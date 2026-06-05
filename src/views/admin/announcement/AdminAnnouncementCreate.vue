@@ -35,7 +35,7 @@ const formatDate = (dateStr) => dateStr?.slice(0, 16).replace('T', ' ') ?? ''
 onMounted(async () => {
     if (isEdit.value) {
         try {
-            const detail = await AnnouncementService.getDetail(annoId.value)
+            const detail = await AnnouncementService.getAdminDetail(annoId.value)
             form.value.targetRole = detail.targetRole
             form.value.title      = detail.title
             form.value.content    = detail.content

@@ -27,9 +27,15 @@ class AnnouncementService {
         return res.data.data
     }
 
-    // 상세 조회
+    // 상세 조회 (학생/교수)
     async getDetail(annoId) {
         const res = await axios.get(`${this.#path}/${annoId}`)
+        return res.data.data
+    }
+
+    // 상세 조회 (관리자)
+    async getAdminDetail(annoId) {
+        const res = await axios.get(`${this.#adminPath}/${annoId}`)
         return res.data.data
     }
 

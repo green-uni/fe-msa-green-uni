@@ -87,8 +87,8 @@ const fetchSchedules = async () => {
 
 const getSemester = (dateStr) => {
   const month = new Date(dateStr).getMonth() + 1
-  if (month >= 3 && month <= 8) return 1
-  return 2
+  if (month >= 3 && month <= 8) return '1'
+  return '2'
 }
 
 // ===== 시작일 변경 시 종료일 자동 세팅 =====

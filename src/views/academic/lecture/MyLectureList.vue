@@ -46,7 +46,7 @@ const fetchPeriodStatus = async () => {
     const isModification = active.COURSE_MODIFICATION || active['수강정정'];
 
     if (isRegistration) {
-      periodMessage.value = '수강신청 기간 중에는 나의 강의 목록을 확인할 수 없습니다. 수강신청 기간 종료 후 확인해 주세요.';
+      periodMessage.value = '수강신청 기간 중에는 내 강의 목록을 확인할 수 없습니다. 수강신청 기간 종료 후 확인해 주세요.';
       modificationNotice.value = '';
     } else if (isModification) {
       periodMessage.value = '';
@@ -64,7 +64,7 @@ const fetchPeriodStatus = async () => {
 // ── 탭 (교수만) ───────────────────────────────────
 const TABS = ['전체', '대기', '승인', '반려'];
 const STATUS_MAP = { '대기': 'PENDING', '승인': 'APPROVED', '반려': 'REJECTED' };
-const activeTab = ref('전체');
+const activeTab = ref('승인');
 
 const onTabClick = (tab) => {
   activeTab.value = tab;
@@ -250,11 +250,16 @@ const fetchYearOptions = async () => {
     } else if (isStudent.value) {
       res = await LectureService.getStudentLectureYears();
     } else {
-      return; // 관리자는 스킵
+      return;
     }
-    yearOptions.value = Array.isArray(res) ? res : (res.data ?? []);
+    const years = Array.isArray(res) ? res : (res.data ?? []);
+    const { year: curYear } = getCurrentTerm();
+    if (!years.includes(curYear)) years.unshift(curYear);
+    yearOptions.value = years;
   } catch (err) {
     console.error('연도 옵션 로드 실패:', err);
+    const { year: curYear } = getCurrentTerm();
+    yearOptions.value = [curYear];
   }
 };
 
@@ -264,7 +269,7 @@ onMounted(() => {
   fetchPeriodStatus();
   if (Object.keys(route.query).length === 0) {
     const { year, semester } = getCurrentTerm();
-    router.replace({ path: route.path, query: { year, semester, page: 1 } });
+    router.replace({ path: route.path, query: { year, semester, status: 'APPROVED', page: 1 } });
   }
 });
 </script>

@@ -43,7 +43,7 @@ onMounted(fetchDetail)
       </div>
 
       <div class="page-footer">
-        <button class="btn btn-default" @click="router.back()">
+        <button class="btn btn-default" @click="router.push('/announcements')">
           <font-awesome-icon icon="fa-solid fa-list" /> 목록
         </button>
       </div>
