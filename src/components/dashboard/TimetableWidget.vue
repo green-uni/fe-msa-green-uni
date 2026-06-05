@@ -1,10 +1,17 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import lectureService from '@/services/lectureService.js'
 import { useAuthStore } from '@/stores/authentication'
 import { BUILDING_LABEL } from '@/utils/constants'
  
 const authStore = useAuthStore()
+const router = useRouter()
+
+const goToDetail = (cell) => {
+  if (!cell || cell.hidden) return
+  router.push({ path: `/lectures/${cell.lectureId}`, query: { from: 'DASHBOARD' } })
+}
  
 const DAYS = ['월', '화', '수', '목', '금']
  
@@ -97,7 +104,11 @@ onMounted(async () => {
                 'td-today-filled': day === todayLabel && getCell(day, period.num) && !getCell(day, period.num).hidden
               }"
             >
-              <div v-if="getCell(day, period.num) && !getCell(day, period.num).hidden" class="cell-content">
+              <div
+                v-if="getCell(day, period.num) && !getCell(day, period.num).hidden"
+                class="cell-content"
+                @click="goToDetail(getCell(day, period.num))"
+              >
                 <span class="cell-name">{{ getCell(day, period.num).lectureName }}</span>
                 <span class="cell-room">
                   {{ BUILDING_LABEL[getCell(day, period.num).building] ?? getCell(day, period.num).building }} {{ getCell(day, period.num).room }}
@@ -220,6 +231,8 @@ onMounted(async () => {
   height: 100%;
   gap: 3px;
   padding: 4px 3px;
+  cursor: pointer;
+  &:hover .cell-name { text-decoration: underline; }
 }
 
 .cell-name {

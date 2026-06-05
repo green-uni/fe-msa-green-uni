@@ -1,26 +1,28 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import NotificationService from '@/services/notificationService.js'
+import { useAuthStore } from '@/stores/authentication'
 import { Swiper, SwiperSlide } from 'swiper/vue'
-import { Autoplay, Pagination } from 'swiper/modules'
+import { Autoplay, Pagination, EffectFade } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/pagination'
+import 'swiper/css/effect-fade'
 import ScheduleService from '@/services/scheduleService.js'
 
 const SCHEDULE_MAP = {
-  COURSE_REGISTRATION:  { label: '수강신청',     link: '/courses' },
-  COURSE_MODIFICATION:  { label: '수강정정',     link: '/courses' },
-  GRADE_INPUT:          { label: '성적입력',     link: '/grades' },
-  GRADE_VIEW:           { label: '성적조회',     link: '/grades/my' },
-  GRADE_APPEAL:         { label: '성적이의신청',  link: '/grades/appeal/my' },
-  LECTURE_EVALUATION:   { label: '강의평가',     link: '/evaluations' },
-  TUITION_PAYMENT:      { label: '등록금납부',    link: '/tuitions/my' },
-  LECTURE_REGISTRATION: { label: '강의개설신청',  link: '/lectures' },
-  MAJOR_CHANGE:         { label: '전공변경신청',  link: '/members/major-request' },
-  SEMESTER_START:       { label: '학기시작',     link: null },
-  ETC:                  { label: '기타',         link: null },
+  COURSE_REGISTRATION:  { label: '수강신청',    roles: ['STUDENT'],                    links: { STUDENT: '/courses' } },
+  COURSE_MODIFICATION:  { label: '수강정정',    roles: ['STUDENT'],                    links: { STUDENT: '/courses' } },
+  GRADE_INPUT:          { label: '성적입력',    roles: ['PROFESSOR'],                  links: { PROFESSOR: '/professor/grades' } },
+  GRADE_VIEW:           { label: '성적조회',    roles: ['STUDENT', 'PROFESSOR'],       links: { STUDENT: '/grades',                PROFESSOR: '/professor/grades' } },
+  GRADE_APPEAL:         { label: '성적이의신청', roles: ['STUDENT', 'PROFESSOR'],      links: { STUDENT: '/grades/appeals/my',     PROFESSOR: '/professor/grades/appeals' } },
+  LECTURE_EVALUATION:   { label: '강의평가',    roles: ['STUDENT', 'PROFESSOR'],       links: { STUDENT: '/evaluations',           PROFESSOR: '/evaluations' } },
+  TUITION_PAYMENT:      { label: '등록금납부',   roles: ['STUDENT', 'ADMIN'],          links: { STUDENT: '/tuitions/my',           ADMIN: '/admin/tuition' } },
+  LECTURE_REGISTRATION: { label: '강의개설신청', btnLabel: '강의개설현황', roles: ['PROFESSOR', 'ADMIN'],        links: { PROFESSOR: '/lectures/my',         ADMIN: '/admin/lectures/my' } },
+  MAJOR_CHANGE:         { label: '전공변경신청', btnLabel: '변경신청현황', roles: ['STUDENT', 'ADMIN'],          links: { STUDENT: '/members/major-request', ADMIN: '/admin/members/major-request' } },
 }
 
-const modules = [Autoplay, Pagination]
+const role = computed(() => useAuthStore().role)
+const modules = [Autoplay, Pagination, EffectFade]
 const schedules = ref([])
 
 const formatDate = (dateStr) => {
@@ -38,7 +40,7 @@ const calcDaysLeft = (endDateStr) => {
   return Math.max(0, Math.ceil((end - today) / (1000 * 60 * 60 * 24)))
 }
 
-onMounted(async () => {
+const fetchBanner = async () => {
   try {
     const res = await ScheduleService.getActiveBannerSchedules()
     const items = res.data?.data ?? []
@@ -46,9 +48,11 @@ onMounted(async () => {
       .map((s) => {
         const mapped = SCHEDULE_MAP[s.type]
         if (!mapped) return null
+        if (!mapped.roles.includes(role.value)) return null
         return {
           label: mapped.label,
-          link: mapped.link,
+          btnLabel: mapped.btnLabel ?? mapped.label,
+          link: mapped.links[role.value], // 해당 role 키 없으면 undefined → v-if에서 자동 숨김
           dateRange: `${formatDate(s.startDate)}~${formatDate(s.endDate)}`,
           daysLeft: calcDaysLeft(s.endDate),
         }
@@ -57,6 +61,19 @@ onMounted(async () => {
   } catch (e) {
     console.error('배너 조회 실패', e)
   }
+}
+
+let pollTimer = null
+
+onMounted(() => {
+  fetchBanner()
+  NotificationService.setBannerRefreshCallback(fetchBanner)
+  pollTimer = setInterval(fetchBanner, 60_000)
+})
+
+onUnmounted(() => {
+  NotificationService.setBannerRefreshCallback(null)
+  clearInterval(pollTimer)
 })
 </script>
 
@@ -68,6 +85,11 @@ onMounted(async () => {
       :pagination="{ clickable: true }"
       :loop="schedules.length > 1"
       :slides-per-view="1"
+      effect="fade"
+      :fadeEffect="{ crossFade: true }"
+      :preventClicks="false"
+      :preventClicksPropagation="false"
+      :allowTouchMove="false"
       class="banner-swiper"
     >
       <SwiperSlide v-for="(item, i) in schedules" :key="i">
@@ -79,8 +101,9 @@ onMounted(async () => {
               <span class="banner-date">{{ item.dateRange }} · 종료까지 {{ item.daysLeft }}일 남음</span>
             </div>
           </div>
+          <!-- item.link가 undefined면 렌더링 안됨 -->
           <router-link v-if="item.link" :to="item.link" class="banner-btn">
-            {{ item.label }} 바로가기 →
+            {{ item.btnLabel }} 바로가기 →
           </router-link>
         </div>
       </SwiperSlide>
@@ -99,6 +122,9 @@ onMounted(async () => {
 .banner-swiper {
   border-radius: 8px;
   border: 1px solid #c2e8d4;
+  :deep(.swiper-slide:not(.swiper-slide-active)) {
+    pointer-events: none;
+  }
 }
 
 .banner-wrap {
