@@ -21,11 +21,13 @@ const searchInput = ref('');
 const TABS = ['전체', '대기', '승인', '반려', '폐강'];
 const TAB_TO_STATUS = { '대기': 'PENDING', '승인': 'APPROVED', '반려': 'REJECTED', '폐강': 'CANCELLED' };
 const STATUS_TO_LABEL = { PENDING: '대기', APPROVED: '승인', REJECTED: '반려', CANCELLED: '폐강' };
-const activeTab = ref('전체');
+const activeTab = ref('대기');
 
 const onTabClick = (tab) => {
   activeTab.value = tab;
   filter.status = TAB_TO_STATUS[tab] || '';
+  filter.year = currentYear;
+  filter.semester = currentSemester;
   state.currentPage = 1;
   pushQuery();
 };
@@ -43,7 +45,13 @@ const state = reactive({
 
 const filter = reactive({
   status: '',
+  year: currentYear,
+  semester: currentSemester,
 });
+
+const currentYear = new Date().getFullYear();
+const currentSemester = new Date().getMonth() + 1 >= 3 && new Date().getMonth() + 1 <= 8 ? 1 : 2;
+const yearOptions = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
 // ── lectureType 한글 변환 ──────────────────────────
 const LECTURE_TYPE_LABEL = {
@@ -63,7 +71,9 @@ const fetchList = async () => {
     const params = {
       status: filter.status || undefined,
       lectureName: searchInput.value || undefined,
-      page: state.currentPage,  // 0부터 시작
+      year: filter.year || undefined,
+      semester: filter.semester || undefined,
+      page: state.currentPage,
       size: pageSize.value,
     };
     Object.keys(params).forEach(k => params[k] === undefined && delete params[k]);
@@ -85,8 +95,9 @@ const fetchList = async () => {
 
 // ── URL ↔ 필터 동기화 ──────────────────────────────
 const syncFromQuery = (query) => {
-  // status 키가 URL에 존재하면 그 값 사용, 없으면 PENDING (초기 기본값)
   filter.status = 'status' in query ? (query.status || '') : 'PENDING';
+  filter.year = query.year ? Number(query.year) : '';
+  filter.semester = query.semester ? Number(query.semester) : '';
   searchInput.value = query.search || '';
   searchQuery.value = query.search || '';
   state.currentPage = query.page ? Number(query.page) : 1;
@@ -98,6 +109,8 @@ const pushQuery = () => {
     path: route.path,
     query: {
       status: filter.status || '',
+      year: filter.year || undefined,
+      semester: filter.semester || undefined,
       search: searchInput.value || undefined,
       page: state.currentPage,
     },
@@ -124,6 +137,8 @@ const moveToDetail = (id) => {
     query: {
       from: 'ADMIN',
       status: filter.status,
+      year: filter.year || undefined,
+      semester: filter.semester || undefined,
       search: searchInput.value,
       page: state.currentPage,
     },
@@ -149,7 +164,7 @@ watch(
     if (Object.keys(newQuery).length === 0) {
         router.replace({
             path: route.path,
-            query: { status: 'PENDING', page: 1 }
+            query: { status: 'PENDING', year: currentYear, semester: currentSemester, page: 1 }
         });
         return;
     }
@@ -188,6 +203,25 @@ watch(
         >
           {{ tab }}
         </button>
+      </div>
+      <div class="filter-item">
+        <div class="input-label">연도</div>
+        <div class="input-content">
+          <select v-model="filter.year" @change="() => { state.currentPage = 1; pushQuery(); }">
+            <option value="">전체</option>
+            <option v-for="y in yearOptions" :key="y" :value="y">{{ y }}년</option>
+          </select>
+        </div>
+      </div>
+      <div class="filter-item">
+        <div class="input-label">학기</div>
+        <div class="input-content">
+          <select v-model="filter.semester" @change="() => { state.currentPage = 1; pushQuery(); }">
+            <option value="">전체</option>
+            <option value="1">1학기</option>
+            <option value="2">2학기</option>
+          </select>
+        </div>
       </div>
     </FilterBar>
 

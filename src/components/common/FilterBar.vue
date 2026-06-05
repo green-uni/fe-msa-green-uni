@@ -3,7 +3,7 @@ import { useSlots, computed } from 'vue'
 import SearchInput from '@/components/util/SearchInput.vue'
 
 const slots = useSlots()
-const hasSlotContent = computed(() => !!slots.default?.())
+const hasSlotContent = computed(() => !!slots.default)
 
 defineProps({
   hasFilter: Boolean,
