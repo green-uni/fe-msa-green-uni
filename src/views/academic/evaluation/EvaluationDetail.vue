@@ -49,12 +49,26 @@ const evalForm = reactive({
   comment: '',
 });
 
+const getCurrentTerm = () => {
+  const now = new Date();
+  return {
+    year: now.getFullYear(),
+    semester: now.getMonth() + 1 >= 3 && now.getMonth() + 1 <= 8 ? 1 : 2,
+  };
+};
+
 const getEvalStatus = (item) => {
   if (!item) return 'before';
   const today = new Date();
   const start = item.startDate ? new Date(item.startDate) : null;
   const end = item.endDate ? new Date(item.endDate) : null;
-  if (!start || !end || today < start) return 'before';
+  if (!start || !end) {
+    const cur = getCurrentTerm();
+    return (item.year < cur.year || (item.year === cur.year && item.semester < cur.semester))
+      ? 'done'
+      : 'before';
+  }
+  if (today < start) return 'before';
   if (today > end) return 'done';
   return 'active';
 };
@@ -94,6 +108,7 @@ const submitEval = async () => {
 };
 
 const formatDate = (dt) => dt ? dt.slice(0, 10) : '-';
+const roundHalf = (v) => Math.round((v ?? 0) * 2) / 2;
 
 onMounted(fetchData);
 </script>
@@ -126,7 +141,7 @@ onMounted(fetchData);
                   <span class="star-half left" :class="{ active: (hoverScore || evalForm.score) >= n - 0.5 }">★</span>
                   <span class="star-half right" :class="{ active: (hoverScore || evalForm.score) >= n }">★</span>
                 </span>
-                <span class="score-text">{{ evalForm.score }} / 5.0</span>
+                <span class="score-text">{{ evalForm.score.toFixed(1) }} / 5.0</span>
               </div>
             </dd>
           </dl>
@@ -177,10 +192,10 @@ onMounted(fetchData);
             <dd>
               <div class="star-wrap readonly">
                 <span v-for="n in 5" :key="n" class="star-container">
-                  <span class="star-half left" :class="{ active: detail?.score >= n - 0.5 }">★</span>
-                  <span class="star-half right" :class="{ active: detail?.score >= n }">★</span>
+                  <span class="star-half left" :class="{ active: roundHalf(detail?.score) >= n - 0.5 }">★</span>
+                  <span class="star-half right" :class="{ active: roundHalf(detail?.score) >= n }">★</span>
                 </span>
-                <span class="score-text">{{ detail?.score }} / 5.0</span>
+                <span class="score-text">{{ roundHalf(detail?.score).toFixed(1) }} / 5.0</span>
               </div>
             </dd>
           </dl>
@@ -227,10 +242,10 @@ onMounted(fetchData);
               <dd>
                 <div class="star-wrap readonly">
                   <span v-for="n in 5" :key="n" class="star-container">
-                    <span class="star-half left" :class="{ active: detail.score >= n - 0.5 }">★</span>
-                    <span class="star-half right" :class="{ active: detail.score >= n }">★</span>
+                    <span class="star-half left" :class="{ active: roundHalf(detail.score) >= n - 0.5 }">★</span>
+                    <span class="star-half right" :class="{ active: roundHalf(detail.score) >= n }">★</span>
                   </span>
-                  <span class="score-text">{{ detail.score?.toFixed(1) ?? '-' }} / 5.0</span>
+                  <span class="score-text">{{ roundHalf(detail.score).toFixed(1) }} / 5.0</span>
                 </div>
               </dd>
             </dl>

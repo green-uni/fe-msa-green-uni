@@ -103,7 +103,13 @@ const getEvalStatus = (item) => {
   const today = new Date();
   const start = item.startDate ? new Date(item.startDate) : null;
   const end = item.endDate ? new Date(item.endDate) : null;
-  if (!start || !end || today < start) return 'before';
+  if (!start || !end) {
+    const cur = getCurrentTerm();
+    return (item.year < cur.year || (item.year === cur.year && item.semester < cur.semester))
+      ? 'done'
+      : 'before';
+  }
+  if (today < start) return 'before';
   if (today > end) return 'done';
   return 'active';
 };

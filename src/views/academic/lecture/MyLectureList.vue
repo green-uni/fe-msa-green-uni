@@ -46,7 +46,7 @@ const fetchPeriodStatus = async () => {
     const isModification = active.COURSE_MODIFICATION || active['수강정정'];
 
     if (isRegistration) {
-      periodMessage.value = '수강신청 기간 중에는 나의 강의 목록을 확인할 수 없습니다. 수강신청 기간 종료 후 확인해 주세요.';
+      periodMessage.value = '수강신청 기간 중에는 내 강의 목록을 확인할 수 없습니다. 수강신청 기간 종료 후 확인해 주세요.';
       modificationNotice.value = '';
     } else if (isModification) {
       periodMessage.value = '';
