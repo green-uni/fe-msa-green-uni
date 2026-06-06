@@ -477,13 +477,10 @@ onMounted(async () => {
               <button @click="openCancelBox">강의 폐강</button>
             </div>
           </div>
-          <!-- 교수: 수정 / 삭제 (내 강의 + 반려 상태 + 수강생 없음) -->
+          <!-- 교수: 수정 (내 강의 + 반려 상태 + 수강생 없음) -->
           <template v-if="canEdit && isMyLecture && state.data.status === '반려' && state.studentList.length === 0">
             <button class="btn btn-default" @click="editLecture">
               <font-awesome-icon icon="fa-solid fa-pen-to-square" /> 강의 정보 수정
-            </button>
-            <button class="btn btn-default" @click="deleteLecture">
-              <font-awesome-icon icon="fa-solid fa-trash" /> 강의 삭제
             </button>
           </template>
         </div>
