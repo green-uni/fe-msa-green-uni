@@ -338,7 +338,7 @@ onMounted(async () => {
               <span class="info-key">강의시간</span>
               <span class="info-val">
                 <span v-for="(s, i) in state.data.schedules" :key="i" style="display:block">
-                  {{ s.dayOfWeek }}요일 {{ s.startPeriod }}교시 ~ {{ s.endPeriod }}교시
+                  {{ s.dayOfWeek }}요일 {{ s.startPeriod }} ~ {{ s.endPeriod }}교시
                 </span>
               </span>
             </div>
