@@ -9,6 +9,10 @@ import LectureService from '@/services/lectureService'
 import { useRoute, useRouter } from 'vue-router'
 import { useModalStore } from '@/stores/modal'
 
+const now             = new Date()
+const currentYear     = now.getFullYear()
+const currentSemester = now.getMonth() + 1 <= 6 ? 1 : 2
+
 const route = useRoute()
 const router = useRouter()
 const modal = useModalStore()
@@ -53,6 +57,10 @@ const pagedList = computed(() => {
 
 const maxPage = computed(() =>
     Math.ceil(filteredList.value.length / pageSize) || 1
+)
+
+const isCurrentLecture = computed(() =>
+    lectureInfo.year === currentYear && lectureInfo.semester === currentSemester
 )
 
 const calcTotalScore = (mid, fin, assignment, attend) =>
@@ -272,7 +280,7 @@ onMounted(async () => {
         <div class="page-footer">
             <button class="btn btn-default" @click="router.back()"><font-awesome-icon icon="fa-solid fa-arrow-left" /> 돌아가기</button>
             <div class="action-group">
-                <button v-if="!isEditMode" class="btn btn-default" @click="startEditMode">수정</button>
+                <button v-if="!isEditMode && isCurrentLecture" class="btn btn-default" @click="startEditMode">수정</button>
                 <button v-else class="btn btn-submit" @click="saveGrades"><font-awesome-icon icon="fa-solid fa-circle-check" /> 저장</button>
             </div>
         </div>
