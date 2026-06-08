@@ -87,6 +87,7 @@ const fetchRequest = async () => {
   try {
     const res = await MemberService.findStatusRequest(requestId);
     request.value = res.data ?? res;
+    console.log(res.data)
   } catch (err) {
     console.error('신청서 로드 실패:', err);
   } finally {
@@ -147,7 +148,7 @@ onBeforeRouteLeave((to) => {
             <span class="info-key">연락처</span>
             <span class="info-val">{{ formatTel(request.phone) ?? '-' }}</span>
           </div>
-          <div class="info-item">
+          <div class="info-item" style="grid-column: span 2">
             <span class="info-key">이메일</span>
             <span class="info-val">{{ request.email ?? '-' }}</span>
           </div>

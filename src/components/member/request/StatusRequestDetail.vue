@@ -28,8 +28,6 @@ const isAbsence = computed(() => props.request.type === 'ABSENCE');
         <dl class="req-row"><dt>복학 예정 연도</dt><dd>{{ request.returnYear }}년</dd></dl>
         <dl class="req-row"><dt>복학 예정 학기</dt><dd>{{ request.returnSemester }}학기</dd></dl>
       </template>
-      <dl v-if="request.status !== 'PENDING' && request.updatedAt" class="req-row"><dt>처리일</dt><dd>{{ formatDateTime(request.updatedAt) }}</dd></dl>
-      <dl v-if="request.updaterName" class="req-row"><dt>처리자</dt><dd>{{ request.updaterName }}</dd></dl>
     </div>
 
     <p class="reason-text reason-body">{{ request.reason }}</p>
@@ -40,10 +38,23 @@ const isAbsence = computed(() => props.request.type === 'ABSENCE');
         {{ request.originalFileName }}
       </button>
     </div>
+  </section>
 
-    <div v-if="request.status === 'REJECTED' && request.rejectReason" class="result-box rejected">
-      <p class="result-title">반려 사유</p>
-      <p class="result-body">{{ request.rejectReason }}</p>
+  <section v-if="['APPROVED', 'REJECTED'].includes(request.status)" class="card">
+    <div class="card-label">{{ request.status === 'APPROVED' ? '승인 정보' : '반려 정보' }}</div>
+    <div class="info-grid" style="grid-template-columns: 1fr">
+      <div class="info-item" v-if="request.status === 'REJECTED'">
+        <span class="info-key">반려사유</span>
+        <span class="info-val">{{ request.rejectReason || '-' }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-key">처리일</span>
+        <span class="info-val">{{ formatDateTime(request.updatedAt) || '-' }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-key">처리자</span>
+        <span class="info-val">{{ request.updaterName ? `${request.updaterName} (${request.updaterCode})` : '-' }}</span>
+      </div>
     </div>
   </section>
 </template>

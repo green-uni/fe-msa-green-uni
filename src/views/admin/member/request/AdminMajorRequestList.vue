@@ -61,8 +61,8 @@ const fetchOptions = async () => {
   }
 };
 
-const GRID_COLS = 'minmax(90px, 1fr) minmax(120px, 1fr) minmax(150px, 1fr) minmax(90px, 1fr) minmax(100px, 1fr) minmax(110px, 1fr) minmax(110px, 1fr) minmax(80px, 1fr)';
-const COLS_NAME = ['학번', '이름', '현재 전공', '신청 유형', '신청 학과', '신청일자', '처리자', '상태'];
+const GRID_COLS = 'minmax(85px, 0.8fr) minmax(80px, 0.8fr) minmax(100px, 1fr) minmax(90px, 0.9fr) minmax(75px, 0.7fr) minmax(100px, 1fr) minmax(100px, 1fr) minmax(80px, 0.8fr) minmax(70px, 0.6fr)';
+const COLS_NAME = ['학번', '이름', '주전공', '부전공', '신청 유형', '신청 학과', '신청일자', '처리자', '상태'];
 const moveToDetail = (id) => router.push(`/admin/members/major-request/${id}`)
 
 const selectStatus = (code) => {
@@ -137,7 +137,8 @@ onMounted(() => {
       <article class="tbl-row pointer" v-for="item in state.list" :key="item.memberCode" @click="moveToDetail(item.requestId)">
         <div>{{ item.memberCode }}</div>
         <div>{{ item.studentName }}</div>
-        <div>{{ item.currentMajorName }} <template v-if="item.currentMinorName">/ {{ item.currentMinorName }}</template></div>
+        <div>{{ item.currentMajorName }}</div>
+        <div>{{ item.currentMinorName || '-' }}</div>
         <div>{{ MAJOR_REQUEST_TYPE[item.type] ?? item.type }}</div>
         <div>{{ item.targetMajorName }}</div>
         <div class="tbl-meta">{{ formatDateTime(item.createdAt) }}</div>

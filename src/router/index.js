@@ -32,6 +32,9 @@ router.beforeEach(async (to, _from, next) => {
   }
 
   if (!isLogin && !publicPages.includes(to.path) && !to.meta.public) {
+    if (isMobileDevice && to.path !== '/student/login') {
+      sessionStorage.setItem('redirectAfterLogin', to.fullPath)
+    }
     next(isMobileDevice ? '/student/login' : '/login')
     return
   }

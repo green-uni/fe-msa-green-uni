@@ -7,11 +7,18 @@ html { color: $font-color; font-size: 14px; font-family: 'Pretendard'; }
 body { min-height: 100vh; transition: color 0.5s, background-color 0.5s; line-height: 1.4; }
 
 #app { height: 100vh; overflow: hidden; }
-/* PWA 출석 레이아웃(/student/attendances/**)에서 overflow 해제 — AttendanceLayout이 body에 클래스 추가 */
-body.pwa-view #app { height: auto; min-height: 100vh; min-height: 100dvh; overflow: visible; }
+/* 개발환경 — AttendanceLayout이 body에 pwa-view 클래스 추가 시 적용 */
+body.pwa-view #app { height: 100vh; height: 100dvh; overflow: hidden; }
 /* 모바일에서 로그인 화면이 overflow:hidden으로 잘리지 않도록 세로 스크롤 허용 */
 @media (max-width: 960px) {
   #app { overflow-y: auto; }
+}
+/* ── standalone PWA 주소창 차단 ────────────────────────────────────────────
+   display-mode: standalone → Vue 마운트 전부터 즉시 적용 (HMR/라이프사이클 무관)
+   iOS Safari가 html/body 스크롤을 감지하지 못하도록 전체 잠금                  */
+@media (display-mode: standalone) {
+  html, body { overflow: hidden; height: 100%; }
+  #app        { position: fixed; inset: 0; overflow: hidden; }
 }
 
 .hidden    { display: none; }

@@ -249,7 +249,7 @@ onUnmounted(stopScan)
 
 <style scoped lang="scss">
 .scan-page {
-  min-height: 100dvh;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;

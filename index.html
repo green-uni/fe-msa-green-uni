@@ -25,7 +25,37 @@
     <script defer src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <div style="
+        position:fixed; inset:0;
+        display:flex; flex-direction:column;
+        align-items:center; justify-content:center;
+        gap:28px; background:#f5f5f5;
+      ">
+        <div style="
+          width:36px; height:36px;
+          border:4px solid #e0e0e0;
+          border-top-color:#3e9e7e;
+          border-radius:50%;
+          animation:spin 0.8s linear infinite;
+        "></div>
+        <a id="direct-link" href="" style="
+          display:inline-block;
+          padding:12px 24px;
+          background:#4a7cf7; color:#fff;
+          border-radius:10px; font-size:15px; font-weight:700;
+          text-decoration:none;
+          opacity:0;
+          animation:fadeIn 0.3s ease forwards;
+          animation-delay:3s;
+        ">🔗 링크로 직접 접속하기</a>
+      </div>
+      <style>
+        @keyframes spin   { to { transform: rotate(360deg) } }
+        @keyframes fadeIn { to { opacity: 1 } }
+      </style>
+    </div>
+    <script>document.getElementById('direct-link').href = window.location.origin</script>
     <script type="module" src="/src/main.js"></script>
     <!-- [삭제] SW 강제 해제 스크립트 제거 — PWA 서비스 워커 설치를 막고 있었음 -->
     <!-- vite-plugin-pwa의 autoUpdate가 SW 갱신을 자동 처리하므로 강제 해제 불필요 -->

@@ -228,16 +228,16 @@ function today() {
 
     <!-- 출석부 테이블 -->
     <DataTable v-if="!isSelectedDateCancelled"
-      :columns="['학년', '학과', '이름', '출결 상태', '비고']"
+      :columns="['학년', '학과', '이름(학번)', '출결 상태', '비고']"
       :rows="roster"
-      gridCols="0.8fr 1.8fr 1fr 2.5fr 2fr"
+      gridCols="0.6fr 1.4fr 1.8fr 3fr 1.8fr"
       :isLoading="isRosterLoading"
       emptyMessage="선택한 날짜에 출석 기록이 없습니다."
       class="roster-table">
       <article v-for="row in pagedRoster" :key="row.studentCode" class="tbl-row">
         <div>{{ row.academic_year != null ? row.academic_year + '학년' : '-' }}</div>
         <div>{{ row.major_name ?? '-' }}</div>
-        <div>{{ row.memberName }}</div>
+        <div>{{ row.memberName }}({{ row.studentCode }})</div>
         <div>
           <template v-if="!isEditMode">
             <span :class="statusClass(row.status)">{{ statusLabel(row.status) }}</span>
@@ -265,7 +265,9 @@ function today() {
         </div>
         <div>
           <template v-if="!isEditMode">
-            <span class="no-data">{{ row.reason ?? '-' }}</span>
+            <span class="no-data" :title="row.reason ?? ''">
+              {{ row.reason ? (row.reason.length > 15 ? row.reason.slice(0, 15) + '…' : row.reason) : '-' }}
+            </span>
           </template>
           <input v-else type="text" v-model="row.reason" @input="saveDraft"
             placeholder="사유 입력" class="tbl-input" />
@@ -352,7 +354,7 @@ function today() {
 }
 
 /* 수정 모드 라디오 — 전역 _form.scss radio-label과 충돌하여 scoped 유지 */
-.radio-group { display: flex; gap: 14px; font-size: $fs-xs; flex-wrap: wrap; justify-content: center; }
+.radio-group { display: flex !important; gap: 10px; font-size: $fs-xs; flex-wrap: wrap; justify-content: center; }
 .radio-label {
   cursor: pointer; display: flex; align-items: center; gap: 4px;
   padding-left: 0;

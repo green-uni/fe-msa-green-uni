@@ -18,8 +18,10 @@ export const announcementRoutes = [
         path: `${url}/:annoId`,
         component: () => import('@/views/academic/announcement/AnnouncementDetail.vue'),
         meta: {
-            groupTitle: '공지사항',
             title: '상세',
+            subTitle: '공지사항',
+            groupTitle: '공지사항',
+            navSection: '커뮤니티',
             auth: ['STUDENT', 'PROFESSOR', 'ADMIN'],
             showInNav: false,
             activeMenu: url,
@@ -58,6 +60,9 @@ export const adminAnnouncementRoutes = [
         component: () => import('@/views/admin/announcement/AdminAnnouncementCreate.vue'),
         meta: {
             title: '공지사항 등록',
+            subTitle: '공지사항 관리',
+            groupTitle: '공지사항',
+            navSection: '커뮤니티',
             auth: ['ADMIN'],
             showInNav: false,
             activeMenu: url,
@@ -69,6 +74,9 @@ export const adminAnnouncementRoutes = [
         component: () => import('@/views/admin/announcement/AdminAnnouncementCreate.vue'),
         meta: {
             title: '공지사항 수정',
+            subTitle: '공지사항 관리',
+            groupTitle: '공지사항',
+            navSection: '커뮤니티',
             auth: ['ADMIN'],
             showInNav: false,
             activeMenu: url,

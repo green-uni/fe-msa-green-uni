@@ -56,7 +56,10 @@ const handlePicChanged = (e) => {
         <font-awesome-icon icon="fa-solid fa-circle-exclamation" />
         <span>사진을 불러오는데<br />실패했습니다</span>
       </div>
-      <font-awesome-icon v-else icon="fa-solid fa-camera" />
+      <div v-else class="img-error">
+        <font-awesome-icon icon="fa-solid fa-camera" />
+        <span>사진을 등록해 주세요</span>
+      </div>
     </div>
     <div v-if="editable" @click="openFileSelector" class="btn btn-line point">
       <font-awesome-icon v-if="existPic" icon="fa-solid fa-pen" />

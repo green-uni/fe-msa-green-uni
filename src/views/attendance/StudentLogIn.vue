@@ -69,21 +69,23 @@ async function installPwa() {
 <template>
   <div class="student-login">
 
-    <header class="s-header">
-      <div class="s-header__title">
-        <span class="s-header__logo">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M22 9L12 5 2 9l10 4 10-4v6"/>
-            <path d="M6 10.6V16a6 3 0 0 0 12 0v-5.4"/>
-          </svg>
-        </span>
-        <p class="s-header__name">그린대학교 전자출결</p>
-      </div>
-      <p class="s-header__sub">학생 출석 관리 시스템</p>
-    </header>
+    <div class="login-content">
+      <header class="s-header">
+        <div class="s-header__title">
+          <span class="s-header__logo">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 9L12 5 2 9l10 4 10-4v6"/>
+              <path d="M6 10.6V16a6 3 0 0 0 12 0v-5.4"/>
+            </svg>
+          </span>
+          <p class="s-header__name">그린대학교 전자출결</p>
+        </div>
+        <p class="s-header__sub">학생 출석 관리 시스템</p>
+      </header>
 
-    <div class="form-card">
-      <LoginForm :form="form" variant="academic" :mobile="true" :isLoading="isLoading" @login="login" />
+      <div class="form-card">
+        <LoginForm :form="form" variant="academic" :mobile="true" :isLoading="isLoading" @login="login" />
+      </div>
     </div>
 
     <!-- PWA 설치 유도 (미설치 상태에서만 표시) -->
@@ -92,6 +94,12 @@ async function installPwa() {
 
       <template v-if="isAndroid && deferredPrompt">
         <button class="btn-install" @click="installPwa">홈화면에 추가하기</button>
+      </template>
+
+      <template v-else-if="isAndroid">
+        <p class="install-guide-step">
+          Chrome 우측 상단 <strong>⋮ 메뉴</strong> → <strong>홈 화면에 추가</strong>
+        </p>
       </template>
 
       <template v-else-if="isIos">
@@ -110,15 +118,24 @@ async function installPwa() {
 
 <style scoped lang="scss">
 .student-login {
-  min-height: 100dvh;
+  flex: 1;
   display: flex;
   flex-direction: column;
   background: $default-bg;
-  padding: 52px 24px 32px;
+  padding: 0 24px 32px;
   max-width: 480px;
   margin: 0 auto;
   box-sizing: border-box;
+  gap: 24px;
+}
+
+.login-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   gap: 32px;
+  padding-top: env(safe-area-inset-top, 44px);
 }
 
 .s-header {

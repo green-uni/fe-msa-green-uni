@@ -25,15 +25,17 @@ onUnmounted(() => document.body.classList.remove('pwa-view'))
 
 <style scoped lang="scss">
 .pwa-wrap {
-  height: 100vh;      // 구형 Android fallback
-  height: 100dvh;     // 모던 브라우저
+  position: fixed;    // 뷰포트 전체 고정 — iOS Safari 주소창 트리거 차단
+  inset: 0;           // top/right/bottom/left: 0
+  padding-bottom: env(safe-area-inset-bottom);
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   background: $default-bg;
-  padding-bottom: env(safe-area-inset-bottom);
 }
 .container {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   overflow-y: auto;

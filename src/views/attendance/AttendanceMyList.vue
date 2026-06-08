@@ -68,7 +68,6 @@ function selectSemester(option) {
 // 강의 클릭 → 상세보기
 function openDetail(lec) {
   activeLecture.value = lec
-  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 // 뒤로가기 → 강의 목록
@@ -191,7 +190,7 @@ onMounted(async () => {
       <!-- 목록보기 (activeLecture 없을 때)           -->
       <!-- ══════════════════════════════════════════ -->
       <div v-else>
-        <h2 class="page-title">내 출석 현황</h2>
+        <h2 class="page-title">나의 출석 현황</h2>
 
         <!-- 학기 탭 -->
         <div class="semester-tabs">
@@ -232,9 +231,15 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .my-attend-page {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
   max-width: 480px;
   margin: 0 auto;
   padding: 20px $size-df;
+  box-sizing: border-box;
 }
 
 .btn-home {

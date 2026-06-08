@@ -16,6 +16,7 @@ export const tuitionRoutes = [
     component: () => import('@/views/academic/tuition/Tuition.vue'),
     meta: {
       title: '등록금 납부',
+      subTitle: '등록금 납부 내역',
       groupTitle: '등록금',
       navSection: '나의 정보',
       showInNav: false,

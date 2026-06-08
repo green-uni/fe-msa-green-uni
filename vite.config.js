@@ -37,10 +37,13 @@ export default defineConfig(({ mode }) => {
       vue(),
       VitePWA({
         registerType: 'autoUpdate',
+        // dev 서버에서 SW 활성화 — iOS 16.4+: SW 없으면 웹클립으로 간주 → 주소창 표시
+        // production 빌드(npm run build)는 devOptions 무관하게 항상 SW 포함
+        // 캐시 문제 발생 시 브라우저에서 Ctrl+Shift+R(강력 새로고침) 사용
         devOptions: {
-          enabled: true,
-          type: 'module',           
-          navigateFallback: 'index.html', 
+          enabled: true,            // iOS 16.4+: SW 없으면 웹클립으로 인식 → 주소창 표시
+          type: 'module',           // Vite HMR과 충돌 방지
+          navigateFallback: 'index.html', // SPA 딥링크 정상 동작
         },
         includeAssets: ['icons/*.png', 'icons/*.ico', 'icons/*.svg'],
 
@@ -53,7 +56,8 @@ export default defineConfig(({ mode }) => {
           display: 'standalone',          
           orientation: 'portrait',        
           scope: '/',
-          start_url: '/student/attendances/home',
+          // [수정] 홈 화면으로 변경 — 출석 현황·QR 출석 선택 진입점
+          start_url: '/student/login',
           icons: [
             {
               src: 'icons/apple-touch-icon.png',

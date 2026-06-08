@@ -33,19 +33,29 @@ export const lectureRoutes = [
     },
   },
   {
-  path: `${url}/edit/:lectureId`,
-  component: () => import('@/views/academic/lecture/LectureCreate.vue'),
-  meta: {
-    title: '강의 수정',
-    auth: ['PROFESSOR'],
+    path: `${url}/edit/:lectureId`,
+    component: () => import('@/views/academic/lecture/LectureCreate.vue'),
+    meta: {
+      title: '강의 수정',
+      subTitle: '내 강의 관리',
+      groupTitle: '강의 관리',
+      navSection: '학사정보',
+      auth: ['PROFESSOR'],
+      showInNav: false,
+      activeMenu: `${url}/my`,
+    },
   },
-},
   {
     path: `${url}/:lectureId`,
     component: () => import('@/views/common/lecture/LectureDetail.vue'),
     meta: {
       title: '강의 상세',
+      subTitle: '강의 전체 조회',
+      groupTitle: '강의 관리',
+      navSection: '학사정보',
       auth: ['PROFESSOR', 'STUDENT'],
+      showInNav: false,
+      activeMenu: url,
     },
   },
 ]
@@ -76,7 +86,12 @@ export const adminLectureRoutes = [
     component: () => import('@/views/common/lecture/LectureDetail.vue'),
     meta: {
       title: '강의 상세',
+      subTitle: '강의 전체 조회',
+      groupTitle: '강의 관리',
+      navSection: '학사 관리',
       auth: ['ADMIN'],
+      showInNav: false,
+      activeMenu: url,
     },
   },
 ]

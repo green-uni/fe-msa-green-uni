@@ -285,7 +285,7 @@ function clearProfessor() {
 
           <div class="input-wrap">
             <div class="input-label">학과장명</div>
-            <div class="input-content professor-search-wrap" :class="{ 'disabled-style': !isEdit }">
+            <div class="input-content" :class="{ 'disabled-style': !isEdit }">
               <SearchInput
                 v-model="professorKeyword"
                 :list="displayProfessorList"

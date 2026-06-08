@@ -20,12 +20,12 @@ const tableColumns = computed(() => {
   if (props.adminView) {
     return {
       colName: ['변경일', '변경 시기', '변동구분', '변경전', '변경후', '처리자'],
-      cols: '110px 120px 80px 1fr 1fr 120px',
+      cols: '110px minmax(120px, 0.5fr) minmax(80px, 0.5fr) 1fr 1fr 120px',
     }
   }
   return {
     colName: ['변경일', '변경 시기', '변동구분', '변경전', '변경후'],
-    cols: '110px 120px 80px 1fr 1fr',
+    cols: '110px minmax(120px, 0.5fr) minmax(80px, 0.5fr) 1fr 1fr',
   }
 })
 </script>
