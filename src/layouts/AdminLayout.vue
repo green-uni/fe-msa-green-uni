@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/authentication';
 import LeftNav from '@/layouts/common/LeftNav.vue';
@@ -9,9 +9,18 @@ import BaseModal from '@/components/common/BaseModal.vue';
 import NotificationList from '@/views/academic/notification/NotificationList.vue';
 import NotificationService from '@/services/notificationService';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
+import MemberService from '@/services/memberService';
 
 const authStore = useAuthStore()
 const route = useRoute()
+
+watch(() => route.path, async () => {
+  if (!authStore.isLogin) return
+  try {
+    const profile = await MemberService.findProfile()
+    authStore.setProfile(profile.data)
+  } catch (e) { /* silent */ }
+})
 const publicRoutes = ['/login', '/admin/login', '/auth/password']
 const isTransitioning = computed(() =>
   (authStore.isLogin && publicRoutes.includes(route.path)) ||
