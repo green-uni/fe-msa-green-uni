@@ -10,9 +10,15 @@ import { useModalStore } from '@/stores/modal'
 
 const modal = useModalStore()
 
+// 🎯 현재 컴퓨터 시간 기준 연도 및 학기 자동 계산
+const now = new Date()
+const currentYear = now.getFullYear()
+// 1월~6월(0~5)은 1학기, 7월~12월(6~11)은 2학기
+const currentSemester = now.getMonth() < 6 ? 1 : 2 
+
 const filter = reactive({
-  year: 2026,
-  semester: 1,
+  year: currentYear,       // 💡 자동으로 올해 연도 바인딩 (예: 2026)
+  semester: currentSemester, // 💡 자동으로 현재 학기 바인딩 (예: 1 또는 2)
   status: 'UNPAID',
   deptName: '',
   academicYear: '',
@@ -35,8 +41,8 @@ const currentPage = ref(1)
 const pageSize = 10
 const isLoading = ref(false)
 
-// 🎯 메일 발송 전용 로딩 상태 추가
 const isMailModalOpen = ref(false)
+// 💡 비동기 요청 중 순간적인 더블 클릭 방지용 상텐값으로 역할을 축소합니다.
 const isMailSending = ref(false) 
 
 async function fetchTuitionList() {
@@ -98,18 +104,21 @@ function openMailModal() {
   isMailModalOpen.value = true
 }
 
-// 🎯 메일 발송 함수 수정
+// 🎯 [수정] 백엔드 비동기 처리에 맞춘 메일 발송 핸들러
 async function confirmSendMail() {
-  isMailSending.value = true // 로딩 시작
+  isMailSending.value = true 
   try {
+    // 백엔드는 이제 호출 즉시(Queue 적재 후) 응답을 반환하므로 1초 미만으로 끝납니다.
     await tuitionService.sendReminderMails(filter.year, filter.semester)
-    await modal.showAlert('미납자 독촉 메일 발송이 완료되었습니다.', 'success')
+    
+    // 알림 피드백 문구를 비동기 프로세스에 맞게 자연스럽게 수정합니다.
+    await modal.showAlert('메일 발송 요청이 접수되었습니다.', 'success')
     isMailModalOpen.value = false
   } catch (error) {
     console.error(error)
-    modal.showAlert('메일 발송에 실패했습니다. (SMTP 설정을 확인하세요)', 'error')
+    modal.showAlert('메일 발송 요청 중 오류가 발생했습니다.', 'error')
   } finally {
-    isMailSending.value = false // 로딩 종료
+    isMailSending.value = false 
   }
 }
 
@@ -125,13 +134,17 @@ function onSearch() {
 }
 
 function resetFilter() {
-  filter.year = new Date().getFullYear()
-  filter.semester = 1
+  const now = new Date()
+  
+  filter.year = now.getFullYear()
+  filter.semester = now.getMonth() < 6 ? 1 : 2 // 💡 여기도 자동 계산으로 수정
   filter.status = 'UNPAID'
   filter.deptName = ''
   filter.academicYear = ''
   searchInput.value = ''
   searchKeyword.value = ''
+  
+  onSearch() // 초기화 후 자동 검색까지 실행해주면 더 친절한 UX가 됩니다.
 }
 
 function goPage(page) {
@@ -236,15 +249,6 @@ onMounted(() => {
     <div v-if="isMailModalOpen" class="modal-overlay" @click.self="!isMailSending && (isMailModalOpen = false)">
       <div class="mail-modal" style="position: relative;">
         
-        <div v-if="isMailSending" class="sending-overlay">
-          <LoadingSpinner size="md" />
-          <div class="sending-msg">
-            <p class="main-msg">미납 안내 이메일을 발송하고 있습니다.</p>
-            <p class="sub-msg">대량 발송 중에는 다소 시간이 걸릴 수 있습니다. 잠시만 기다려주세요.</p>
-            <p class="count-msg">대상자: {{ totalElements }}명</p>
-          </div>
-        </div>
-
         <header class="modal-header">
           <h3>미납 안내 메일 발송</h3>
           <button class="btn-close" :disabled="isMailSending" @click="isMailModalOpen = false">&times;</button>
@@ -274,26 +278,28 @@ onMounted(() => {
                 <strong>제목</strong>
                 <span>[그린대학교] {{ filter.year }}년 {{ filter.semester }}학기 등록금 미납 안내</span>
               </div>
-              <div class="meta-row"><strong>발신</strong> <span>green.uni502@gmail.com</span></div>
+              <div class="meta-row"><strong>발신</strong> <span>academic-support@green.ac.kr</span></div>
               <div class="meta-row"><strong>수신</strong> <span>미납 학생 전원 ({{ totalElements }}명)</span></div>
               <hr class="preview-divider" />
               <div class="mail-content">
                 <p>안녕하세요, 그린대학교 학사지원팀입니다.</p>
                 <p>아직 <span class="text-bold">{{ filter.year }}년 {{ filter.semester }}학기 등록금</span>이 납부되지 않았습니다.</p>
                 <p>납부기한까지 미납 시 수강이 취소될 수 있으니 빠른 시일 내에 납부해 주시기 바랍니다.</p>
-                <p class="margin-top-md">납부 문의: green.uni502@gmail.com</p>
+                <p class="margin-top-md">납부 문의: academic-support@green.ac.kr</p>
               </div>
             </div>
           </section>
 
           <div class="warning-alert">
-            <span class="alert-icon">⚠</span> 발송 후 취소할 수 없습니다. 내용을 다시 확인 후 발송해 주세요.
+            <span class="alert-icon">⚠</span> 본 요청은 백그라운드 비동기로 처리되며, 발송 직후 취소가 불가능합니다.
           </div>
         </main>
 
         <footer class="modal-footer">
           <button class="btn btn-default" :disabled="isMailSending" @click="isMailModalOpen = false">취소</button>
-          <button class="btn btn-submit" :disabled="isMailSending" @click="confirmSendMail">메일 발송</button>
+          <button class="btn btn-submit" :disabled="isMailSending" @click="confirmSendMail">
+            {{ isMailSending ? '요청 중...' : '메일 발송' }}
+          </button>
         </footer>
       </div>
     </div>
@@ -358,43 +364,5 @@ onMounted(() => {
 .modal-footer {
   padding: 12px 20px; background: #fff; border-top: 1px solid $border-color;
   display: flex; justify-content: flex-end; gap: 8px;
-}
-/* 기존 스타일 하단에 추가 */
-.sending-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(2px);
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 20px;
-
-  .sending-msg {
-    text-align: center;
-    
-    .main-msg {
-      font-size: 16px;
-      font-weight: 600;
-      color: $font-color-bold;
-      margin: 0 0 6px 0;
-    }
-    .sub-msg {
-      font-size: 13px;
-      color: $font-color-light;
-      margin: 0 0 10px 0;
-    }
-    .count-msg {
-      font-size: 13px;
-      font-weight: bold;
-      color: $error;
-      margin: 0;
-    }
-  }
 }
 </style>
