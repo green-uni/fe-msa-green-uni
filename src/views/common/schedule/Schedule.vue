@@ -214,9 +214,10 @@ const selectEvent = (event) => {
       showAddForm.value = false
       const endDate = new Date(event.end || event.start)
       endDate.setDate(endDate.getDate() - 1)
+      const typeInfo = scheduleTypes.find(t => t.value === event.type)
       editEvent.value = {
         id: event.id,
-        type: event.type || '',
+        type: typeInfo ? typeInfo.code : '',
         title: event.title,
         semester: event.semester || 1,
         startDate: event.start,

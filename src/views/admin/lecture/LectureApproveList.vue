@@ -45,7 +45,7 @@ const state = reactive({
 
 const currentYear = new Date().getFullYear();
 const currentSemester = new Date().getMonth() + 1 >= 3 && new Date().getMonth() + 1 <= 8 ? 1 : 2;
-const yearOptions = Array.from({ length: 5 }, (_, i) => currentYear - i);
+const yearOptions = ref([]);
 
 const filter = reactive({
   status: '',
@@ -96,8 +96,8 @@ const fetchList = async () => {
 // ── URL ↔ 필터 동기화 ──────────────────────────────
 const syncFromQuery = (query) => {
   filter.status = 'status' in query ? (query.status || '') : 'PENDING';
-  filter.year = query.year ? Number(query.year) : '';
-  filter.semester = query.semester ? Number(query.semester) : '';
+  filter.year = query.year ? Number(query.year) : currentYear;
+  filter.semester = query.semester ? Number(query.semester) : currentSemester;
   searchInput.value = query.search || '';
   searchQuery.value = query.search || '';
   state.currentPage = query.page ? Number(query.page) : 1;
@@ -144,6 +144,15 @@ const moveToDetail = (id) => {
     },
   });
 };
+
+onMounted(async () => {
+  try {
+    const res = await LectureService.getAdminLectureYears();
+    yearOptions.value = res ?? [];
+  } catch {
+    yearOptions.value = [currentYear];
+  }
+});
 
 watch(pageSize, () => { state.currentPage = 1; pushQuery() })
 
