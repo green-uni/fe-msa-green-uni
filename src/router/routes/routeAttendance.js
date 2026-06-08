@@ -20,6 +20,7 @@ export const attendanceRoutes = [
     component: () => import('@/views/attendance/AttendanceQR.vue'),
     meta: {
       title: 'QR 출석 관리',
+      subTitle: 'QR 출석',
       groupTitle: '출석 관리',
       navSection: '학사정보',
       auth: ['PROFESSOR'],
@@ -45,6 +46,7 @@ export const attendanceRoutes = [
     component: () => import('@/views/attendance/AttendanceRoster.vue'),
     meta: {
       title: '출석 현황',
+      subTitle: '출석 현황',
       groupTitle: '출석 관리',
       navSection: '학사정보',
       auth: ['PROFESSOR'],

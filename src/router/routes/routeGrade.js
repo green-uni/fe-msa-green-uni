@@ -22,7 +22,9 @@ export const gradeRoutes = [
         component: () => import('@/views/academic/grade/GradeManagement.vue'),
         meta: {
             title: '성적 관리',
+            subTitle: '성적 관리',
             groupTitle: '성적 관리',
+            navSection: '학사정보',
             auth: ['PROFESSOR'],
             showInNav: false,
             activeMenu: `professor/${url}`,
@@ -47,8 +49,9 @@ export const gradeRoutes = [
         component: () => import('@/views/academic/grade/GradeAppealProDetail.vue'),
         meta: {
             title: '이의신청 상세',
-            subTitle: '성정 이의 신청',
+            subTitle: '성적 이의 신청',
             groupTitle: '성적 관리',
+            navSection: '학사정보',
             auth: ['PROFESSOR'],
             showInNav: false,
             activeMenu: `professor/${url}/appeals`,
@@ -75,7 +78,9 @@ export const gradeRoutes = [
         component: () => import('@/views/academic/grade/GradeStudentDetail.vue'),
         meta: {
             title: '성적 상세 조회',
+            subTitle: '내 성적 조회',
             groupTitle: '성적 관리',
+            navSection: '학사정보',
             auth: ['STUDENT'],
             showInNav: false,
             activeMenu: url,
@@ -99,9 +104,10 @@ export const gradeRoutes = [
         path: `${url}/:gradeId/appeal`,
         component: () => import('@/views/academic/grade/GradeAppeal.vue'),
         meta: {
-            title: '이의 신청 상게',
+            title: '이의 신청 상세',
             subTitle: '성적 이의 신청',
             groupTitle: '성적 관리',
+            navSection: '학사정보',
             auth: ['STUDENT'],
             showInNav: false,
             activeMenu: url,

@@ -16,10 +16,12 @@ export const evaluationRoutes = [
     component: () => import('@/views/academic/evaluation/EvaluationDetail.vue'),
     meta: {
       title: '강의평가 상세',
+      subTitle: '내 강의평가',
       groupTitle: '강의 관리',
       navSection: '학사정보',
       auth: ['STUDENT', 'PROFESSOR'],
       showInNav: false,
+      activeMenu: url,
     },
   },
 ]
