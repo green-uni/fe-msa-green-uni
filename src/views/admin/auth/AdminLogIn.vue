@@ -16,10 +16,10 @@ const isLoading = ref(false)
 
 const state = reactive({
   form: {
-    memberCode: '20253001',
-    password: '1234'
+    memberCode: '',
+    password: ''
   },
-  role: 'ADMIN'
+  role: ''
 })
 
 const login = async () => {
@@ -70,79 +70,5 @@ const login = async () => {
 </template>
 
 <style scoped lang="scss">
-.intro-box {
-  max-width: 500px;
-  width: 100%;
-  padding: 3em;
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-  overflow-y: auto;
-  color: $admin-font-color;
-
-  .top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-}
-
-.intro-header {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-
-  &-logo {
-    width: 54px;
-    height: 54px;
-    object-fit: contain;
-  }
-
-  &-text {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.2;
-  }
-
-  &-sub {
-    font-size: $fs-xs;
-    color: $green-600;
-    font-weight: 600;
-    letter-spacing: .04em;
-  }
-
-  &-name {
-    font-size: 24px;
-    font-weight: 500;
-    letter-spacing: -0.01em;
-  }
-}
-
-.role-tabs {
-  display: inline-flex;
-  padding: 4px;
-  background: #eee;
-  border-radius: 50px;
-  width: fit-content;
-  gap: 2px;
-
-  .tab {
-    padding: 10px 20px;
-    font-weight: 600;
-    border-radius: 50px;
-    transition: all .18s ease;
-    border: 1px solid #ddd;
-    background: $default-bg;
-    color: #888;
-
-    &:hover {
-      color: $green-600;
-    }
-
-    &.is-active {
-      color: $green-600;
-      border-color: $green-600;
-    }
-  }
-}
+.intro-box { color: $admin-font-color; }
 </style>

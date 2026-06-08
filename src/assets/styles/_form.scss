@@ -130,3 +130,24 @@ input[type='radio'] {
     &.active { background: $green-600; color: #fff; border-color: $green-600; }
   }
 }
+
+/* === 비밀번호 눈 아이콘 === */
+.showPw {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  color: #ddd; cursor: pointer;
+  &.show { color: $font-color; }
+}
+
+/* === 인풋 에러 / 유효성 메시지 === */
+.input-error { border-color: $error !important; }
+.check-msg {
+  font-size: $fs-xs; color: $font-color-light; line-height: 1.2; display: block; margin-top: 4px;
+  &.error-msg { color: $error; }
+}
+
+/* === 인증/비밀번호 페이지 form 레이아웃 (라벨 세로 스택) === */
+.auth-form {
+  .form-grid {  }
+  .input-wrap { grid-template-columns: 100px 1fr; }
+  .input-label { }
+}
