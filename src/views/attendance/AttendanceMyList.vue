@@ -105,6 +105,9 @@ onMounted(async () => {
 <template>
   <div class="my-attend-page">
 
+    <!-- 홈으로 -->
+    <button class="btn-home" @click="router.push('/student/attendances/home')">← 홈으로</button>
+
     <!-- 로딩 -->
     <div v-if="isLoading" class="hint">출석 정보를 불러오는 중...</div>
 
@@ -166,7 +169,7 @@ onMounted(async () => {
                 v-for="(d, idx) in activeLecture.details"
                 :key="idx"
               >
-                <td class="col-no">{{ idx + 1 }}</td>
+                <td class="col-no">{{ activeLecture.details.length - idx }}</td>
                 <td class="col-date">{{ d.attendDate }}</td>
                 <td class="col-time">{{ d.attendedAt ?? '-' }}</td>
                 <td class="col-status">
@@ -232,6 +235,18 @@ onMounted(async () => {
   max-width: 480px;
   margin: 0 auto;
   padding: 20px $size-df;
+}
+
+.btn-home {
+  display: inline-flex;
+  align-items: center;
+  background: none;
+  border: none;
+  font-size: 0.875rem;
+  color: $green-600;
+  cursor: pointer;
+  padding: 0 0 16px;
+  font-weight: 600;
 }
 
 .page-title {

@@ -229,7 +229,7 @@ onMounted(async () => {
 
             <!-- 하단 버튼 -->
             <div class="page-footer">
-                <button class="btn btn-default" @click="router.back()">← 목록</button>
+                <button class="btn btn-default" @click="router.back()"><font-awesome-icon icon="fa-solid fa-list" /> 목록</button>
                 <div v-if="isPending && !showRejectBox && !showApproveBox" class="action-group">
                     <button class="btn btn-default" @click="openRejectBox">반려하기</button>
                     <button class="btn btn-default" @click="openApproveBox">승인 및 수정</button>

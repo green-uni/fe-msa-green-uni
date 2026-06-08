@@ -1,12 +1,32 @@
 import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
+import os from 'os'
 import basicSsl from '@vitejs/plugin-basic-ssl'
 import { VitePWA } from 'vite-plugin-pwa'
+
+// 현재 PC의 192.168.x.x 대역 IP를 자동 감지 — PC가 바뀌어도 수동 수정 불필요
+function getLocalIP() {
+  const interfaces = os.networkInterfaces()
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name]) {
+      if (iface.family === 'IPv4' && !iface.internal && iface.address.startsWith('192.168.')) {
+        return iface.address
+      }
+    }
+  }
+  return 'localhost'
+}
 
 export default defineConfig(({ mode }) => {
   console.log('mode: ', mode);
   const env = loadEnv(mode, process.cwd());
+  const localIP = getLocalIP()
+
+  // .env.development에 VITE_SCAN_BASE_URL이 있으면 그 값 우선 사용 (ngrok 고정 도메인 등)
+  // 없으면 현재 PC IP 자동 감지
+  const scanBaseUrl = env.VITE_SCAN_BASE_URL || `http://${localIP}:5173`
+  const isNgrok = scanBaseUrl.includes('ngrok')
 
   return {
     build: {
@@ -15,43 +35,27 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [
       vue(),
-      // [주석] ngrok 사용 시 HTTPS는 ngrok이 담당 → basicSsl 불필요
-      // 같은 WiFi 직접 접근 시에는 주석 해제
-      // basicSsl({
-      //   domains: ['localhost', '192.168.0.31'],
-      // }),
-      // [추가] PWA 플러그인
       VitePWA({
-        // 새 버전 배포 시 사용자 개입 없이 서비스 워커 자동 갱신
         registerType: 'autoUpdate',
-        // dev 서버에서 SW 활성화 — 모바일 PWA 주소창 숨김 동작 확인용
-        // 캐시 문제 발생 시 브라우저에서 Ctrl+Shift+R(강력 새로고침) 사용
-        // 팀원 개발 환경에서는 필요 시 false 로 전환 가능
         devOptions: {
-          enabled: false, //develop에 PR시에 false로 수정하여 PR
-          type: 'module',           // Vite HMR과 충돌 방지
-          navigateFallback: 'index.html', // SPA 딥링크 정상 동작
+          enabled: true,
+          type: 'module',           
+          navigateFallback: 'index.html', 
         },
-        // 캐싱할 정적 자산 패턴
-        // [수정] public/ 기준 상대 경로 — icons/ 폴더 안 모든 아이콘 캐싱 대상
         includeAssets: ['icons/*.png', 'icons/*.ico', 'icons/*.svg'],
 
-        // ── Web App Manifest: 홈화면 설치 시 앱 정보 ──────────────────────
         manifest: {
           name: '그린대학교 출결 시스템',
-          // [수정] 홈화면 아이콘 아래 표시될 이름 — iOS는 apple-mobile-web-app-title 우선, Android는 이 값 사용
           short_name: '그린대학출결시스템',
           description: '그린uni 학사관리 시스템 - QR 출석체크',
-          theme_color: '#4a7cf7',         // 상단 브라우저 바 색상
-          background_color: '#ffffff',    // 스플래시 화면 배경색
-          display: 'standalone',          // 주소창·탭바 숨김 → 앱처럼 보임
-          orientation: 'portrait',        // 세로 고정
+          theme_color: '#4a7cf7',         
+          background_color: '#ffffff',    
+          display: 'standalone',          
+          orientation: 'portrait',        
           scope: '/',
-          // [수정] 홈 화면으로 변경 — 출석 현황·QR 출석 선택 진입점
           start_url: '/student/attendances/home',
           icons: [
             {
-              // iOS 홈화면 아이콘
               src: 'icons/apple-touch-icon.png',
               sizes: '180x180',
               type: 'image/png',
@@ -66,28 +70,23 @@ export default defineConfig(({ mode }) => {
               src: 'icons/web-app-manifest-512x512.png',
               sizes: '512x512',
               type: 'image/png',
-              // maskable: 안드로이드 어댑티브 아이콘(원형·모서리 둥글게) 지원
               purpose: 'maskable',
             },
           ],
         },
 
-        // ── Workbox: 서비스 워커 캐싱 전략 ────────────────────────────────
         workbox: {
-          // JS·CSS·HTML·이미지 등 정적 자산 캐싱 대상
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
           runtimeCaching: [
             {
-              // API 응답: NetworkFirst — 네트워크 우선, 실패 시 캐시 반환
-              // 출석·성적 등 실시간 데이터는 항상 최신값을 가져와야 하므로 NetworkFirst 사용
               urlPattern: /^\/api\//,
               handler: 'NetworkFirst',
               options: {
                 cacheName: 'api-cache',
-                networkTimeoutSeconds: 5,   // 5초 내 응답 없으면 캐시 반환
+                networkTimeoutSeconds: 5,   
                 expiration: {
                   maxEntries: 50,
-                  maxAgeSeconds: 60 * 60,   // 캐시 최대 보관 1시간
+                  maxAgeSeconds: 60 * 60,   
                 },
               },
             },
@@ -95,10 +94,13 @@ export default defineConfig(({ mode }) => {
         },
       }),
     ],
-    //commit message > feature(noti): 알림구현
-    // plugins: [vue()], 16번라인과 겹쳐서 주석처리
-    define: { global: 'globalThis' },
-    
+    define: {
+      global: 'globalThis',
+      ...(mode === 'development' && {
+        'import.meta.env.VITE_SCAN_BASE_URL': JSON.stringify(scanBaseUrl),
+      }),
+    },
+
     resolve: {
       alias: { '@': path.resolve(__dirname, './src') }
     },
@@ -114,34 +116,46 @@ export default defineConfig(({ mode }) => {
       }
     },
     server: {
-      // [추가] 모든 네트워크 인터페이스 수신 → 같은 WiFi의 모바일에서 PC IP로 접근 가능
       host: '0.0.0.0',
-      allowedHosts: true,
-      // [추가] /api/* 요청을 게이트웨이(8000)로 프록시
-      // VITE_API_BASE_URL을 /api(상대경로)로 바꾸면 PC·모바일 모두 이 프록시를 경유
+      port: 5173, // 💡 혹시 모를 포트 꼬임 방지를 위해 명시적 지정
+      
+      // 🎯 [수정] ngrok 터널링 시 유효하지 않은 호스트 차단 필터를 완전히 허용으로 변경
+      allowedHosts: 'all', 
+      
+      // 🎯 ngrok을 쓰고 있다면 wss와 ngrok 도메인으로 수신 대기하도록 정교하게 세팅되어 있습니다.
+      hmr: isNgrok
+        ? { host: new URL(scanBaseUrl).hostname, clientPort: 443, protocol: 'wss' }
+        : { host: localIP },
+        
       proxy: {
         '/api': {
           target: 'http://localhost:8000',
           changeOrigin: true,
+          cookieDomainRewrite: '',
+          headers: { Origin: 'http://localhost:5173' },
         },
         '/file': {
           target: 'http://localhost:8000',
           changeOrigin: true,
+          cookieDomainRewrite: '',
+          headers: { Origin: 'http://localhost:5173' },
         }
       }
     },
-    // [추가] npm run preview 시에도 ngrok + API 프록시 동작
-    // npm run preview: 빌드 후 로컬 시연용 (npm run build && npm run preview)
     preview: {
       host: '0.0.0.0',
       proxy: {
         '/api': {
           target: 'http://localhost:8000',
           changeOrigin: true,
+          cookieDomainRewrite: '',
+          headers: { Origin: 'http://localhost:5173' },
         },
         '/file': {
           target: 'http://localhost:8000',
           changeOrigin: true,
+          cookieDomainRewrite: '',
+          headers: { Origin: 'http://localhost:5173' },
         }
       }
     }

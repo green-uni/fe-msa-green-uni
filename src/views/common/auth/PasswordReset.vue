@@ -133,9 +133,9 @@ const resetPw = async () => {
 
 </script>
 <template>
-  <div class="h100vh d-flex jc-center ai-center">
+  <div class="h100vh d-flex jc-center ai-center" style="width: 100%;">
     <!-- 이메일 입력 -->
-    <div class="pw-wrap content-wrap">
+    <div class="pw-wrap card auth-form">
       <div class="pw-step">
         <dl v-for="item in stepArray" :key=item.step :class="{ 'active': item.active }">
           <dt>{{ item.step }}</dt>
@@ -240,37 +240,16 @@ const resetPw = async () => {
 </template>
 
 <style scoped>
-.pw-wrap{max-width:550px;width: 100%; color: #57646e;}
+.pw-wrap { max-width: 550px; width: 100%; margin-bottom: 0; }
 
-.pw-step{display: grid;grid-template-columns: 1fr 1fr 1fr;text-align: center;padding: 20px;background:#fafafa;border-radius: 15px;}
-.pw-step dl{display: grid;justify-content: center;text-align: center;gap: 5px; }
-.pw-step dt{width: 30px;height: 30px;display: flex;justify-content: center;align-items:center;line-height: 1;border-radius: 50%;color:#fff;background-color:#ddd;align-self: center;justify-self: center;}
-.pw-step dd{color:#ccc;font-weight: 600;}
+.pw-step { display: grid; grid-template-columns: 1fr 1fr 1fr; text-align: center; padding: 20px; background: #fafafa; border-radius: 15px; }
+.pw-step dl { display: grid; justify-content: center; text-align: center; gap: 5px; }
+.pw-step dt { width: 30px; height: 30px; display: flex; justify-content: center; align-items: center; line-height: 1; border-radius: 50%; color: #fff; background-color: #ddd; align-self: center; justify-self: center; }
+.pw-step dd { color: #ccc; font-weight: 600; }
+.pw-step dl.active dt { background-color: #3e9e7e; border: 1px solid #fafafa; }
+.pw-step dl.active dd { color: #3e9e7e; }
 
-.pw-step dl.active{opacity: 1;}
-.pw-step dl.active dt{background-color: #3e9e7e;border: 1px solid #fafafa;}
-.pw-step dl.active dd{color: #3e9e7e;}
-
-.pw-title{text-align: center;display: grid;gap:5px;padding: 40px 0 10px;}
-.pw-title h2{font-size: 22px;font-weight: 500;}
-.pw-title p{color: #9fa9b1;}
-
-.form-grid{row-gap: 20px;padding: 40px 20px 50px;}
-.input-wrap{ grid-template-columns: 1fr; gap: 5px;}
-.input-label{text-align-last: left;font-size: 12px;}
-
-.input-content{position: relative;}
-.input-content input{}
-.showPw{position: absolute;right: 10px;top: 50%;transform: translateY(-50%);color: #ddd;cursor: pointer;}
-.showPw.show{color: #57646e;}
-
-.pwRule{display: block;margin-top: 3px;font-size: 12px;color: #999;}
-
-.btn.btn-submit:disabled { opacity: 0.6; cursor: default; }
-
-.input-error { border-color: red !important; }
-.check-msg {font-size: 12px;color:#888;line-height: 1.2;display: block;margin-top: 4px;}
-.check-msg.error-msg { color: red;}
-
-.pw-check-list.point{}
+.pw-title { text-align: center; display: grid; gap: 5px; padding: 40px 0 10px; }
+.pw-title h2 { font-size: 22px; font-weight: 500; }
+.pw-title p { color: #9fa9b1; }
 </style>

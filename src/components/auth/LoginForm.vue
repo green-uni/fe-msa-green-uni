@@ -106,6 +106,7 @@ const pwView = () => { modeShowPw.value = !modeShowPw.value }
     border-radius: 5px;
     background: #fafdfb;
     color: $font-color;
+    font-size: 16px;
     transition: border-color .15s, box-shadow .15s;
 
     &::placeholder {

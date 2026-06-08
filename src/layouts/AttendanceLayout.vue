@@ -2,6 +2,7 @@
 import { onMounted, onUnmounted } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import TopHeader from '@/layouts/common/TopHeader.vue';
+import BaseModal from '@/components/common/BaseModal.vue';
 
 const route = useRoute()
 
@@ -18,23 +19,24 @@ onUnmounted(() => document.body.classList.remove('pwa-view'))
     <main class="container">
       <RouterView />
     </main>
+    <BaseModal />
   </div>
 </template>
 
 <style scoped lang="scss">
 .pwa-wrap {
-  min-height: 100vh;      // 구형 Android fallback
-  min-height: 100dvh;     // 모던 브라우저
+  height: 100vh;      // 구형 Android fallback
+  height: 100dvh;     // 모던 브라우저
   display: flex;
   flex-direction: column;
   background: $default-bg;
-  // iOS 노치 safe area
-  padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
 }
 .container {
   flex: 1;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 </style>

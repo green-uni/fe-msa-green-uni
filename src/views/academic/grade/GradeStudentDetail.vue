@@ -39,9 +39,9 @@ onMounted(async () => {
 <template>
     <div style="position: relative">
         <LoadingSpinner v-if="isLoading" :overlay="true" size="md" />
-
+        
         <template v-if="!isLoading">
-
+            
             <!-- 학생 정보 -->
             <section v-if="studentInfo" class="card">
                 <p class="card-label">학생 정보</p>
@@ -68,11 +68,49 @@ onMounted(async () => {
                     </div>
                 </div>
             </section>
-
+            
+            <!-- 하단 요약 -->
+            <section v-if="summary" class="card">
+                <p class="card-label">성적 요약</p>
+                <div class="summary-bar">
+                    <div class="summary-item">
+                        <p class="summary-label">총 이수학점</p>
+                        <p class="summary-value">
+                            {{ summary.totalCredits }}<span class="summary-unit">학점</span>
+                        </p>
+                    </div>
+                    <div class="summary-item">
+                        <p class="summary-label">실점 평균</p>
+                        <p class="summary-value">
+                            {{ summary.averageScore.toFixed(1) }}<span class="summary-unit">점</span>
+                        </p>
+                    </div>
+                    <div class="summary-item">
+                        <p class="summary-label">등급 평균</p>
+                        <p class="summary-value">
+                            <span v-if="summary.averageGrade">{{ summary.averageGrade }}</span>
+                            <span v-else class="no-data">-</span>
+                        </p>
+                    </div>
+                    <div class="summary-item">
+                        <p class="summary-label">평점 평균</p>
+                        <p class="summary-value">
+                            {{ summary.averageGpa.toFixed(2) }}<span class="summary-unit"> / 4.5</span>
+                        </p>
+                    </div>
+                    <div class="summary-item">
+                        <p class="summary-label">학과 석차</p>
+                        <p class="summary-value rank-val">
+                            {{ summary.majorRank }}<span class="summary-unit"> / {{ summary.majorTotalCount }}명</span>
+                        </p>
+                    </div>
+                </div>
+            </section>
+            
             <!-- 학기별 성적 테이블 -->
             <template v-if="groupedGrades.length">
                 <section
-                    v-for="group in groupedGrades"
+                v-for="group in groupedGrades"
                     :key="`${group.year}-${group.semester}`"
                     class="card">
                     <p class="card-label">{{ group.year }}년 {{ group.semester }}학기</p>
@@ -143,46 +181,9 @@ onMounted(async () => {
             </template>
             <div v-else class="empty-text">성적 데이터가 없습니다.</div>
 
-            <!-- 하단 요약 -->
-            <section v-if="summary" class="card">
-                <p class="card-label">성적 요약</p>
-                <div class="summary-bar">
-                    <div class="summary-item">
-                        <p class="summary-label">총 이수학점</p>
-                        <p class="summary-value">
-                            {{ summary.totalCredits }}<span class="summary-unit">학점</span>
-                        </p>
-                    </div>
-                    <div class="summary-item">
-                        <p class="summary-label">실점 평균</p>
-                        <p class="summary-value">
-                            {{ summary.averageScore.toFixed(1) }}<span class="summary-unit">점</span>
-                        </p>
-                    </div>
-                    <div class="summary-item">
-                        <p class="summary-label">등급 평균</p>
-                        <p class="summary-value">
-                            <span v-if="summary.averageGrade">{{ summary.averageGrade }}</span>
-                            <span v-else class="no-data">-</span>
-                        </p>
-                    </div>
-                    <div class="summary-item">
-                        <p class="summary-label">평점 평균</p>
-                        <p class="summary-value">
-                            {{ summary.averageGpa.toFixed(2) }}<span class="summary-unit"> / 4.5</span>
-                        </p>
-                    </div>
-                    <div class="summary-item">
-                        <p class="summary-label">학과 석차</p>
-                        <p class="summary-value rank-val">
-                            {{ summary.majorRank }}<span class="summary-unit"> / {{ summary.majorTotalCount }}명</span>
-                        </p>
-                    </div>
-                </div>
-            </section>
 
             <div class="page-footer">
-                <button class="btn btn-default" @click="router.push('/grades')">← 목록으로</button>
+                <button class="btn btn-default" @click="router.push('/grades')"><font-awesome-icon icon="fa-solid fa-list" /> 목록</button>
             </div>
 
         </template>

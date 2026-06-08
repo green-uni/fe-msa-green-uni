@@ -6,15 +6,24 @@ import { ref } from 'vue';
 const props = defineProps({
   modelValue: String,
   disabled: { type: Boolean, default: false },
-  highlightedDates: { type: Array, default: () => [] }
+  highlightedDates: { type: Array, default: () => [] },
+  cancelledDates:   { type: Array, default: () => [] },
 });
 
+function getDateStr(day) {
+  const mm = String(calendarMonth.value + 1).padStart(2, '0');
+  const dd = String(day.day).padStart(2, '0');
+  return `${calendarYear.value}-${mm}-${dd}`;
+}
+
 function isHighlighted(day) {
-    if (!day.currentMonth) return false;
-    const mm = String(calendarMonth.value + 1).padStart(2, '0');
-    const dd = String(day.day).padStart(2, '0');
-    const dateStr = `${calendarYear.value}-${mm}-${dd}`;
-    return props.highlightedDates.includes(dateStr);
+  if (!day.currentMonth) return false;
+  return props.highlightedDates.includes(getDateStr(day));
+}
+
+function isCancelled(day) {
+  if (!day.currentMonth) return false;
+  return props.cancelledDates.includes(getDateStr(day));
 }
 
 const emit = defineEmits(['update:modelValue']);
@@ -122,7 +131,8 @@ function isToday(day) {
           'other-month': !day.currentMonth,
           'selected': isSelectedDate(day),
           'today': isToday(day) && !isSelectedDate(day),
-          'highlighted': isHighlighted(day) && !isSelectedDate(day), //출석날짜에 연두색 표시하려고 추가
+          'highlighted': isHighlighted(day) && !isSelectedDate(day) && !isCancelled(day),
+          'cancelled': isCancelled(day) && !isSelectedDate(day),
         }" @click="selectDate(day)">
           {{ day.day }}
         </button>
@@ -255,6 +265,15 @@ function isToday(day) {
   font-weight: 600;
     &:hover {
   background: $green-600;
+  color: #fff;
+    }
+  }
+  &.cancelled {
+  background: #fff3e0;
+  color: #e65100;
+  font-weight: 600;
+    &:hover {
+  background: #e65100;
   color: #fff;
     }
   }

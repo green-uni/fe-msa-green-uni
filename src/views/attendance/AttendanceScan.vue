@@ -290,7 +290,7 @@ onUnmounted(stopScan)
 /* [추가] 스캔 화면 홈으로 버튼 */
 .btn-back-home {
   position: absolute;
-  top: 20px;
+  top: calc(env(safe-area-inset-top) + 20px);
   left: 16px;
   background: rgba(0, 0, 0, 0.45);
   color: #fff;

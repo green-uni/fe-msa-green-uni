@@ -245,7 +245,7 @@ onMounted(async () => {
 
       <div v-if="isReady" class="page-footer">
         <button class="btn btn-default" @click="router.push('/members/major-request')">
-          <font-awesome-icon icon="fa-solid fa-arrow-left" /> 뒤로가기
+          <font-awesome-icon icon="fa-solid fa-arrow-left" /> 돌아가기
         </button>
         <div class="action-group">
           <button class="btn btn-default" @click="resetForm">

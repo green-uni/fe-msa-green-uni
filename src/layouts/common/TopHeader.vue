@@ -57,7 +57,7 @@ const doLogOut = async () => {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 14px 16px 12px;
+  padding: calc(env(safe-area-inset-top) + 14px) 16px 12px;
   background: $default-bg;
   border-bottom: 1px solid $border-color;
 }

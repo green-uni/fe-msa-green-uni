@@ -39,8 +39,30 @@ const login = async () => {
     router.push('/student/attendances/home')
   } catch (e) {
     console.error(e)
+  } finally {
     isLoading.value = false
   }
+}
+
+// ── PWA 설치 유도 ──────────────────────────────────────────────
+const isInstalledPwa = window.matchMedia('(display-mode: standalone)').matches
+                    || window.navigator.standalone === true
+
+const isIos     = /iPhone|iPad|iPod/i.test(navigator.userAgent)
+const isAndroid = /Android/i.test(navigator.userAgent)
+
+const deferredPrompt = ref(null)
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault()
+  deferredPrompt.value = e
+})
+
+async function installPwa() {
+  if (!deferredPrompt.value) return
+  deferredPrompt.value.prompt()
+  const { outcome } = await deferredPrompt.value.userChoice
+  deferredPrompt.value = null
 }
 </script>
 
@@ -62,6 +84,25 @@ const login = async () => {
 
     <div class="form-card">
       <LoginForm :form="form" variant="academic" :mobile="true" :isLoading="isLoading" @login="login" />
+    </div>
+
+    <!-- PWA 설치 유도 (미설치 상태에서만 표시) -->
+    <div v-if="!isInstalledPwa" class="install-guide">
+      <p class="install-guide-title">📲 홈 화면에 추가하면 더 편리해요</p>
+
+      <template v-if="isAndroid && deferredPrompt">
+        <button class="btn-install" @click="installPwa">홈화면에 추가하기</button>
+      </template>
+
+      <template v-else-if="isIos">
+        <p class="install-guide-step">
+          Safari 하단 <strong>공유(□↑)</strong> → <strong>홈 화면에 추가</strong>
+        </p>
+      </template>
+
+      <template v-else>
+        <p class="install-guide-step">브라우저 메뉴 → <strong>홈 화면에 추가</strong></p>
+      </template>
     </div>
 
   </div>
@@ -126,12 +167,41 @@ const login = async () => {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
 
-  &__title {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 700;
-    color: $font-color;
-  }
+/* ── PWA 설치 유도 ── */
+.install-guide {
+  background: #fff;
+  border: 1.5px solid $green-600;
+  border-radius: $radius-sm;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.install-guide-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: $font-color;
+}
+
+.install-guide-step {
+  font-size: 0.75rem;
+  color: $font-color-light;
+  line-height: 1.6;
+  strong { color: $font-color; }
+}
+
+.btn-install {
+  width: 100%;
+  padding: 10px 0;
+  background: $green-600;
+  color: #fff;
+  border: none;
+  border-radius: $radius-sm;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
 }
 </style>

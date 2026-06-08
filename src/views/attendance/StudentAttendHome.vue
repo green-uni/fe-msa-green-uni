@@ -1,54 +1,18 @@
 <template>
   <div class="attend-home">
 
-    <!-- ── PWA 미설치 안내 (브라우저로 접속한 경우만 표시) ── -->
-    <div v-if="showInstallGuide" class="install-guide">
-      <div class="install-guide-inner">
-        <p class="install-guide-title">📲 앱으로 설치하면 더 편리해요</p>
-
-        <!-- Android: beforeinstallprompt 이벤트 지원 -->
-        <template v-if="isAndroid && deferredPrompt">
-          <button class="btn-install-main" @click="installPwa">홈화면에 추가하기</button>
-        </template>
-
-        <!-- iOS: 수동 설치 안내 -->
-        <template v-else-if="isIos">
-          <p class="install-guide-step">
-            Safari 하단 <strong>공유 버튼(□↑)</strong> →
-            <strong>홈 화면에 추가</strong> 탭
-          </p>
-        </template>
-
-        <!-- 그 외 (Android인데 이벤트 아직 안 온 경우 등) -->
-        <template v-else>
-          <p class="install-guide-step">브라우저 메뉴 → <strong>홈 화면에 추가</strong></p>
-        </template>
-
-        <button class="btn-dismiss-guide" @click="showInstallGuide = false">나중에</button>
+    <!-- 상단 헤더: 학생 정보 -->
+    <header class="s-header">
+      <div class="header-title">
+        <span class="header-logo">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 9L12 5 2 9l10 4 10-4v6"/>
+            <path d="M6 10.6V16a6 3 0 0 0 12 0v-5.4"/>
+          </svg>
+        </span>
+        <p class="header-school">그린대학교 전자출결</p>
       </div>
-    </div>
-
-    <!-- 헤더 -->
-    <header class="header">
-      <div class="header-left">
-        <div class="header-title">
-          <span class="header-logo">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M22 9L12 5 2 9l10 4 10-4v6"/>
-              <path d="M6 10.6V16a6 3 0 0 0 12 0v-5.4"/>
-            </svg>
-          </span>
-          <p class="header-school">그린대학교 전자출결</p>
-        </div>
-        <p class="header-user">{{ majorName }} · {{ userName }}</p>
-      </div>
-      <button class="btn-logout" @click="doLogOut" aria-label="로그아웃">로그아웃
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-          <polyline points="16 17 21 12 16 7"/>
-          <line x1="21" y1="12" x2="9" y2="12"/>
-        </svg>
-      </button>
+      <p class="header-user">{{ majorName }} · {{ userName }}</p>
     </header>
 
     <!-- 메인 영역 -->
@@ -69,7 +33,6 @@
           </svg>
         </span>
         <p class="card-main-title">나의 출석 현황</p>
-        <p class="card-main-subtitle">전체 출석 기록 확인</p>
       </button>
 
       <!-- 작은 카드: QR 출석하기 -->
@@ -90,20 +53,29 @@
           </span>
           <p class="card-qr-text">QR 출석하기</p>
         </button>
+        <!-- QR 버튼 바로 아래 안내 문구 -->
+        <p class="wifi-notice">학교 와이파이 연결 시에만 출석 가능</p>
       </div>
 
     </main>
 
-    <!-- 하단 안내 -->
-    <footer class="footer-notice">
-      <p class="footer-notice-text">학교 와이파이 연결 시에만 출석 가능</p>
+    <!-- 하단: 로그아웃 -->
+    <footer class="bottom-bar">
+      <button class="btn-logout" @click="doLogOut" aria-label="로그아웃">
+        로그아웃
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </button>
     </footer>
 
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authentication'
 import AuthService from '@/services/authService'
@@ -124,33 +96,6 @@ async function doLogOut() {
 const majorName = computed(() => authStore.major || '-')
 const userName  = computed(() => authStore.name  || '-')
 
-// ── PWA 설치 감지 ──────────────────────────────────────────────────────────────
-// standalone: 이미 PWA로 설치되어 실행 중인 경우 → 설치 안내 불필요
-const isInstalledPwa = window.matchMedia('(display-mode: standalone)').matches
-                    || window.navigator.standalone === true  // iOS Safari PWA 감지
-
-const isIos     = /iPhone|iPad|iPod/i.test(navigator.userAgent)
-const isAndroid = /Android/i.test(navigator.userAgent)
-
-// 설치 안내: 미설치 상태에서만 표시
-const showInstallGuide = ref(!isInstalledPwa)
-
-// ── Android: beforeinstallprompt 이벤트 (Chrome 전용) ────────────────────────
-let deferredPrompt = ref(null)
-
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault()
-  deferredPrompt.value = e
-})
-
-async function installPwa() {
-  if (!deferredPrompt.value) return
-  deferredPrompt.value.prompt()
-  const { outcome } = await deferredPrompt.value.userChoice
-  if (outcome === 'accepted') showInstallGuide.value = false
-  deferredPrompt.value = null
-}
-
 // ── 이벤트 핸들러 ──────────────────────────────────────────────────────────────
 function goToMyAttend() { router.push('/student/attendances/my') }
 function goToQrScan()   { router.push('/student/attendances/scan') }
@@ -158,94 +103,25 @@ function goToQrScan()   { router.push('/student/attendances/scan') }
 
 <style scoped lang="scss">
 .attend-home {
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100%;
   display: flex;
   flex-direction: column;
   background: $default-bg;
-  padding: 20px 16px;
+  padding: 0 0 20px;
   max-width: 480px;
   margin: 0 auto;
   box-sizing: border-box;
-}
-
-/* ── PWA 설치 안내 배너 ── */
-.install-guide {
-  background: #fff;
-  border: 1.5px solid $green-600;
-  border-radius: $radius-sm;
-  margin-bottom: 16px;
   overflow: hidden;
 }
 
-.install-guide-inner {
-  padding: 14px 16px;
+/* ── 상단 헤더 ── */
+.s-header {
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-}
-
-.install-guide-title {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: $font-color;
-}
-
-.install-guide-step {
-  font-size: 0.75rem;
-  color: $font-color-light;
-  line-height: 1.6;
-  strong { color: $font-color; }
-}
-
-.btn-install-main {
-  width: 100%;
-  padding: 10px 0;
-  background: $green-600;
-  color: #fff;
-  border: none;
-  border-radius: $radius-sm;
-  font-size: 0.875rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.btn-dismiss-guide {
-  align-self: flex-end;
-  background: none;
-  border: none;
-  font-size: 0.75rem;
-  color: $font-color-light;
-  cursor: pointer;
-  text-decoration: underline;
-  padding: 0;
-}
-
-/* ── 헤더 ── */
-.header {
-  flex-shrink: 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding-top: 8px;
-}
-
-.header-left { display: flex; flex-direction: column; gap: 4px; }
-
-.btn-logout {
-  background: none;
-  border: 1px solid $border-color;
-  border-radius: 8px;
-  padding: 6px 10px;
-  color: $font-color-light;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
   gap: 4px;
-  font-size: 0.75rem;
-  flex-shrink: 0;
-  &:hover { color: $font-color; border-color: $font-color-light; }
-  &:active { opacity: 0.7; }
+  padding: calc(env(safe-area-inset-top) + 14px) 16px 12px;
+  border-bottom: 1px solid $border-color;
 }
 
 .header-title {
@@ -269,6 +145,7 @@ function goToQrScan()   { router.push('/student/attendances/scan') }
   font-size: 15px;
   font-weight: 600;
   color: $font-color;
+  margin: 0;
 }
 
 .header-user {
@@ -276,16 +153,26 @@ function goToQrScan()   { router.push('/student/attendances/scan') }
   color: $font-color-light;
 }
 
+/* ── 하단 바: 로그아웃 ── */
+.bottom-bar {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  padding: 14px 16px calc(env(safe-area-inset-bottom) + 14px);
+  border-top: 1px solid $border-color;
+}
+
 .btn-logout {
   background: none;
   border: 1px solid $border-color;
   border-radius: 8px;
-  padding: 6px 8px;
+  padding: 8px 20px;
   color: $font-color-light;
+  font-size: 0.875rem;
   cursor: pointer;
   display: flex;
   align-items: center;
-  flex-shrink: 0;
+  gap: 6px;
   &:hover { color: $font-color; border-color: $font-color-light; }
   &:active { opacity: 0.7; }
 }
@@ -297,7 +184,7 @@ function goToQrScan()   { router.push('/student/attendances/scan') }
   flex-direction: column;
   justify-content: center;
   gap: 24px;
-  padding: 16px 0;
+  padding: 16px 16px;
 }
 
 /* ── 큰 카드 ── */
@@ -305,6 +192,7 @@ function goToQrScan()   { router.push('/student/attendances/scan') }
   background: $green-600;
   border-radius: $radius-df;
   padding: 24px 16px;
+  justify-content: center;
   text-align: center;
   box-shadow: 0 4px 14px rgba(62, 158, 126, 0.25);
   cursor: pointer;
@@ -335,10 +223,12 @@ function goToQrScan()   { router.push('/student/attendances/scan') }
 .card-qr-wrapper { text-align: center; }
 
 .card-qr {
-  display: inline-flex;
+  display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 14px 24px;
+  justify-content: center;
+  width: 100%;
+  padding: 24px 16px;
   background: white;
   border: 1px solid $border-color;
   border-radius: $radius-df;
@@ -353,7 +243,12 @@ function goToQrScan()   { router.push('/student/attendances/scan') }
 .card-qr-icon { width: 56px; height: 56px; margin-bottom: 8px; }
 .card-qr-text { font-size: 13px; font-weight: 600; color: $green-600; }
 
-/* ── 하단 안내 ── */
-.footer-notice      { flex-shrink: 0; text-align: center; padding-bottom: 4px; }
-.footer-notice-text { font-size: 11px; color: $font-color-light; }
+/* ── QR 버튼 아래 와이파이 안내 ── */
+.wifi-notice {
+  font-size: 12px;
+  color: $font-color-light;
+  text-align: center;
+  margin-top: 8px;
+}
+
 </style>

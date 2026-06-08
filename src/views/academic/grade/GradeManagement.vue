@@ -270,10 +270,10 @@ onMounted(async () => {
             />
 
         <div class="page-footer">
-            <button class="btn btn-default" @click="router.back()">← 뒤로</button>
+            <button class="btn btn-default" @click="router.back()"><font-awesome-icon icon="fa-solid fa-arrow-left" /> 돌아가기</button>
             <div class="action-group">
                 <button v-if="!isEditMode" class="btn btn-default" @click="startEditMode">수정</button>
-                <button v-else class="btn btn-submit" @click="saveGrades">저장</button>
+                <button v-else class="btn btn-submit" @click="saveGrades"><font-awesome-icon icon="fa-solid fa-circle-check" /> 저장</button>
             </div>
         </div>
     </div>

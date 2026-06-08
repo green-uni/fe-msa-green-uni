@@ -131,7 +131,7 @@ onMounted(fetchData);
       <div v-else-if="evalStatus === 'active' && detail?.hasGrade && detail?.score == null" class="card">
         <div class="req-list">
           <dl class="req-row"><dt>강의명</dt><dd>{{ detail?.lectureName }}</dd></dl>
-          <dl class="req-row"><dt>교수명</dt><dd>{{ detail?.proName }}</dd></dl>
+          <dl class="req-row"><dt>교수명</dt><dd>{{ detail?.proName }}({{ detail?.memberCode }})</dd></dl>
           <dl class="req-row full">
             <dt>강의 만족도</dt>
             <dd>
@@ -186,7 +186,7 @@ onMounted(fetchData);
       <div v-else-if="detail?.score != null" class="card">
         <div class="req-list">
           <dl class="req-row"><dt>강의명</dt><dd>{{ detail?.lectureName }}</dd></dl>
-          <dl class="req-row"><dt>교수명</dt><dd>{{ detail?.proName }}</dd></dl>
+          <dl class="req-row"><dt>교수명</dt><dd>{{ detail?.proName }}({{ detail?.memberCode }})</dd></dl>
           <dl class="req-row full">
             <dt>강의 만족도</dt>
             <dd>
@@ -231,7 +231,7 @@ onMounted(fetchData);
       <div class="card">
         <div class="req-list">
           <dl class="req-row"><dt>강의명</dt><dd>{{ detail.lectureName }}</dd></dl>
-          <dl class="req-row"><dt>교수명</dt><dd>{{ detail.proName }}</dd></dl>
+          <dl class="req-row"><dt>교수명</dt><dd>{{ detail.proName }}({{ detail.memberCode }})</dd></dl>
           <dl class="req-row full">
             <dt>평가기간</dt>
             <dd>{{ formatDate(detail.startDate) }} ~ {{ formatDate(detail.endDate) }}</dd>
@@ -282,14 +282,14 @@ onMounted(fetchData);
 
     <div class="page-footer">
       <button class="btn btn-default" @click="router.back()">
-        <font-awesome-icon icon="fa-solid fa-chevron-left" /> 목록으로
+        <font-awesome-icon icon="fa-solid fa-list" /> 목록
       </button>
       <div class="action-group">
         <button
           v-if="role === 'STUDENT' && evalStatus === 'active' && detail?.hasGrade && detail?.score == null"
           class="btn btn-submit"
           @click="submitEval"
-        >제출</button>
+        ><font-awesome-icon icon="fa-solid fa-circle-check" /> 제출</button>
       </div>
     </div>
   </div>

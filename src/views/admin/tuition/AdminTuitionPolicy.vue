@@ -197,7 +197,7 @@ onMounted(() => {
             <div v-else>{{ formatPrice(policy.baseAmount) }}원</div>
             <div>{{ formatDateTime(policy.updatedAt) }}</div>
             <div v-if="policy.isEditing" class="d-flex g5 jc-center">
-              <button class="btn btn-submit btn-sm" @click="savePolicy(policy)">저장</button>
+              <button class="btn btn-submit btn-sm" @click="savePolicy(policy)"><font-awesome-icon icon="fa-solid fa-circle-check" /> 저장</button>
               <button class="btn btn-default btn-sm" @click="cancelEdit(policy)">취소</button>
             </div>
             <div v-else>

@@ -31,7 +31,7 @@ const isCurrent = (lecture) =>
 onMounted(async () => {
   try {
     const res = await attendanceService.getProfessorLectures()
-    lectures.value = res.data ?? res
+    lectures.value = (res.data ?? res).filter(lec => isCurrent(lec))
   } catch {
     // 에러 모달은 httpRequester 인터셉터가 처리
   } finally {
@@ -60,7 +60,7 @@ onMounted(async () => {
         :key="lecture.lectureId"
         class="tbl-row"
         :class="{ 'row--sample': !isCurrent(lecture) }">
-        <div class="tal">{{ lecture.lectureName }}</div>
+        <div>{{ lecture.lectureName }}</div>
         <div>{{ typeLabel(lecture.lectureType) }}</div>
         <div>{{ lecture.year }}년</div>
         <div>{{ lecture.semester }}학기</div>

@@ -602,10 +602,10 @@ onBeforeRouteLeave(async (to, from, next) => {
 
     </div>
     <div class="page-footer">
-      <button class="btn btn-default" @click="router.go(-1)">← 돌아가기</button>
+      <button class="btn btn-default" @click="router.go(-1)"><font-awesome-icon icon="fa-solid fa-arrow-left" /> 돌아가기</button>
       <div class="action-group">
         <button class="btn btn-submit" @click="submitLecture" :disabled="isSubmitting">
-          <font-awesome-icon icon="fa-solid fa-circle-check" /> {{ isEdit ? '수정하기' : '개설신청' }}
+          <font-awesome-icon icon="fa-solid fa-circle-check" /> {{ isEdit ? '수정' : '신청' }}
         </button>
       </div>
     </div>

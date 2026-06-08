@@ -70,8 +70,7 @@ const submit = async () => {
 </script>
 
 <template>
-  <div class="container">
-    <div class="content-wrap">
+    <div class="card auth-form">
       <div class="form-grid">
         <div class="input-wrap">
           <div class="input-label">기존 비밀번호</div>
@@ -85,7 +84,7 @@ const submit = async () => {
           </div>
         </div>
         <div class="input-wrap">
-          <div class="input-label">새 비밀번호</div>
+          <div class="input-label" style="align-self: baseline; padding-top: 8px;">새 비밀번호</div>
           <div class="input-content">
             <label>
               <input :type="state.modeShowPw ? 'text' : 'password'"
@@ -122,9 +121,4 @@ const submit = async () => {
           변경</button>
       </div>
     </div>
-  </div>
 </template>
-
-<style scoped>
-
-</style>

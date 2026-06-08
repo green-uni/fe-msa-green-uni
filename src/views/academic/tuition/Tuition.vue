@@ -182,7 +182,7 @@ onMounted(() => { fetchTuitionDetail(); });
 
         <div class="page-footer">
           <p class="notice-caution">납부기한까지 납부하지 않으면 등록이 취소될 수 있습니다.</p>
-          <button class="btn btn-submit" @click="handlePayment">납부완료</button>
+          <button class="btn btn-submit" @click="handlePayment"><font-awesome-icon icon="fa-solid fa-circle-check" /> 납부완료</button>
         </div>
       </div>
 
