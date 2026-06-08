@@ -174,7 +174,10 @@ onMounted(async () => {
   try {
     const res = await ScheduleService.getActiveSchedules()
     const scheduleData = res.data?.data
-    isPeriod.value = !!(scheduleData?.수강신청 || scheduleData?.수강정정)
+    
+    // 💡 한글('수강신청', '수강정정') 대신 백엔드 응답 Key 값인 영어 대문자로 변경합니다.
+    isPeriod.value = !!(scheduleData?.COURSE_REGISTRATION || scheduleData?.COURSE_MODIFICATION)
+    
     if (!isPeriod.value) return
   } catch (e) {
     console.error('수강 상태 확인 실패', e)
