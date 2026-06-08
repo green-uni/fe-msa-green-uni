@@ -297,12 +297,10 @@ onMounted(async () => {
       <!-- Card 1: 강의 기본 정보 -->
       <section class="card">
         <div class="card-label">
-          <span>
             {{ state.data.lectureName }}
             <span v-if="state.data.status === '대기'"  :class="BADGE_CLASS.PENDING">대기</span>
             <span v-else-if="state.data.status === '반려'" :class="BADGE_CLASS.REJECTED">반려</span>
             <span v-else-if="state.data.status === '취소'" :class="BADGE_CLASS.CANCELLED">폐강</span>
-          </span>
         </div>
         <div class="info-grid">
           <div class="info-item">
