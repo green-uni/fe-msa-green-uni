@@ -23,7 +23,8 @@ watch(() => route.path, async () => {
 })
 
 const publicRoutes = ['/login', '/admin/login', '/auth/password']
-const isMobileDevice = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+const isMobileDevice = /Android|iPhone|iPad|iPod|Mobile|KAKAOTALK/i.test(navigator.userAgent)
+  || window.screen.width < 768
 const showLayout = computed(() =>
   authStore.isLogin && !(isMobileDevice && publicRoutes.includes(route.path))
 )
