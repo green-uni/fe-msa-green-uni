@@ -152,7 +152,7 @@ const resetPw = async () => {
             <div class="input-label">학번/교번/사번</div>
             <div class="input-content">
               <label>
-                <input type="text" v-model="state.memberCode" placeholder="학번/교번/사번을 입력하세요">
+                <input type="text" v-model="state.memberCode" placeholder="학번/교번/사번을 입력하세요" autocomplete="off">
               </label>
             </div>
           </div>
@@ -160,7 +160,7 @@ const resetPw = async () => {
             <div class="input-label">이메일</div>
             <div class="input-content">
               <label>
-                <input type="text" v-model="state.email" placeholder="이메일을 입력하세요" @keyup.enter="sendEmail" />
+                <input type="text" v-model="state.email" placeholder="이메일을 입력하세요" @keyup.enter="sendEmail"  autocomplete="off"/>
               </label>
             </div>
           </div>
@@ -184,10 +184,10 @@ const resetPw = async () => {
           <p>{{ stepArray[1].content }}</p>
         </div>
         <div class="form-grid">
-          <div class="input-wrap">
+          <div class="input-wrap" style="grid-template-columns:1fr">
             <div class="input-content">
               <label>
-                <input type="text" v-model="state.verifyCode"  @keyup.enter="checkCode">
+                <input type="text" v-model="state.verifyCode"  @keyup.enter="checkCode" autocomplete="off">
               </label>
             </div>
           </div>

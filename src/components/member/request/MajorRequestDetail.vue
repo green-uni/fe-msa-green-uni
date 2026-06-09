@@ -4,6 +4,7 @@ import { formatDateTime } from '@/utils/dateNumber';
 
 const props = defineProps({
   request: { type: Object, required: true },
+  isAdmin: { type: Boolean, default: false },
 });
 const emit = defineEmits(['downloadFile']);
 </script>
@@ -43,7 +44,7 @@ const emit = defineEmits(['downloadFile']);
         <span class="info-key">처리일</span>
         <span class="info-val">{{ formatDateTime(request.updatedAt) || '-' }}</span>
       </div>
-      <div class="info-item">
+      <div v-if="isAdmin" class="info-item">
         <span class="info-key">처리자</span>
         <span class="info-val">{{ request.updaterName ? `${request.updaterName} (${request.updaterCode})` : '-' }}</span>
       </div>
