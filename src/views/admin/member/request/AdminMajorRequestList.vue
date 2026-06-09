@@ -45,6 +45,7 @@ const fetchList = async () => {
     state.list = res.data.content ?? []
     maxPage.value = res.data.totalPages ?? 1
     totalCount.value = Number(res.data.totalElements ?? 0)
+    console.log(res.data.content)
   } catch (err) {
     console.error('신청서 목록 로드 실패:', err);
   } finally {
@@ -142,7 +143,10 @@ onMounted(() => {
         <div>{{ MAJOR_REQUEST_TYPE[item.type] ?? item.type }}</div>
         <div>{{ item.targetMajorName }}</div>
         <div class="tbl-meta">{{ formatDateTime(item.createdAt) }}</div>
-        <div>{{ item.updaterName ?? '-' }}</div>
+        <div>
+          <template v-if="item.updaterName">{{ item.updaterName }} <small>({{ item.updaterCode }})</small></template>
+          <template v-else>-</template>
+        </div>
         <div class="tbl-meta">{{ APPROVAL_STATUS[item.status] ?? item.status }}</div>
       </article>
     </DataTable>

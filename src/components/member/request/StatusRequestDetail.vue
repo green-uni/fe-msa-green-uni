@@ -4,7 +4,8 @@ import { BADGE_CLASS, APPROVAL_STATUS, STATUS_REQUEST_TYPE } from '@/utils/const
 import { formatDateTime } from '@/utils/dateNumber';
 
 const props = defineProps({
-  request: { type: Object, required: true }
+  request: { type: Object, required: true },
+  isAdmin: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['downloadFile']);
@@ -51,7 +52,7 @@ const isAbsence = computed(() => props.request.type === 'ABSENCE');
         <span class="info-key">처리일</span>
         <span class="info-val">{{ formatDateTime(request.updatedAt) || '-' }}</span>
       </div>
-      <div class="info-item">
+      <div v-if="isAdmin" class="info-item">
         <span class="info-key">처리자</span>
         <span class="info-val">{{ request.updaterName ? `${request.updaterName} (${request.updaterCode})` : '-' }}</span>
       </div>

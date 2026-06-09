@@ -142,7 +142,10 @@ onMounted(() => {
         <div>{{ item.semester }}학기</div>
         <div>{{ STATUS_REQUEST_TYPE[item.type] ?? item.type }}</div>
         <div class="tbl-meta">{{ formatDateTime(item.createdAt) }}</div>
-        <div>{{ item.updaterName ?? '-' }}</div>
+        <div>
+          <template v-if="item.updaterName">{{ item.updaterName }} <small>({{ item.updaterCode }})</small></template>
+          <template v-else>-</template>
+        </div>
         <div class="tbl-meta">{{ APPROVAL_STATUS[item.status] ?? item.status }}</div>
       </article>
     </DataTable>

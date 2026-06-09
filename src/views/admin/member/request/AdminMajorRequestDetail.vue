@@ -157,7 +157,7 @@ onBeforeRouteLeave((to) => {
       </section>
 
       <!-- 신청 내용 -->
-      <MajorRequestDetail :request="request" @downloadFile="downloadFile" />
+      <MajorRequestDetail :request="request" :isAdmin="true" @downloadFile="downloadFile" />
 
       <!-- 승인 메모 입력 박스 -->
       <div v-if="showApproveBox" class="action-box">

@@ -87,6 +87,7 @@ function handleTempSave() {
     professor: { ...professor },
     admin: { ...admin },
   }))
+  pageState.setContent(false)
   modal.showAlert('임시저장 되었습니다.', 'info')
 }
 

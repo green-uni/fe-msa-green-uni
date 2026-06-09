@@ -46,14 +46,20 @@ const returnYearOptions = computed(() => {
 // ── 임시저장 ─────────────────────────────────────────
 const handleTempSave = () => {
     localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...form }));
+    pageState.setContent(false);
     modal.showAlert('임시저장 되었습니다.', 'info');
 };
 
-const loadDraft = () => {
+const loadDraft = async () => {
     const raw = localStorage.getItem(DRAFT_KEY);
     if (!raw) return false;
     try {
-        Object.assign(form, JSON.parse(raw));
+        const draft = JSON.parse(raw);
+        Object.assign(form, draft);
+        // type watcher가 returnYear/returnSemester를 초기화하므로 nextTick 후 복원
+        await nextTick();
+        form.returnYear = draft.returnYear ?? '';
+        form.returnSemester = draft.returnSemester ?? '';
         return true;
     } catch {
         localStorage.removeItem(DRAFT_KEY);
