@@ -10,11 +10,23 @@ const unreadCount = ref(0)
 const isPanelOpen = ref(false)
 let stompClient = null
 let onBannerRefresh = null
+let countPollTimer = null
 
-function addIfNew(noti) {
+async function addIfNew(noti) {
   if (!notifications.value.some((n) => n.notiId === noti.notiId)) {
     notifications.value.unshift({ ...noti, isRead: false })
-    unreadCount.value++
+    if (noti.unreadCount != null) {
+      // 개인 알림: 백엔드가 정확한 미읽음 수를 전달
+      unreadCount.value = noti.unreadCount
+    } else {
+      // 역할 알림: 수신자마다 카운트가 달라 REST에서 재조회
+      try {
+        const res = await axios.get('/academic/notifications/unread-count')
+        unreadCount.value = res.data.data?.unreadCount ?? unreadCount.value + 1
+      } catch {
+        unreadCount.value++
+      }
+    }
   }
 }
 
@@ -44,6 +56,27 @@ const NotificationService = {
 
   async deleteAll() {
     await axios.delete('/academic/notifications')
+  },
+
+  // ── 폴링 ──────────────────────────────────────────
+  startCountPolling() {
+    if (countPollTimer) return
+    countPollTimer = setInterval(async () => {
+      if (!useAuthStore().isLogin) return
+      try {
+        const res = await axios.get('/academic/notifications/unread-count')
+        unreadCount.value = res.data.data?.unreadCount ?? 0
+      } catch {
+        // silent
+      }
+    }, 15000)
+  },
+
+  stopCountPolling() {
+    if (countPollTimer) {
+      clearInterval(countPollTimer)
+      countPollTimer = null
+    }
   },
 
   // ── WebSocket ──────────────────────────────────────
@@ -81,6 +114,7 @@ const NotificationService = {
     })
 
     stompClient.activate()
+    NotificationService.startCountPolling()
   },
 
   // disconnect() {
@@ -91,6 +125,7 @@ const NotificationService = {
   // },
 
 disconnect() {
+  NotificationService.stopCountPolling()
   try {
     stompClient?.deactivate()
   } catch (e) {
