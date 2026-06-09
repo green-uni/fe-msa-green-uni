@@ -17,7 +17,8 @@ router.beforeEach(async (to, _from, next) => {
   const isAdminPath = to.path.startsWith('/admin/')
 
   // 모바일 학생: /student/* 경로와 /student/login만 허용 — PC 레이아웃 접근 차단
-  const isMobileDevice = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+  const isMobileDevice = /Android|iPhone|iPad|iPod|Mobile|KAKAOTALK/i.test(navigator.userAgent)
+    || window.screen.width < 768
   if (!isMobileDevice && to.path === '/student/login') {
     next('/login')
     return
