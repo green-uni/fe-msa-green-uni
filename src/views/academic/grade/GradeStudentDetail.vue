@@ -130,7 +130,7 @@ onMounted(async () => {
                                     <th>등급</th>
                                     <th>평점</th>
                                     <th>강의 석차</th>
-                                    <th v-if="appealPeriod">이의신청</th>
+                                    <th v-if="group.items.some(g => g.canAppeal)">이의신청</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -158,7 +158,7 @@ onMounted(async () => {
                                         <span v-if="g.myRank != null">{{ g.myRank }} / {{ g.totalCount }}명</span>
                                         <span v-else class="no-data">-</span>
                                     </td>
-                                    <td v-if="appealPeriod">
+                                    <td v-if="g.canAppeal">
                                         <span v-if="!g.lectureGrade" class="no-data">-</span>
                                         <span v-else-if="g.appealStatus === 'APPROVED'">승인</span>
                                         <span v-else-if="g.appealStatus === 'PENDING'">검토 중</span>
