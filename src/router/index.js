@@ -23,6 +23,10 @@ router.beforeEach(async (to, _from, next) => {
     next('/login')
     return
   }
+  if (!isMobileDevice && to.path.startsWith('/student/')) {
+    next(isLogin ? '/members/dashboard' : '/login')
+    return
+  }
   if (isMobileDevice && to.path === '/login') {
     next('/student/login')
     return
